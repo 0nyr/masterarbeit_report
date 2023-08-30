@@ -1,4 +1,99 @@
-\section{Background}\label{chap:background}
+\section{Background}\label{sec:background}
+% Introduce the related state-of-the-art and background information in order to understand the method developed in the thesis. 
 
+The evolving landscape of cybersecurity necessitates robust techniques for safeguarding digital communications. OpenSSH, a pivotal element in this landscape, is a popular implementation of the Secure Shell (\acrshort{ssh}) protocol, which enables secure communication between two networked devices. The protocol is widely used in the industry, particularly in the context of remote access to servers. Using digital forensic techniques, it is possible to extract the SSH keys from memory dumps, which can then be used to decode encrypted communications thus allowing the monitoring of controlled systems. At the crux of this Masterarbeit is the development of machine learning algorithms to predict SSH keys within these heap dumps, focusing on using graph-like-structures and vectorization for custom embeddings. With an interdisciplinary approach that fuses traditional feature engineering with graph-based methods as well as memory modelization for inductive reasoning and learning inspired by recent developments in \acrfull{kg}, this research not only leverages existing machine learning paradigms but also explores new avenues, such as \acrfull{gcn}.
 
-Introduce the related state-of-the-art and background information in order to understand the method developed in the thesis. 
+The objective of this background section is multifaceted. Since the project has seen two distinct phases, one more classical \acrfull{ml} approach, and a second one centered aroung graph-based advanced learning methods, the background section is divided into several subsections that introduce the reader to the different concepts and techniques used in the project. First, it aims to offer an overview of SSH protocols, particularly focusing on OpenSSH key implementations \autoref{sec:background:ssh}. Second, it delineates the dataset and prior work on key extraction techniques including SmartKey \autoref{sec:background:kex}. Third, it delves into the technical aspects of knowledge graphs \autoref{sec:background:graph}, feature engineering, and embeddings—both graph-based and traditional \autoref{sec:background:processing}. Finally, it addresses the machine learning models employed in the research, emphasizing their suitability for maximizing recall in key prediction \autoref{sec:background:ml}. By fusing these distinct but interrelated areas, this section lays the foundation for the research methodologies and hypotheses tested in this study.
+
+\subsection{SSH and OpenSSH Implementation}\label{sec:background:ssh}
+
+    \subsubsection{Secure Shell (SSH)}
+    
+    As stated in \citetitle{SSHReport18}, \say{The founder of SSH, Tatu Ylönen, designed the first version of the SSH protocol after a password-sniffing attack at his university network. Tatu released his implementation as freeware in July 1995, and the tool quickly gained in popularity. Towards the end of 1995, the SSH user base had grown to 20,000 users in fifty countries. By 2000, there were an estimated 2,000,000 users of the protocol. Today, more than 95\% of the servers used to power the Internet have SSH installed in them. The SSH protocol is truly one of the cornerstones of a safe Internet.} \cite{SSHReport18}.
+
+    
+
+    \subsubsection{OpenSSH Implementation}
+    OpenSSH is an open-source implementation of the SSH protocol suite, and it is the most widely used SSH implementation. It is the default SSH implementation on most Linux distributions, and it is also available for Windows. OpenSSH is used for a wide range of purposes, including remote command-line login and remote command execution. It is also used for port forwarding, tunneling, and transferring files via SCP and SFTP. It is also used by many automated processes, such as backup systems, configuration management tools, and automated software deployment tools.
+
+    
+
+    \subsubsection{The state of SSH security}
+    Since its origins, SSH has been developed with cybersecurity in mind, and is generally considered a secure method for remote login and other secure network services over an insecure network. However, as with any technology, it can be exploited if not configured or managed correctly. The protocol is used by system administrators to manage remote systems, and it is also used by automated processes to transfer data and perform other tasks. This makes SSH a valuable target for attackers. In fact, SSH has been a popular target for cyber-attacks. Due to being so prevalent, it is often used by threat actors either as a vector for initial access, as a means to move laterally across a network or as a covered exit for exfiltration of sensitive data \cite{APTTactics19}. The encrypted nature of its communications makes it an attractive option for attackers, as it can be difficult to detect malicious activity.
+    
+    Here are some cases where SSH can involved in cyber-attacks, although it's important to note that SSH itself is not inherently insecure:
+    \begin{itemize}
+        \item \textbf{SSH Brute-Force Attacks:} One of the most common types of attacks involving SSH is a brute-force attack, where an attacker tries to gain access by repeatedly attempting to login with different username-password combinations. These attacks are not sophisticated but can be effective if strong authentication measures are not in place. For instance, the botnet \textit{Chabulo} was used to launch a large-scale brute-force attack \say{through compromised SSH servers and IoT devices} in 2018 \cite{SSHReport18}. 
+        \item \textbf{SSH Key Theft:} In some advanced attacks, threat actors have stolen SSH keys to move laterally across a network after initial entry. This allows them to authenticate as a legitimate user and can make detection much more challenging. It can \say{ occurs when users have their SSH password or unencrypted keys stolen through a variety of methods (sniffed via a key-logging console program, shoulder-surfed via bad security awareness, poor key management practices, etc.).} \cite{SSHIdentityTheft05}.
+        \item \textbf{Man-in-the-Middle Attacks:} Although SSH is designed to be secure, it can be susceptible to man-in-the-middle attacks if proper verification of SSH keys is not done during the initial connection setup.
+        \item \textbf{Misconfiguration:} As with any technology, misconfiguration can lead to security issues. For example, leaving default passwords, using weak encryption algorithms, or enabling root login can all make an SSH-enabled system vulnerable.
+    \end{itemize}
+
+    \subsubsection{SSH vulnerabilities and use in cyber-attacks}
+    In cybersecurity, it is generally considered that any system that is connected to the Internet will be attacked at some point. Similarly, it is a common saying that no system is 100\% secure. This is true for SSH as well. Although it is a secure protocol, it can be exploited if not configured or managed correctly. 
+    
+    Some vulnerabilities have also been discovered in the protocol itself, although these are rare.
+    \begin{itemize}
+        \item \textbf{SSH-1 Vulnerabilities:} A series of vulnerabilities in the first implementation of SSH were discovered from 1998 to 2001, with its subsequent fixes leading to unauthorized content insertion and arbitrary code execution. SSH-1 had many design flows and is now considered obsolete. \cite{CoreSecurity23}, \cite{SSH1Vulnerability01}. 
+        \item \textbf{CBC Plaintext Recovery:} A theoretical vulnerability discovered in 2008 affecting all versions of SSH, allowing the recovery of up to 32 bits of plaintext from CBC-encrypted ciphertext \cite{USCERT2011}.
+        \item \textbf{Suspected Decryption by NSA:} Leaked information in 2014 suggested that the NSA might be able to decrypt some SSH traffic, although the protocol itself was not confirmed to be compromised \cite{Spiegel14}.
+    \end{itemize}
+    
+    SSH has been used in many high-profile cyber-attacks and malwares, including the following:
+    \begin{itemize}
+        \item \textbf{Operation Windigo:} This was a large-scale campaign that infected over 25,000 UNIX servers. SSH was one of the vectors used for maintaining control over compromised servers. A report by ESET mentions that the  OpenSSH backdoor Linux/Ebury was first discovered in 2011 as a component of the aforementioned operation. \say{This operation has been ongoing since at least 2011 and has affected high profile servers and companies, including cPanel - the company behind the famous web hosting control panel - and Linux Foundation's kernel.org - the main repository of source code for the Linux kernel} \cite{ESETWindigo14}. 
+        \item \textbf{Linux/Hydra:} Initially unleashed in 2008, this malware is a fast login cracker that targets a range of popular protocols including SSH. Hence, SSH is one of its primary vectors to gain initial access to Internet of Things (IoT) devices. Once a device is infected by Linux/Hydra, it joins an IRC channel and initiates a SYN Flood attack \cite{ClassificationMalware21}.
+        \item \textbf{Psyb0t:} Discovered in early 2009, Psyb0t is an IRC-controlled malware specifically designed to target devices with MIPS architecture, such as routers and modems. Notably, it was responsible for orchestrating a DDoS attack against the DroneBL service, infecting up to 100,000 devices for this purpose. The malware is equipped to conduct UDP and ICMP flood attacks and employs a brute-force attack mechanism against Telnet and SSH ports. Remarkably, it uses a pre-configured list of 6,000 usernames and 13,000 passwords to perform these attacks \cite{ClassificationMalware21}.
+        \item \textbf{Chuck Noris:} Similar to Psyb0t in its objectives and methods, Chuck Noris targets routers and DSL modems, focusing on SoHo (small office/home office) devices. However, unlike Psyb0t, which uses ICMP flood attacks, Chuck Noris deploys ACK flood attacks. The malware carries out brute-force attacks on Telnet and SSH open ports, drawing parallels to the tactics employed by Psyb0t but with the specific variation in flooding techniques \cite{ClassificationMalware21}.
+    \end{itemize}
+
+    It's worth noting that in many of these cases, SSH was not the initial attack vector but was used at some stage in the attack lifecycle. Properly configured and managed SSH is still considered a secure and robust protocol for remote access and data transfer.
+
+    \subsubsection{The Imperative of SSH Honeypots in Cybersecurity Monitoring}
+    SH (Secure Shell) has become an indispensable protocol for secure communication but can also conceil malicous agents. This reality underscores the urgency for robust monitoring mechanisms capable of identifying suspicious activities in real-time. Among various countermeasures, SSH honeypots have emerged as a particularly effective tool for monitoring and gathering intelligence on potential threats. 
+
+    An SSH honeypot is a decoy server or service that mimics legitimate SSH services. The primary aim is to attract cybercriminals and study their tactics, thereby offering an active form of surveillance and data collection. Unlike traditional intrusion detection systems, honeypots do not merely identify an attack; they engage the attacker in a controlled environment, enabling detailed observation and logging of the intruder's actions. This allows for the collection of valuable information, such as the attacker's IP address, the tools used, and the techniques employed. This data can then be used to enhance security measures and develop more robust countermeasures \cite{ClassificationMalware21}. 
+
+    SSH honeypots serve as an invaluable asset in the cybersecurity arsenal, providing not just a reactive but a proactive measure against evolving cyber threats. They can collect actionable intelligence on new hacking methods, malware, and exploitation scripts. This information can be crucial for proactively securing actual production environments. The data collected can also be used to trace back to the origin of the attack, facilitating legal pursuits against the perpetrators. By diverting attackers to decoy servers, honeypots also protect real assets from being targeted, saving both computational resources and administrative effort needed for post-incident recovery.
+
+    Popular SSH honeypots include Kippo, Cowrie, and HoneySSH.  Cowrie is a fork of Kippo, with additional features such as logging of attacker's keystrokes and file transfer. 
+    \begin{itemize}
+        \item \textbf{Kippo:} Kippo is a medium-interaction honeypot that logs the attacker's shell interaction. It specializes in capturing brute force and Telnet-based attacks \cite{ClassificationMalware21}.
+        \item \textbf{Cowrie:} Serving as Kippo's successor, Cowrie emulates various protocols including SSH, SFTP, and SCP. It logs events in JSON format, making it particularly useful for detecting brute force and Telnet-based attacks, as well as spoofing attacks \cite{ClassificationMalware21}.
+        \item \textbf{IoTPOT:} This IoT-focused honeypot supports multiple CPU architectures and can detect a variety of attacks including brute force, DoS, and sniffing attacks on Telnet, SSH, and HTTP ports \cite{ClassificationMalware21}.
+        \item \textbf{HoneySSH:} HoneySSH is a low-interaction honeypot that emulates an SSH server and logs the attacker's IP address, username, and password \cite{honeyssh17}.
+    \end{itemize}
+
+    These honeypots are useful tools for gathering intelligence on potential threats. However, they are not without their limitations. For instance, they are not able to mimic a real system, such that attackers might be able to detect them  \citetitle{SSHHoneypotEffectiveness23}. Hence, the need for more advanced SSH honeypots that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system.
+
+\subsection{Prior work on key extraction}\label{sec:background:kex}
+
+    \subsubsection{SSHKex}
+
+    \subsubsection{OpenSSH memory dumps dataset}
+
+    \subsubsection{SmartKey}
+
+\subsection{Graph-based memory modelization}\label{sec:background:graph}
+
+    \subsubsection{Defining memory concepts and modelization}
+
+    \subsubsection{Graphs and Knowledge Graphs}
+
+\subsection{Data processing for Machine Learning}\label{sec:background:processing}
+    \subsubsection{Feature engineering}
+
+    \subsubsection{Graph-based embeddings}
+
+    \subsubsection{Dataset splitting and sampling}
+
+\subsection{Machine Learning and Deep Learning}\label{sec:background:ml}
+    \subsubsection{Machine Learning}
+
+    
+
+    \subsubsection{Machine Learning models}
+
+    \subsubsection{Deep Learning}
+
+    \subsubsection{GCN}

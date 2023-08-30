@@ -5,7 +5,9 @@ pkgs.mkShell {
     pkgs.texlive.combined.scheme-full
     pkgs.biber
   ];
-  # buildInputs = with pkgs.texlive; [
+}
+
+# buildInputs = with pkgs.texlive; [
   #   # General Tools
   #   combined.scheme-full
 
@@ -33,4 +35,3 @@ pkgs.mkShell {
   #   # Utilities
   #   latexmk
   # ];
-}

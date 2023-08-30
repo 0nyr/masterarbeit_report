@@ -29,6 +29,7 @@
 \usepackage{multirow}
 \usepackage[]{scrlayer-scrpage}
 \usepackage[titletoc]{appendix}
+\usepackage{comment}
 
 % quotes and bibliography: https://www.overleaf.com/learn/latex/Typesetting_quotations
 \usepackage{csquotes}
@@ -40,7 +41,8 @@
 %     style=numeric,
 %     sorting=none
 % ]{biblatex}
-\usepackage[backend=biber, style=numeric, defernumbers=true, language=american]{biblatex}
+%\usepackage[backend=biber, style=numeric, defernumbers=true, language=american]{biblatex}
+\usepackage[backend=biber, style=numeric, sorting=none, language=american]{biblatex}
 % add commands for automatic cite/uncite distinction
 \DeclareBibliographyCategory{cited}
 \AtEveryCitekey{\addtocategory{cited}{\thefield{entrykey}}}
@@ -77,6 +79,9 @@
 \newacronym{gnn}{GNN}{Graph Neural Network}
 \newacronym{gcn}{GCN}{Graph Convolutional Networks}
 \newacronym{ssh}{SSH}{Secure Shell Protocol}
+\newacronym{os}{OS}{Operating System}
+\newacronym{vm}{VM}{Virtual Machine}
+\newacronym{ddos}{DDoS}{Distributed Denial of Service}
 %\input{glossaries.tex} % acronyms definitions, failed to make in work on a separate file!!!
 
 % custom commands
@@ -120,9 +125,9 @@
 \section*{Abstract}
 As the digital landscape evolves, cybersecurity has become an indispensable focus of IT systems. Its ever-escalating challenges have amplified the importance of digital forensics, particularly in the analysis of heap dumps from main memory. In this context, the Secure Shell protocol (\acrshort{ssh}) designed for encrypted communications, serves as both a safeguard and a potential veil for malicious activities. This research project focuses on predicting SSH keys in OpenSSH memory dumps, aiming to enhance protective measures against illicit access and enable the development of advanced security frameworks or tools like honeypots. 
 
-This Masterarbeit is situated within the broader SmartVMI project, a collaborative research initiative with the objective to advance artificial intelligence-based mechanisms for attack detection and digital forensics. Specifically, this work seeks to build upon existing research on key prediction in OpenSSH heap dumps. Utilizing machine learning algorithms, the study aims to refine feature extraction techniques and explore innovative methods for effective key detection. The objective is to accurately predict the presence and location of SSH keys within memory dumps. This work builds upon, and aims to enhance, the foundations laid by the SmartKex paper \cite{SmartKex22}, enriching both the methodology and the results of the original research while exploring the untapped potential of newly proposed approaches.
+This Masterarbeit is situated within the broader SmartVMI project, a collaborative research initiative with the objective to advance artificial intelligence-based mechanisms for attack detection and digital forensics. Specifically, this work seeks to build upon existing research on key prediction in OpenSSH heap dumps. Utilizing machine learning algorithms, the study aims to refine feature extraction techniques and explore innovative methods for effective key detection. The objective is to accurately predict the presence and location of SSH keys within memory dumps. This work builds upon, and aims to enhance, the foundations laid by SSHkex \cite{SSHkex22} and SmartKex \cite{SmartKex22}, enriching both the methodology and the results of the original research while exploring the untapped potential of newly proposed approaches.
 
-This report encapsulates the progress of a year-long Master's thesis research project executed between October 2022 and October 2023. Conducted within the framework of the PhDTrack program between the University of Passau and INSA Lyon, the research has been supervised by Christofer Fellicious and Prof. Dr. Michael Granitzer from the University of Passau, as well as Prof. Dr. Pierre-Edouard Portier from INSA Lyon. It offers an in-depth discussion on the current state-of-the-art in key prediction for OpenSSH memory dumps, research questions, experimental setups, program development as well as discussing potential future directions.
+This report encapsulates the progress of a year-long Master's thesis research project executed between October 2022 and October 2023. Conducted within the framework of the PhDTrack program between the University of Passau and INSA Lyon, the research has been supervised by Christofer Fellicious and Prof. Dr. Michael Granitzer from the University of Passau, as well as Prof. Dr. Pierre-Edouard Portier from INSA Lyon. It offers an in-depth discussion on the current state-of-the-art in key prediction for OpenSSH memory dumps, research questions, experimental setups, programs development as well as discussing potential future directions.
 
 % -- Acknowledgements
 \newpage
