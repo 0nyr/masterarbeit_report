@@ -4,6 +4,7 @@ pkgs.mkShell {
   buildInputs = [
     pkgs.texlive.combined.scheme-full
     pkgs.biber
+    pkgs.gnumake
   ];
 }
 

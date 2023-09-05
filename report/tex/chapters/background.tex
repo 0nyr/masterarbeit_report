@@ -1,4 +1,5 @@
 \section{Background}\label{sec:background}
+
 % Introduce the related state-of-the-art and background information in order to understand the method developed in the thesis. 
 
 The evolving landscape of cybersecurity necessitates robust techniques for safeguarding digital communications. OpenSSH, a pivotal element in this landscape, is a popular implementation of the Secure Shell (\acrshort{ssh}) protocol, which enables secure communication between two networked devices. The protocol is widely used in the industry, particularly in the context of remote access to servers. Using digital forensic techniques, it is possible to extract the SSH keys from memory dumps, which can then be used to decode encrypted communications thus allowing the monitoring of controlled systems. At the crux of this Masterarbeit is the development of machine learning algorithms to predict SSH keys within these heap dumps, focusing on using graph-like-structures and vectorization for custom embeddings. With an interdisciplinary approach that fuses traditional feature engineering with graph-based methods as well as memory modelization for inductive reasoning and learning inspired by recent developments in \acrfull{kg}s, this research not only leverages existing machine learning paradigms but also explores new avenues, such as \acrfull{gcn}.
@@ -32,12 +33,67 @@ The objective of this background section is multifaceted. Since the project has 
         \item \textbf{Integrity Keys:} Key E and Key F are used to maintain the integrity of the data transmitted between the client and server.
     \end{itemize}
 
-    These keys are computed using hash functions that take the master key \textit{K} and a hash value \textit{h}, a unique letter (A, B, C, D, E, or F), and the session ID as inputs. Decrypting encrypted SSH communication thus necessitates either to retreive these session keys and variables so as to recompute the keys, or to retreive those keys directly, which is the focus of this Masterarbeit.
+    These keys are computed using hash functions that take the master key \textit{K} and a hash value \textit{h}, a unique letter (A, B, C, D, E, or F), and the session ID as inputs. This is summarized in \citetitle{OpenSSHUnderHood07}:
+    \say{
+        The equations used for deriving the above vectors and keys are taken from RFC 4253 \cite{RFC4253}. In the following, the $||$ symbol stands for concatenation, K is encoded as mpint, $"A"$ as byte and $session_id$ as raw data. Any letter, such as the $"A"$ (in quotation marks) means the single character A, or ASCII 65.
+        \begin{itemize}
+            \item Initial IV client to server: $HASH(K || H || "A" || session_id)$.
+            \item Initial IV server to client: $HASH(K || H || "B" || session_id)$.
+            \item Encryption key client to server: $HASH(K || H || "C" || session_id)$.
+            \item Encryption key server to client: $HASH(K || H || "D" || session_id)$.
+            \item Integrity key client to server: $HASH(K || H || "E" || session_id)$.
+            \item Integrity key server to client: $HASH(K || H || "F" || session_id)$.
+        \end{itemize}
+    } \cite{OpenSSHUnderHood07}. Details about the hash function are given in the next section.
+    
+    The most interesting keys are the encryption keys, as they are used to encrypt the communication between the client and the server. The other keys are used for integrity checks and initialization vectors. Decrypting encrypted SSH communication necessitates either to retreive these session keys and variables so as to recompute the keys, or to retreive those keys directly, which is the focus of this Masterarbeit. 
 
     \subsubsection{OpenSSH Implementation}
-    OpenSSH is an open-source implementation of the SSH protocol suite, and it is the most widely used SSH implementation. It is the default SSH implementation on most Linux distributions, and it is also available for Windows. OpenSSH is used for a wide range of purposes, including remote command-line login and remote command execution. It is also used for port forwarding, tunneling, and transferring files via SCP and SFTP. It is also used by many automated processes, such as backup systems, configuration management tools, and automated software deployment tools.
-    %TODO: complete this section
+    OpenSSH (OpenBSD Secure Shell) is an open-source implementation written in C of the SSH protocol suite, and it is the most widely used SSH implementation \cite{OpenSSHUnderHood07}. It is the default SSH implementation on most Linux distributions, and it is also available for Windows. OpenSSH is used for a wide range of purposes, including remote command-line login and remote command execution. It is also used for port forwarding, tunneling, and transferring files via SCP and SFTP either manually or via automated processes, such as backup systems, configuration management tools, and automated software deployment tools. 
+
+    OpenSSH is composed of several tools and daemons, including client and server components \cite{PortableOpenSSHGitHub}:
+    \begin{itemize}
+        \item \textbf{ssh:} The basic client program that allows to log into and execute commands on a remote machine.
+        \item \textbf{scp:} A program for securely copying files between machines.
+        \item \textbf{sftp:} An interactive file transfer program that uses SSH to secure the connection.
+        \item \textbf{sshd:} This is the SSH daemon that runs on the server. This is used for connecting to a remote machine when using the SSH client from another system.
+        \item \textbf{ssh-agent:} The program that holds private keys in memory, so one doesn't have to enter ones passphrase every time.
+        \item \textbf{ssh-add:} A program for adding RSA or DSA identities to the authentication agent.
+        \item \textbf{ssh-keygen:} A utility for creating and managing SSH keys.
+        \item \textbf{ssh-keyscan:} A utility for gathering public SSH host keys from a number of hosts.
+        \item \textbf{ssh-keychk:} A utility for checking the validity of SSH keys.
+        \item Several other tools to support the SSH protocol and the OpenSSH implementation.
+    \end{itemize}
+
+    OpenSSH employs a variety of hash functions and algorithms to secure data, most commonly using SHA1. However, SHA1 is increasingly seen as weak due to its vulnerability to collision attacks \cite{OpenSSHUnderHood07}. In light of this, the contemporary standard leans towards SHA512. The hash functions are used alongside cipher algorithms like \say{Advance Encryption Standard (AES) Cipher Block Chaining (CBC), AES Counter (AES-CTR), and ChaCha20} \cite{SmartKex22}. The Message Authentication Code (MAC) typically uses either MD5 or SHA1 hash algorithms in combination with a secret key. Since cybersecurity and cryptography are constantly evolving, so do \acrshort{ssh} and OpenSSH. Depending on the version \cite{OpenSSHUnderHood07}, the available hash options include:
     
+    \begin{itemize}
+        \item \textbf{ssh-dss:} \textit{(disabled at run-time since OpenSSH 7.0 released in 2015)} SSH-1 version using Digital Signature Algorithm (DSA) from the Digital Signature Standard (DSS). Originally popular but phased out due to vulnerabilities to collision attacks for DSA Key in a 1024-bit modulus. As stated by \citetitle{RFC9142}: \say{These attacks are still computationally very difficult to perform, but it is desirable that any key exchange using SHA-1 be phased out as soon as possible} \cite{RFC9142} \cite{OpenSSHReleaseNotes7-0}.
+        
+        \item \textbf{ssh-rsa:} \textit{(disabled at run-time since OpenSSH 8.8 released in 2021)} It refers to the use of RSA (Rivest-Shamir-Adleman) encryption algorithm. In the context of SSH-1, this version had to be replaced due to the related to key size issue similar to DSS: \say{RSA 1024-bit keys have approximately 80 bits of security strength}... \say{which may not be sufficient for most users.} \cite{RFC9142} \cite{OpenSSHReleaseNotes8-8}.
+        
+        \item \textbf{ecdsa-sha2-nistp256:} \textit{(since OpenSSH 5.7 released in 2011)} Uses the SHA-2 family for hashing and the NIST P-256 curve. It is considered secure and efficient, with an \acrfull{ess} of 128 bits \cite{RFC9142} \cite{OpenSSHReleaseNotes5-7}.
+        
+        \item \textbf{ecdsa-sha2-nistp384:} \textit{(since OpenSSH 5.7)} Utilizes the SHA-2 family and the larger NIST P-384 curve for additional security at the cost of performance. It has an \acrshort{ess} of 192 bits \cite{RFC9142} \cite{OpenSSHReleaseNotes5-7}.
+        
+        \item \textbf{ecdsa-sha2-nistp521:} \textit{(since OpenSSH 5.7)} Employs SHA-2 and the even larger NIST P-521 curve for maximal security with an \acrshort{ess} of 256 bits \cite{RFC9142}. It is less commonly used due to performance considerations \cite{OpenSSHReleaseNotes5-7}. 
+        
+        \item \textbf{ssh-ed25519:} \textit{(since OpenSSH 6.5 released in 2014)} Known for high security and performance efficiency; employs the Ed25519 elliptic curve with an \acrshort{ess} of 128 bits \cite{RFC9142} which is similar to $ecdsa-sha2-nistp256$, and has been more prevalent following the 2013 suspicions of NSA backdoors in NIST curves \cite{Adamantiadis2013} following the Snowden revelations \cite{NSAFoilSafeguards2013} \cite{GuardianEncryption2013} \cite{OpenSSHReleaseNotes6-5}.
+        
+        \item \textbf{rsa-sha2-256:} \textit{(since OpenSSH 7.2 released in 2016)} An upgrade from ssh-rsa, using SHA-256 (with \acrshort{ess} of 128 bits) for hashing to improve security without major performance hits \cite{OpenSSHReleaseNotes7-2}.
+         
+        \item \textbf{rsa-sha2-512:} \textit{(since OpenSSH 7.2)} Similar to $rsa-sha2-256$ but employs SHA-512 for even stronger security, albeit with some performance cost \cite{OpenSSHReleaseNotes7-2}.
+        
+        \item \textbf{ecdsa-sk:} \textit{(since OpenSSH 8.2 released in 2020)} Security Key-enabled, uses NIST curves and is geared towards modern hardware-based authentication \cite{OpenSSHReleaseNotes8-2}.
+        
+        \item \textbf{ed25519-sk:} \textit{(since OpenSSH 8.2)} Similar to ssh-ed25519 but integrates hardware-based Security Keys for an additional layer of security \cite{OpenSSHReleaseNotes8-2}.
+        
+        \item \textbf{NTRU Prime-x25519:} \textit{(since OpenSSH 9.0)} A new, highly secure algorithm focused on post-quantum cryptography, providing future-proof security \cite{NTRUPostQuantum17} \cite{OpenSSHReleaseNotes9-0}.
+    \end{itemize}
+    
+    These hashes have fixed lengths such that key lengths range between 12 and 64 bytes \cite{SmartKex22}. Since high-quality random number generation is crucial to ensure that thoses keys are secure and difficult to predict, it can thus be assumed that thoses key have a high entropy \cite{McLaren2019}. This is a key assumption as it is the basis for the use of both brute force and machine learning algorithms to predict the presence and location of SSH keys in memory dumps.
+
+    The keys generated by these hash functions are pseudo-random numbers stored in the system's RAM. Following the Kerckhoffs' principle: that \say{a cryptosystem should be secure, even if everything about the system, except the key, is public knowledge}, the code for the OpenSSH implementation is open-source and available on GitHub \cite{PortableOpenSSHGitHub}. This allows for the analysis of the code and the identification of the memory structures where the keys are stored.
 
     \subsubsection{The state of SSH security}
     Since its origins, SSH has been developed with cybersecurity in mind, and is generally considered a secure method for remote login and other secure network services over an insecure network. However, as with any technology, it can be exploited if not configured or managed correctly. The protocol is used by system administrators to manage remote systems, and it is also used by automated processes to transfer data and perform other tasks. This makes SSH a valuable target for attackers. In fact, SSH has been a popular target for cyber-attacks. Due to being so prevalent, it is often used by threat actors either as a vector for initial access, as a means to move laterally across a network or as a covered exit for exfiltration of sensitive data \cite{APTTactics19}. The encrypted nature of its communications makes it an attractive option for attackers, as it can be difficult to detect malicious activity.
@@ -46,8 +102,8 @@ The objective of this background section is multifaceted. Since the project has 
     \begin{itemize}
         \item \textbf{SSH Brute-Force Attacks:} One of the most common types of attacks involving SSH is a brute-force attack, where an attacker tries to gain access by repeatedly attempting to login with different username-password combinations. These attacks are not sophisticated but can be effective if strong authentication measures are not in place. For instance, the botnet \textit{Chabulo} was used to launch a large-scale brute-force attack \say{through compromised SSH servers and IoT devices} in 2018 \cite{SSHReport18}. 
         \item \textbf{SSH Key Theft:} In some advanced attacks, threat actors have stolen SSH keys to move laterally across a network after initial entry. This allows them to authenticate as a legitimate user and can make detection much more challenging. It can \say{ occurs when users have their SSH password or unencrypted keys stolen through a variety of methods (sniffed via a key-logging console program, shoulder-surfed via bad security awareness, poor key management practices, etc.).} \cite{SSHIdentityTheft05}.
-        \item \textbf{Man-in-the-Middle Attacks:} Although SSH is designed to be secure, it can be susceptible to man-in-the-middle attacks if proper verification of SSH keys is not done during the initial connection setup.
-        \item \textbf{Misconfiguration:} As with any technology, misconfiguration can lead to security issues. For example, leaving default passwords, using weak encryption algorithms, or enabling root login can all make an SSH-enabled system vulnerable.
+        \item \textbf{Man-in-the-Middle Attacks:} Although SSH is designed to be secure, it can be susceptible to man-in-the-middle attacks if proper verification of SSH keys is not done during the initial connection setup \cite{OpenSSHUnderHood07}.
+        \item \textbf{Misconfiguration:} As with any technology, misconfiguration can lead to security issues. For example, leaving default passwords, using weak encryption algorithms, or enabling root login can all make an SSH-enabled system vulnerable \cite{SSHBotnetInfect21}.
     \end{itemize}
 
     \subsubsection{SSH vulnerabilities and use in cyber-attacks}
@@ -78,24 +134,75 @@ The objective of this background section is multifaceted. Since the project has 
     SSH honeypots serve as an invaluable asset in the cybersecurity arsenal, providing not just a reactive but a proactive measure against evolving cyber threats. They can collect actionable intelligence on new hacking methods, malware, and exploitation scripts. This information can be crucial for proactively securing actual production environments. The data collected can also be used to trace back to the origin of the attack, facilitating legal pursuits against the perpetrators. By diverting attackers to decoy servers, honeypots also protect real assets from being targeted, saving both computational resources and administrative effort needed for post-incident recovery.
 
     Popular SSH honeypots include Kippo, Cowrie, and HoneySSH.  Cowrie is a fork of Kippo, with additional features such as logging of attacker's keystrokes and file transfer. 
+
     \begin{itemize}
         \item \textbf{Kippo:} Kippo is a medium-interaction honeypot that logs the attacker's shell interaction. It specializes in capturing brute force and Telnet-based attacks \cite{ClassificationMalware21}.
+        
         \item \textbf{Cowrie:} Serving as Kippo's successor, Cowrie emulates various protocols including SSH, SFTP, and SCP. It logs events in JSON format, making it particularly useful for detecting brute force and Telnet-based attacks, as well as spoofing attacks \cite{ClassificationMalware21}.
+        
         \item \textbf{IoTPOT:} This IoT-focused honeypot supports multiple CPU architectures and can detect a variety of attacks including brute force, DoS, and sniffing attacks on Telnet, SSH, and HTTP ports \cite{ClassificationMalware21}.
+        
         \item \textbf{HoneySSH:} HoneySSH is a low-interaction honeypot that emulates an SSH server and logs the attacker's IP address, username, and password \cite{honeyssh17}.
+        
+        \item \textbf{Sarracenia (SSHKex):} Introduced in 2018, Sarracenia is a high-interaction SSH honeypot that has been enhanced by SSHKex. Instead of \say{requiring the VM to be paused for every incoming or outgoing packet, which degrades the server performance} \cite{SSHkex22}, SSHKex allows for the extraction of derived SSH session keys. This reduces the performance degradation significantly, as the VM is paused less frequently \cite{SSHkex22} \cite{SarraceniaSSHHoneypot18}.
     \end{itemize}
 
-    These honeypots are useful tools for gathering intelligence on potential threats. However, they are not without their limitations. For instance, they are not able to mimic a real system, such that attackers might be able to detect them  \citetitle{SSHHoneypotEffectiveness23}. Hence, the need for more advanced SSH honeypots that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system.
-
-    % TODO: add a section about tools that exist for SSH key extraction using modified SSH daemons or man-in-the-middle attacks
+    These honeypots are useful tools for gathering intelligence on potential threats. However, they are not without their limitations. For instance, they are not able to mimic a real system, such that attackers might be able to detect them  \citetitle{SSHHoneypotEffectiveness23}. Hence, the need for more advanced SSH honeypots that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research, further enhancing the state of SSH honeypots.
 
 \subsection{Prior work on key extraction}\label{sec:background:kex}
 
-    \subsubsection{SSHKex}
+    \subsubsection{SSHKex}\label{sec:background:kex:sshkex}
+    
+    SSHKex is a research project that aims to address the challenges of analyzing encrypted SSH traffic by leveraging Virtual Machine Introspection (VMI) techniques. Developed by Stewart Sentanoe and H.P. Reiser, the project focuses on extracting SSH keys and decrypting SSH network traffic in a stealthy, non-intrusive manner while maintaining evidence integrity \cite{SSHkex22}. 
+    
+    The SSHKex approach combines standard network traffic capturing methods with dynamic SSH session key extraction. It assumes that the SSH implementation running on the server is known, which is crucial for the key extraction process. The project employs VMI tools like LibVMI and Volatility to gain a complete and untainted view of all guest VM's state information. This allows for the identification and extraction of SSH keys directly from the main memory of the system under investigation \cite{SSHkex22}.
+    
+    One of the key strengths of SSHKex is its focus on stealthiness, preservation, and evidence integrity. The approach aims to be as unobtrusive as possible, avoiding any modifications to the system under investigation. This is particularly important in forensic contexts, where the integrity of the evidence is crucial \cite{SSHkex22}.
+    
+    SSHKex also opens avenues for future work, including the incorporation of machine learning models to make the key extraction process more dynamic and adaptable. This aligns well with the objectives of this Masterarbeit, which seeks to use machine learning algorithms for predicting SSH keys within memory dumps.
 
     \subsubsection{OpenSSH memory dumps dataset}
+    The OpenSSH memory dumps dataset is a crucial resource for researchers focusing on cybersecurity, particularly in the realm of SSH key extraction and memory forensics. Originating from the work presented in the paper "SmartKex: Machine Learning Assisted SSH Keys Extraction From The Heap Dump," this dataset provides a comprehensive collection of heap memory dumps from OpenSSH sessions.
+
+    Dataset Composition
+
+    The dataset is organized into two top-level directories: training and validation. These directories are further divided based on the SSH scenario, such as immediate exit, port-forward, secure copy, and shared connection. Each of these subdirectories is then categorized by the software version that generated the memory dump. Within these, the heaps are organized based on their key lengths, providing a multi-layered structure that aids in specific research queries.
+    Data Formats
+
+    Two primary file formats are used to store the data: JSON and RAW. The JSON files contain meta-information like the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. The RAW files, on the other hand, contain the actual heap dump of the OpenSSH process.
+    Methodological Implications
+
+    The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications, including but not limited to machine learning models for key extraction and malware detection.
+    Open Source and Accessibility
+
+    Both the dataset and the tools used for its generation are open-sourced. The dataset is available in a Zenodo repository, and the code can be accessed from a public GitHub repository. This ensures that the research community can easily access, modify, and contribute to this valuable resource.
 
     \subsubsection{SmartKey}
+
+        SmartKex is a groundbreaking project that focuses on the extraction of SSH keys from heap memory dumps. Developed as part of a research initiative funded by the German Federal Ministry of Education and Research, SmartKex aims to advance the field of memory forensics and cybersecurity.
+    Overview and Objectives
+
+    The primary objective of SmartKex is to automate the process of SSH key extraction from heap memory dumps. The project introduces a machine learning-assisted methodology that significantly improves the efficiency and accuracy of key extraction compared to traditional brute-force methods.
+    Methodology
+
+    SmartKex employs two distinct methods for SSH key extraction:
+
+        Brute-Force Baseline Method: This is a traditional approach that scans through the heap memory to identify potential keys based on known patterns.
+
+        Machine Learning-Assisted Method: This innovative approach uses a Random Forest algorithm trained on a highly imbalanced dataset. The machine learning model is designed to identify SSH keys with higher precision and recall rates.
+
+    The methodology involves a stacked classifier approach, consisting of a high-precision classifier and a high-recall classifier, to ensure robust key extraction.
+    Dataset Generation
+
+    SmartKex has also contributed to the research community by generating a comprehensive dataset of OpenSSH heap memory dumps. The dataset is categorized based on various SSH scenarios like immediate exit, port-forward, secure copy, and shared connection. It is further organized by software version and key lengths, stored in both JSON and RAW formats.
+    Open Source Contributions
+
+    The codebase and tools developed for SmartKex are open-sourced and publicly available on GitHub. This ensures that the broader research community can benefit from the project's findings and contribute to its ongoing development.
+    Impact and Applications
+
+    SmartKex has broad applications in the field of cybersecurity, particularly in memory forensics. Its machine learning-assisted methodology can be adapted for other types of sensitive data extraction, making it a versatile tool for researchers and practitioners alike.
+
+    By integrating SmartKex's methodologies and dataset into the broader landscape of SSH key extraction and memory forensics, the project serves as a cornerstone for future research in these critical areas of cybersecurity.
 
 \subsection{Graph-based memory modelization}\label{sec:background:graph}
 
