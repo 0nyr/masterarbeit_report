@@ -83,6 +83,8 @@
 \newacronym{vm}{VM}{Virtual Machine}
 \newacronym{ddos}{DDoS}{Distributed Denial of Service}
 \newacronym{ess}{ESS}{Estimated Security Strength}
+\newacronym{vmi}{VMI}{Virtual Machine Introspection}
+\newacronym{smote}{SMOTE}{Synthetic Minority Over-sampling Technique}
 %\input{glossaries.tex} % acronyms definitions, failed to make in work on a separate file!!!
 
 % custom commands
@@ -92,6 +94,17 @@
 \newcommand{\doublep}{\texttt{++}} % double small unary plus
 \newcommand{\m}{\texttt{-} \space} % small unary minus
 \newcommand{\doublem}{\texttt{-}\texttt{-} \space} % double small unary minus
+
+%\usepackage{titlesec}
+
+\makeatletter
+\newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
+                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {1.5ex \@plus .2ex}%
+                                     {\normalfont\normalsize\bfseries}}
+\setcounter{secnumdepth}{4}
+\renewcommand\theparagraph{\thesubsubsection.\@alph\c@paragraph}
+\makeatother
 
 % code 
 \usepackage{listings}
