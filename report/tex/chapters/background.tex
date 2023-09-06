@@ -221,127 +221,163 @@ The objective of this background section is multifaceted. Since the project has 
 
     SmartKex has contributed to the research community by generating a comprehensive annotated dataset of OpenSSH heap memory dumps \cite{SmartKex22}. The dataset is publicly available on Zenodo \footnote{\url{https://zenodo.org/record/6537904}}.
 
-    The dataset is organized into two top-level directories: $Training$ and $Validation$ with an additional $Performance\_Test$. The first two main directories are further divided based on the SSH scenario, such as immediate exit, port-forward, secure copy, and shared connection. Each of these subdirectories is then categorized by the software version that generated the memory dump. Within these, the heaps are organized based on their key lengths, providing a multi-layered structure that aids in specific research queries.
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        The dataset is organized into two top-level directories: $Training$ and $Validation$ with an additional $Performance\_Test$. The first two main directories are further divided based on the SSH scenario, such as immediate exit, port-forward, secure copy, and shared connection. Each of these subdirectories is then categorized by the software version that generated the memory dump. Within these, the heaps are organized based on their key lengths, providing a multi-layered structure that aids in specific research queries.
 
-    \begin{figure}[H]
-        \centering
-        \caption{Illustration of the Dataset Directory Structure}
-        \label{fig:dataset_structure}
-        \begin{minipage}{0.6\textwidth}
-        \dirtree{%
-        .1 /.
-        .2 Performance\_Test.
-        .3 V\_7\_1\_P1.
-        .4 16.
-        .4 24.
-        .4 32.
-        .3 ....
-        .2 Training.
-        .3 basic.
-        .4 V\_6\_0\_P1.
-        .5 16.
-        .5 24.
-        .5 32.
-        .4 ....
-        .3 ....
-        .2 Validation.
-        .3 basic.
-        .4 V\_6\_0\_P1.
-        .5 16.
-        .5 24.
-        .5 32.
-        .4 ....
-        .3 ....
-        }
+        \begin{figure}[H]
+            \centering
+            \caption{Illustration of the Dataset Directory Structure}
+            \label{fig:dataset_structure}
+            \begin{minipage}{0.6\textwidth}
+            \dirtree{%
+            .1 /.
+            .2 Performance\_Test.
+            .3 V\_7\_1\_P1.
+            .4 16.
+            .4 24.
+            .4 32.
+            .3 ....
+            .2 Training.
+            .3 basic.
+            .4 V\_6\_0\_P1.
+            .5 16.
+            .5 24.
+            .5 32.
+            .4 ....
+            .3 ....
+            .2 Validation.
+            .3 basic.
+            .4 V\_6\_0\_P1.
+            .5 16.
+            .5 24.
+            .5 32.
+            .4 ....
+            .3 ....
+            }
+        \end{minipage}
+        \end{figure}
     \end{minipage}
-    \end{figure}
 
     Two primary file formats are used to store the data: JSON and RAW. The JSON files contain meta-information like the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. The RAW files, on the other hand, contain the actual heap dump of the OpenSSH process.
 
-    Here is an example of content of a RAW memory dump file, displayed using \textit{vim} and \textit{xdd} commands:
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        Here is an example of content of a RAW memory dump file, displayed using \textit{vim} and \textit{xdd} commands:
 
-    \begin{lstlisting}[style=hexdump, caption={Hex Dump}]
-        00000000: 0000 0000 0000 0000 5102 0000 0000 0000  ........Q.......
-        00000010: 0607 0707 0707 0303 0200 0006 0401 0206  ................
-        00000020: 0200 0001 0100 0107 0604 0100 0000 0203  ................
-        00000030: 0103 0101 0000 0000 0000 0000 0000 0002  ................
-        00000040: 0001 0000 0000 0000 0000 0100 0000 0001  ................
-        00000050: 8022 1a3a 3456 0000 007f 1a3a 3456 0000  .".:4V.....:4V..
-        00000060: f040 1a3a 3456 0000 9032 1a3a 3456 0000  .@.:4V...2.:4V..
-        00000070: 608b 1a3a 3456 0000 9047 1a3a 3456 0000  `..:4V...G.:4V..
-        00000080: 10ed 193a 3456 0000 c0ab 1a3a 3456 0000  ...:4V.....:4V..
-        00000090: 8085 1a3a 3456 0000 0000 0000 0000 0000  ...:4V..........
-        000000a0: 0000 0000 0000 0000 d039 1a3a 3456 0000  .........9.:4V..
-        000000b0: d0a0 1a3a 3456 0000 a07c 1a3a 3456 0000  ...:4V...|.:4V..
-        000000c0: 502c 1a3a 3456 0000 401c 1a3a 3456 0000  P,.:4V..@..:4V..
-        000000d0: c044 1a3a 3456 0000 0000 0000 0000 0000  .D.:4V..........
-        000000e0: 0000 0000 0000 0000 50e4 193a 3456 0000  ........P..:4V..
-    \end{lstlisting}
+        \begin{lstlisting}[style=hexdump, caption={Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}]
+            00000000: 0000 0000 0000 0000 5102 0000 0000 0000  ........Q.......
+            00000010: 0607 0707 0707 0303 0200 0006 0401 0206  ................
+            00000020: 0200 0001 0100 0107 0604 0100 0000 0203  ................
+            00000030: 0103 0101 0000 0000 0000 0000 0000 0002  ................
+            00000040: 0001 0000 0000 0000 0000 0100 0000 0001  ................
+            00000050: 8022 1a3a 3456 0000 007f 1a3a 3456 0000  .".:4V.....:4V..
+            00000060: f040 1a3a 3456 0000 9032 1a3a 3456 0000  .@.:4V...2.:4V..
+            00000070: 608b 1a3a 3456 0000 9047 1a3a 3456 0000  `..:4V...G.:4V..
+        \end{lstlisting}
+    \end{minipage}
 
-    This file contains the raw byte content of the heap dump of a specific version of OpenSSH. Here is a example of content of a JSON annotation file that comes with the previous RAW file:
+    The original file contains the raw byte content of the heap dump of a specific version of OpenSSH. It is a binary file, which means that it is not human-readable. However, it can be converted to a human-readable format using the \textit{xxd} command. The first column to the left represents the offset in hexadecimal. The last column represents the actual content of the bytes, in ASCII format. The columns in between represent the content of the bytes in hexadecimal format.
 
-    %\begin{lstlisting}[language=json, , label={lst:json}]
-    \begin{lstlisting}[style=json, caption={Complete JSON example, from \textit{Training\/basic\/V\_7\_8\_P1\/16\/5070-1643978841.json}}]
-        {
-          "SSH_PID": "5070",
-          "SSH_STRUCT_ADDR": "56343a1a4800",
-          "session_state_OFFSET": "0",
-          "SESSION_STATE_ADDR": "56343a1a8d30",
-          "newkeys_OFFSET": "344",
-          "NEWKEYS_1_ADDR": "56343a1aaa40",
-          "NEWKEYS_2_ADDR": "56343a1aab40",
-          "enc_KEY_OFFSET": "0",
-          "mac_KEY_OFFSET": "48",
-          "name_ENCRYPTION_KEY_OFFSET": "0",
-          "ENCRYPTION_KEY_1_NAME_ADDR": "56343a1a9db0",
-          "ENCRYPTION_KEY_1_NAME": "aes128-gcm@openssh.com",
-          "ENCRYPTION_KEY_2_NAME_ADDR": "56343a1a3fb0",
-          "ENCRYPTION_KEY_2_NAME": "aes128-gcm@openssh.com",
-          "key_ENCRYPTION_KEY_OFFSET": "32",
-          "key_len_ENCRYPTION_KEY_OFFSET": "20",
-          "iv_ENCRYPTION_KEY_OFFSET": "40",
-          "iv_len_ENCRYPTION_KEY_OFFSET": "24",
-          "KEY_A_ADDR": "56343a1a3170",
-          "KEY_A_LEN": "12",
-          "KEY_A_REAL_LEN": "12",
-          "KEY_A": "feb5fd4ef0759b034d69b858",
-          "KEY_B_ADDR": "56343a1a33e0",
-          "KEY_B_LEN": "12",
-          "KEY_B_REAL_LEN": "12",
-          "KEY_B": "f50b988297fa19709445c4ee",
-          "KEY_C_ADDR": "56343a1aa1b0",
-          "KEY_C_LEN": "16",
-          "KEY_C_REAL_LEN": "16",
-          "KEY_C": "f5b53280e944db0fe196668d877cd4c0",
-          "KEY_D_ADDR": "56343a1a4010",
-          "KEY_D_LEN": "16",
-          "KEY_D_REAL_LEN": "16",
-          "KEY_D": "ac4f18a963d9e72c857497b7dc9d088d",
-          "KEY_E_ADDR": "56343a1a7d90",
-          "KEY_E_LEN": "0",
-          "KEY_E_REAL_LEN": "0",
-          "KEY_E": "",
-          "KEY_F_ADDR": "56343a1a2f60",
-          "KEY_F_LEN": "0",
-          "KEY_F_REAL_LEN": "0",
-          "KEY_F": "",
-          "HEAP_START": "56343a198000"
-        }
-    \end{lstlisting}
+    Since hexadecimal is a base-16 number system, each byte is represented by two hexadecimal digits. The ASCII representation of the bytes is displayed on the right, and is only used for reference, as it is not always possible to convert the bytes to ASCII. For instance, the bytes at offset 0x10 are not printable characters, and thus cannot be converted to ASCII. Each line represents 16 bytes, and the offset is incremented by 16 for each line.
+
+    For the purpose of this thesis, it will be more interesting to visualize the content of the heap dump as 8 bytes lines. This can be achieved by using the \textit{xxd} command with the \textit{-c} option, as shown in the following example:
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        The same example as before, a memory dump file, displayed using \textit{vim} and \textit{xdd -c 8} commands:
+
+        \begin{lstlisting}[style=hexdump, caption={Hex Dump}]
+            00000000: 0000 0000 0000 0000  ........
+            00000008: 5102 0000 0000 0000  Q.......
+            00000010: 0607 0707 0707 0303  ........
+            00000018: 0200 0006 0401 0206  ........
+            00000020: 0200 0001 0100 0107  ........
+            00000028: 0604 0100 0000 0203  ........
+            00000030: 0103 0101 0000 0000  ........
+            00000038: 0000 0000 0000 0002  ........
+            00000040: 0001 0000 0000 0000  ........
+            00000048: 0000 0100 0000 0001  ........
+            00000050: 8022 1a3a 3456 0000  .".:4V..
+            00000058: 007f 1a3a 3456 0000  ...:4V..
+            00000060: f040 1a3a 3456 0000  .@.:4V..
+            00000068: 9032 1a3a 3456 0000  .2.:4V..
+            00000070: 608b 1a3a 3456 0000  `..:4V..
+            00000078: 9047 1a3a 3456 0000  .G.:4V..
+        \end{lstlisting}
+    \end{minipage}
+
+    This example shows the exact content of the preceding one. 
+
+    To this RAW file is associated a JSON file, which contains its annotations.  
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+         Here is a example of content of a JSON annotation file that comes with the previous RAW file:
+
+        %\begin{lstlisting}[language=json, , label={lst:json}]
+        \begin{lstlisting}[style=json, caption={Complete JSON example, from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841.json}}]
+            {
+                "SSH_PID": "5070",
+                "SSH_STRUCT_ADDR": "56343a1a4800",
+                "session_state_OFFSET": "0",
+                "SESSION_STATE_ADDR": "56343a1a8d30",
+                "newkeys_OFFSET": "344",
+                "NEWKEYS_1_ADDR": "56343a1aaa40",
+                "NEWKEYS_2_ADDR": "56343a1aab40",
+                "enc_KEY_OFFSET": "0",
+                "mac_KEY_OFFSET": "48",
+                "name_ENCRYPTION_KEY_OFFSET": "0",
+                "ENCRYPTION_KEY_1_NAME_ADDR": "56343a1a9db0",
+                "ENCRYPTION_KEY_1_NAME": "aes128-gcm@openssh.com",
+                "ENCRYPTION_KEY_2_NAME_ADDR": "56343a1a3fb0",
+                "ENCRYPTION_KEY_2_NAME": "aes128-gcm@openssh.com",
+                "key_ENCRYPTION_KEY_OFFSET": "32",
+                "key_len_ENCRYPTION_KEY_OFFSET": "20",
+                "iv_ENCRYPTION_KEY_OFFSET": "40",
+                "iv_len_ENCRYPTION_KEY_OFFSET": "24",
+                "KEY_A_ADDR": "56343a1a3170",
+                "KEY_A_LEN": "12",
+                "KEY_A_REAL_LEN": "12",
+                "KEY_A": "feb5fd4ef0759b034d69b858",
+                "KEY_B_ADDR": "56343a1a33e0",
+                "KEY_B_LEN": "12",
+                "KEY_B_REAL_LEN": "12",
+                "KEY_B": "f50b988297fa19709445c4ee",
+                "KEY_C_ADDR": "56343a1aa1b0",
+                "KEY_C_LEN": "16",
+                "KEY_C_REAL_LEN": "16",
+                "KEY_C": "f5b53280e944db0fe196668d877cd4c0",
+                "KEY_D_ADDR": "56343a1a4010",
+                "KEY_D_LEN": "16",
+                "KEY_D_REAL_LEN": "16",
+                "KEY_D": "ac4f18a963d9e72c857497b7dc9d088d",
+                "KEY_E_ADDR": "56343a1a7d90",
+                "KEY_E_LEN": "0",
+                "KEY_E_REAL_LEN": "0",
+                "KEY_E": "",
+                "KEY_F_ADDR": "56343a1a2f60",
+                "KEY_F_LEN": "0",
+                "KEY_F_REAL_LEN": "0",
+                "KEY_F": "",
+                "HEAP_START": "56343a198000"
+            }
+        \end{lstlisting}
+    \end{minipage}
 
     Those annotation files contain the meta-information about the heap dump, such as the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. Those annotations are invaluable for the development of machine learning models for key extraction. 
     
-    However, it is worth noting that the dataset is not perfect, as some of the annotations are sometimes missing. This is probably due to the fact that the annotations were generated automatically, and some of the keys were not correctly identified. For instance, in \textit{Training/basic/V\_7\_8\_P1\/16\/}, literally the first file of the dataset contains an incorrect annotation file, as some of the keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
+    However, it is worth noting that the dataset is not perfect, as some of the annotations are sometimes missing. This is probably due to the fact that the annotations were generated automatically, and some of the keys were not correctly identified. For instance, in \textit{Training/basic/V\_7\_8\_P1/16/}, literally the first file of the dataset contains an incorrect annotation file, as some of the keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
 
-    \begin{lstlisting}[style=json, caption={Missing keys in JSON annotation file \textit{Training\/basic\/V\_6\_0\_P1\/16\/24375-1644243522.json}}]
-        {
-          "ENCRYPTION_KEY_NAME": "aes128-ctr",
-          "ENCRYPTION_KEY_LENGTH": "16",
-          "KEY_C": "689e549a80ce4be95d8b742e36a229bf",
-          "KEY_D": "76788e66a56d2b61eec294df37422fcb",
-          "HEAP_START": "5589d41e0000"
-        }
-    \end{lstlisting}        
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        Here is an example of content of a JSON annotation file with missing keys:
+
+        \begin{lstlisting}[style=json, caption={Missing keys in JSON annotation file \textit{Training/basic/V\_6\_0\_P1/16/24375-1644243522.json}}]
+            {
+                "ENCRYPTION_KEY_NAME": "aes128-ctr",
+                "ENCRYPTION_KEY_LENGTH": "16",
+                "KEY_C": "689e549a80ce4be95d8b742e36a229bf",
+                "KEY_D": "76788e66a56d2b61eec294df37422fcb",
+                "HEAP_START": "5589d41e0000"
+            }
+        \end{lstlisting}
+    \end{minipage}   
 
     The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications, including but not limited to machine learning models for key extraction and malware detection.
 

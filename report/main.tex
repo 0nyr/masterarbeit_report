@@ -33,6 +33,7 @@
 
 \usepackage{dirtree} % directory tree
 \usepackage{float} % float images
+\usepackage{microtype} % better text formatting, avoid one word on a new line for example
 
 % quotes and bibliography: https://www.overleaf.com/learn/latex/Typesetting_quotations
 \usepackage{csquotes}
@@ -100,6 +101,7 @@
 
 %\usepackage{titlesec}
 
+\begin{comment}
 \makeatletter
 \newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
                                      {-3.25ex\@plus -1ex \@minus -.2ex}%
@@ -111,6 +113,17 @@
 
 \renewcommand*\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
 \makeatother
+\end{comment}
+
+\makeatletter
+\newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
+                                    {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                    {1.5ex \@plus .2ex}%
+                                    {\normalfont\normalsize\bfseries}}
+\makeatother
+\setcounter{secnumdepth}{4}  % Adjust this value to control the depth of numbering
+
+
 
 % code 
 \usepackage{listings}
