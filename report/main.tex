@@ -103,7 +103,10 @@
                                      {1.5ex \@plus .2ex}%
                                      {\normalfont\normalsize\bfseries}}
 \setcounter{secnumdepth}{4}
+\setcounter{tocdepth}{4} % Include up to \subsubsubsection in ToC
 \renewcommand\theparagraph{\thesubsubsection.\@alph\c@paragraph}
+
+\renewcommand*\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
 \makeatother
 
 % code 
