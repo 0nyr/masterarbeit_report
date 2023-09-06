@@ -31,6 +31,9 @@
 \usepackage[titletoc]{appendix}
 \usepackage{comment}
 
+\usepackage{dirtree} % directory tree
+\usepackage{float} % float images
+
 % quotes and bibliography: https://www.overleaf.com/learn/latex/Typesetting_quotations
 \usepackage{csquotes}
 \usepackage{dirtytalk}
@@ -111,6 +114,49 @@
 
 % code 
 \usepackage{listings}
+
+% code listing style
+\usepackage{bera}% optional: just to have a nice mono-spaced font
+\usepackage{listings}
+\usepackage{xcolor}
+
+\definecolor{eclipseStrings}{RGB}{42,0.0,255}
+\definecolor{eclipseKeywords}{RGB}{127,0,85}
+\definecolor{punctuationcolor}{rgb}{0.5,0,0}
+\definecolor{delimcolor}{rgb}{0,0.5,0}
+\definecolor{red}{rgb}{1,0,0}
+\colorlet{numb}{magenta!60!black}
+
+\lstdefinestyle{json}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  postbreak=\mbox{\space},
+  columns=fullflexible,
+  showstringspaces=false,
+  commentstyle=\color{gray},
+  keywordstyle=\color{black},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  frame=single,
+  captionpos=b
+}
+
+\lstdefinestyle{hexdump}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  postbreak=\mbox{\space},
+  columns=fullflexible,
+  showstringspaces=false,
+  commentstyle=\color{gray},
+  keywordstyle=\color{black},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  frame=single,
+  captionpos=b
+}
+
+
+
 \usepackage{hyphenat} % fix "overfull hbox" with slicing words using hyphenation
 \hyphenation{hy-phen-a-tion} % indicate all 3 permissible hyphenation points
 
