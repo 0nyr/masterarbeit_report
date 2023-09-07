@@ -8,7 +8,7 @@
 % latexmk -pdf main.tex
 % You need pdflatex and biber (in all TeXLive distributions)
 
-\documentclass[11pt]{article} % text width
+\documentclass[11pt]{book} % text width
 \usepackage[utf8]{inputenc} % encode text to utf8
 
 % paragraph formatting: https://www.overleaf.com/learn/latex/Paragraph_formatting
@@ -46,7 +46,7 @@
 %     sorting=none
 % ]{biblatex}
 %\usepackage[backend=biber, style=numeric, defernumbers=true, language=american]{biblatex}
-\usepackage[backend=biber, style=numeric, sorting=none, language=american]{biblatex}
+\usepackage[backend=biber, style=numeric, sorting=none, defernumbers=true, language=american]{biblatex}
 % add commands for automatic cite/uncite distinction
 \DeclareBibliographyCategory{cited}
 \AtEveryCitekey{\addtocategory{cited}{\thefield{entrykey}}}
@@ -99,31 +99,16 @@
 \newcommand{\m}{\texttt{-} \space} % small unary minus
 \newcommand{\doublem}{\texttt{-}\texttt{-} \space} % double small unary minus
 
-%\usepackage{titlesec}
+% title and section formatting
+\usepackage{titlesec}
 
-\begin{comment}
-\makeatletter
-\newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
-                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
-                                     {1.5ex \@plus .2ex}%
-                                     {\normalfont\normalsize\bfseries}}
-\setcounter{secnumdepth}{4}
-\setcounter{tocdepth}{4} % Include up to \subsubsubsection in ToC
-\renewcommand\theparagraph{\thesubsubsection.\@alph\c@paragraph}
+\titleclass{\chapter}{straight} % make chapters act like sections
+\titleformat{\chapter}
+  {\normalfont\Huge\bfseries}{\thechapter}{1em}{}
+\titlespacing*{\chapter}{0pt}{\parskip}{\parskip}
 
-\renewcommand*\l@paragraph{\@dottedtocline{4}{7.0em}{4.1em}}
-\makeatother
-\end{comment}
-
-\makeatletter
-\newcommand\subsubsubsection{\@startsection{paragraph}{4}{\z@}%
-                                    {-3.25ex\@plus -1ex \@minus -.2ex}%
-                                    {1.5ex \@plus .2ex}%
-                                    {\normalfont\normalsize\bfseries}}
-\makeatother
-\setcounter{secnumdepth}{4}  % Adjust this value to control the depth of numbering
-
-
+\setcounter{tocdepth}{3} % set depth of table of contents
+\setcounter{secnumdepth}{3}  % Numbering depth of sections
 
 % code 
 \usepackage{listings}
@@ -226,9 +211,7 @@ I would also like to express my sincere gratitude to all the persons that have h
 
 Finally, my last acknowledgments go to my family and friends for their support and encouragements.
 
-
 \newpage
-
 % table of content with list of figures & tables
 \tableofcontents
 %\listoffigures
