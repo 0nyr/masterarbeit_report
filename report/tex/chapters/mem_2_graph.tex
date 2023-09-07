@@ -1,0 +1,12 @@
+\chapter{Converting memory dumps to graphs}\label{chap:mem_2_graph}
+
+\begin{minipage}{\dimexpr\linewidth-20pt}
+    Here are the constants define for memory format conversion in the Rust code:
+
+   %\begin{lstlisting}[language=json, , label={lst:json}]
+   \begin{lstlisting}[style=rust, caption={Rust memory format constants in \textit{mem2graph}}]
+    pub const BLOCK_BYTE_SIZE: usize = 8; // 64-bit, ex: C0 03 7B 09 2A 56 00 00
+    pub const PTR_ENDIANNESS: Endianness = Endianness::Little;
+    pub const MALLOC_HEADER_ENDIANNESS: Endianness = Endianness::Little;
+   \end{lstlisting}
+\end{minipage}

@@ -153,7 +153,19 @@
   captionpos=b
 }
 
-
+\lstdefinestyle{rust}{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  postbreak=\mbox{\space},
+  columns=fullflexible,
+  showstringspaces=false,
+  commentstyle=\color{gray},
+  keywordstyle=\color{black},
+  numberstyle=\tiny\color{gray},
+  numbers=left,
+  frame=single,
+  captionpos=b
+}
 
 \usepackage{hyphenat} % fix "overfull hbox" with slicing words using hyphenation
 \hyphenation{hy-phen-a-tion} % indicate all 3 permissible hyphenation points
@@ -224,6 +236,9 @@ Finally, my last acknowledgments go to my family and friends for their support a
 \include{tex/chapters/introduction}
 \include{tex/chapters/background}
 \include{tex/chapters/methods}
+\include{tex/chapters/mem_2_graph}
+\include{tex/chapters/data_processing}
+\include{tex/chapters/machine_learning}
 \include{tex/chapters/results}
 \include{tex/chapters/discussion}
 \include{tex/chapters/conclusion}

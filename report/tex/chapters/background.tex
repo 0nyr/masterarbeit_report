@@ -10,7 +10,10 @@ The objective of this background section is multifaceted. Since the project has 
 
     \subsection{Basics of the Secure Shell Protocol (SSH)}
     
-    The Secure Shell Protocol, commonly known as \acrshort{ssh}, is designed to facilitate secure remote login and other secure network services over insecure networks. \acrshort{ssh} has been design since its inception with security in mind, as a successor of the Telnet protocol, which is not secure, and other \say{unsecured remote shell protocols such as rlogin, rsh and rexec} \cite{SSHkex22}. As stated by the authors of the \citetitle{SSHReport18}, \say{The founder of SSH, Tatu Ylönen, designed the first version of the SSH protocol after a password-sniffing attack at his university network. Tatu released his implementation as freeware in July 1995, and the tool quickly gained in popularity. Towards the end of 1995, the SSH user base had grown to 20,000 users in fifty countries. By 2000, there were an estimated 2,000,000 users of the protocol. Today, more than 95\% of the servers used to power the Internet have SSH installed in them. The SSH protocol is truly one of the cornerstones of a safe Internet.} \cite{SSHReport18}.
+    The Secure Shell Protocol, commonly known as \acrshort{ssh}, is designed to facilitate secure remote login and other secure network services over insecure networks. \acrshort{ssh} has been design since its inception with security in mind, as a successor of the Telnet protocol, which is not secure, and other \say{unsecured remote shell protocols such as rlogin, rsh and rexec} \cite{SSHkex22}. 
+    
+    \subsubsection{SSH design and origin}
+    As stated by the authors of the \citetitle{SSHReport18}, \say{The founder of SSH, Tatu Ylönen, designed the first version of the SSH protocol after a password-sniffing attack at his university network. Tatu released his implementation as freeware in July 1995, and the tool quickly gained in popularity. Towards the end of 1995, the SSH user base had grown to 20,000 users in fifty countries. By 2000, there were an estimated 2,000,000 users of the protocol. Today, more than 95\% of the servers used to power the Internet have SSH installed in them. The SSH protocol is truly one of the cornerstones of a safe Internet.} \cite{SSHReport18}.
 
     \acrshort{ssh} is defined in \citetitle{RFC4251} \cite{RFC4251}. It is divided into three major components:
 
@@ -23,6 +26,7 @@ The objective of this background section is multifaceted. Since the project has 
     \say{The client sends a service request once a secure transport layer connection has been established. A second service request is sent
     after user authentication is complete. This allows new protocols to be defined and coexist with the protocols listed above} \cite{RFC4251}.
 
+    \subsubsection{SSH keys}
     For the scope of this Masterarbeit, understanding SSH's key exchange and encryption mechanism is important. As Summarized in SSHKex \cite{SSHkex22}, the SSH key exchange procedure results in a derived master key \textit{K} and a hash value \textit{h}. These are critical for client-server communication encryption and session identification.
 
     During the key exchange, multiple session keys are computed for different purposes:
@@ -33,6 +37,7 @@ The objective of this background section is multifaceted. Since the project has 
         \item \textbf{Integrity Keys:} Key E and Key F are used to maintain the integrity of the data transmitted between the client and server.
     \end{itemize}
 
+    \subsubsection{SSH key encryption}
     These keys are computed using hash functions that take the master key \textit{K} and a hash value \textit{h}, a unique letter (A, B, C, D, E, or F), and the session ID as inputs. This is summarized in \citetitle{OpenSSHUnderHood07}:
     \say{
         The equations used for deriving the above vectors and keys are taken from RFC 4253 \cite{RFC4253}. In the following, the $||$ symbol stands for concatenation, K is encoded as mpint, $"A"$ as byte and $session_id$ as raw data. Any letter, such as the $"A"$ (in quotation marks) means the single character A, or ASCII 65.
@@ -51,6 +56,7 @@ The objective of this background section is multifaceted. Since the project has 
     \subsection{OpenSSH Implementation}
     OpenSSH (OpenBSD Secure Shell) is an open-source implementation written in C of the SSH protocol suite, and it is the most widely used SSH implementation \cite{OpenSSHUnderHood07}. It is the default SSH implementation on most Linux distributions, and it is also available for Windows. OpenSSH is used for a wide range of purposes, including remote command-line login and remote command execution. It is also used for port forwarding, tunneling, and transferring files via SCP and SFTP either manually or via automated processes, such as backup systems, configuration management tools, and automated software deployment tools. 
 
+    \subsubsection{OpenSSH components}
     OpenSSH is composed of several tools and daemons, including client and server components \cite{PortableOpenSSHGitHub}:
     \begin{itemize}
         \item \textbf{ssh:} The basic client program that allows to log into and execute commands on a remote machine.
@@ -65,6 +71,7 @@ The objective of this background section is multifaceted. Since the project has 
         \item Several other tools to support the SSH protocol and the OpenSSH implementation.
     \end{itemize}
 
+    \subsubsection{OpenSSH hashing}
     OpenSSH employs a variety of hash functions and algorithms to secure data, most commonly using SHA1. However, SHA1 is increasingly seen as weak due to its vulnerability to collision attacks \cite{OpenSSHUnderHood07}. In light of this, the contemporary standard leans towards SHA512. The hash functions are used alongside cipher algorithms like \say{Advance Encryption Standard (AES) Cipher Block Chaining (CBC), AES Counter (AES-CTR), and ChaCha20} \cite{SmartKex22}. The Message Authentication Code (MAC) typically uses either MD5 or SHA1 hash algorithms in combination with a secret key. Since cybersecurity and cryptography are constantly evolving, so do \acrshort{ssh} and OpenSSH. Depending on the version \cite{OpenSSHUnderHood07}, the available hash options include:
     
     \begin{itemize}
@@ -98,6 +105,7 @@ The objective of this background section is multifaceted. Since the project has 
     \subsection{The state of SSH security}
     Since its origins, SSH has been developed with cybersecurity in mind, and is generally considered a secure method for remote login and other secure network services over an insecure network. However, as with any technology, it can be exploited if not configured or managed correctly. The protocol is used by system administrators to manage remote systems, and it is also used by automated processes to transfer data and perform other tasks. This makes SSH a valuable target for attackers. In fact, SSH has been a popular target for cyber-attacks. Due to being so prevalent, it is often used by threat actors either as a vector for initial access, as a means to move laterally across a network or as a covered exit for exfiltration of sensitive data \cite{APTTactics19}. The encrypted nature of its communications makes it an attractive option for attackers, as it can be difficult to detect malicious activity.
     
+    \subsubsection{SSH security issues}
     Here are some cases where SSH can involved in cyber-attacks, although it's important to note that SSH itself is not inherently insecure:
     \begin{itemize}
         \item \textbf{SSH Brute-Force Attacks:} One of the most common types of attacks involving SSH is a brute-force attack, where an attacker tries to gain access by repeatedly attempting to login with different username-password combinations. These attacks are not sophisticated but can be effective if strong authentication measures are not in place. For instance, the botnet \textit{Chabulo} was used to launch a large-scale brute-force attack \say{through compromised SSH servers and IoT devices} in 2018 \cite{SSHReport18}. 
@@ -106,7 +114,7 @@ The objective of this background section is multifaceted. Since the project has 
         \item \textbf{Misconfiguration:} As with any technology, misconfiguration can lead to security issues. For example, leaving default passwords, using weak encryption algorithms, or enabling root login can all make an SSH-enabled system vulnerable \cite{SSHBotnetInfect21}.
     \end{itemize}
 
-    \subsection{SSH vulnerabilities and use in cyber-attacks}
+    \subsubsection{SSH vulnerabilities}
     In cybersecurity, it is generally considered that any system that is connected to the Internet will be attacked at some point. Similarly, it is a common saying that no system is 100\% secure. This is true for SSH as well. Although it is a secure protocol, it can be exploited if not configured or managed correctly. 
     
     Some vulnerabilities have also been discovered in the protocol itself, although these are rare.
@@ -116,6 +124,7 @@ The objective of this background section is multifaceted. Since the project has 
         \item \textbf{Suspected Decryption by NSA:} Leaked information in 2014 suggested that the NSA might be able to decrypt some SSH traffic, although the protocol itself was not confirmed to be compromised \cite{Spiegel14}.
     \end{itemize}
     
+    \subsubsection{SSH and cyber-attacks}
     SSH has been used in many high-profile cyber-attacks and malwares, including the following:
     \begin{itemize}
         \item \textbf{Operation Windigo:} This was a large-scale campaign that infected over 25,000 UNIX servers. SSH was one of the vectors used for maintaining control over compromised servers. A report by ESET mentions that the  OpenSSH backdoor Linux/Ebury was first discovered in 2011 as a component of the aforementioned operation. \say{This operation has been ongoing since at least 2011 and has affected high profile servers and companies, including cPanel - the company behind the famous web hosting control panel - and Linux Foundation's kernel.org - the main repository of source code for the Linux kernel} \cite{ESETWindigo14}. 
@@ -189,7 +198,9 @@ The objective of this background section is multifaceted. Since the project has 
         Here is a summary of SmartKex's brute-force method for SSH key extraction from heap dumps \cite{SmartKex22}:
         \begin{enumerate}
             % complete the following with information from Christopher
-            \item \textbf{Heap Dump Generation:} Heap dump binary files of OpenSSH server process have been generated and serves as the input for the key extraction process. 
+            %   * how (which tool) was used to generate the dataset
+            %   * what architecture from 
+            \item \textbf{Heap Dump Generation:} Heap dump binary files of OpenSSH server process have been generated (ASK HOW) and serves as the input for the key extraction process. The exact process and architecture is not described in SmartKex paper, but we suppose it was done on a \textit{linux-x86\_64} architecture.
             
             \item \textbf{Data Reduction:} To minimize the heap size, the method removes memory pages that are irrelevant (empty) based on Hamming distance.
             
@@ -219,7 +230,7 @@ The objective of this background section is multifaceted. Since the project has 
 
     \subsection{OpenSSH memory dumps dataset}
 
-    SmartKex has contributed to the research community by generating a comprehensive annotated dataset of OpenSSH heap memory dumps \cite{SmartKex22}. The dataset is publicly available on Zenodo \footnote{\url{https://zenodo.org/record/6537904}}.
+    SmartKex has contributed to the research community by generating a comprehensive annotated dataset of OpenSSH heap memory dumps \cite{SmartKex22}. The dataset is publicly available on Zenodo \footnote{\url{https://zenodo.org/record/6537904}}. 
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         The dataset is organized into two top-level directories: $Training$ and $Validation$ with an additional $Performance\_Test$. The first two main directories are further divided based on the SSH scenario, such as immediate exit, port-forward, secure copy, and shared connection. Each of these subdirectories is then categorized by the software version that generated the memory dump. Within these, the heaps are organized based on their key lengths, providing a multi-layered structure that aids in specific research queries.
@@ -311,8 +322,8 @@ The objective of this background section is multifaceted. Since the project has 
     \begin{minipage}{\dimexpr\linewidth-20pt}
          Here is a example of content of a JSON annotation file that comes with the previous RAW file:
 
-        %\begin{lstlisting}[language=json, , label={lst:json}]
-        \begin{lstlisting}[style=json, caption={Complete JSON example, from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841.json}}]
+        %\begin{lstlisting}[language=json, , ]
+        \begin{lstlisting}[style=json, caption={Complete JSON example, from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841.json}}, label={lst:json-annotation-ex-1}]
             {
                 "SSH_PID": "5070",
                 "SSH_STRUCT_ADDR": "56343a1a4800",
@@ -382,29 +393,241 @@ The objective of this background section is multifaceted. Since the project has 
     The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications, including but not limited to machine learning models for key extraction and malware detection.
 
 \section{Graph-based memory modelization}\label{sec:background:graph}
+
     In the following section, we present important concepts that will be used for the memory modelization of the heap dump.
-    * what is a heap dump
-    * 
+
+    Because the dataset used is composed of RAW heap dump files from OpenSSH, it is a critical aspect to understand how memory works at a low level point of view. This section aims to provide an in-depth understanding of how memory is managed in C, the language used in the OpenSSH implementation of SSH, for a \textit{linux-x86\_64} architecture. We will explore the fundamental concepts of memory management, including the heap and the stack, memory allocation, and the role of pointers. These concepts will serve later as the foundation for our graph-based approach to memory modelization.
+
+    This section will also introduce many graph theory and \acrfull{kg} concepts. We will explore the fundamentals of graph theory, including the definition of a graph, its components, and its properties. We will also discuss the concept of a \acrfull{kg}, which is a type of graph that stores information in the form of nodes and edges, and its applications in the field of machine learning.
 
     \subsection{Defining memory concepts and modelization}
+    Memory management in C is a complex task that requires a deep understanding of the language's features, the operating system's capabilities and the compiler used. In C, memory is primarily managed through two built-in functions: \texttt{malloc} (memory allocation) and \texttt{free} (memory deallocation). These functions operate on two primary types of memory: the heap and the stack.
 
+    \begin{itemize}
+        \item \textbf{Heap vs Stack:} The heap is used for dynamic memory allocation, where variables are allocated and freed at runtime. In contrast, the stack is used for static memory allocation, where variables are allocated and deallocated automatically. The stack is faster but has a limited size, while the heap is more flexible but requires manual management to prevent memory leaks.
+        
+        \item \textbf{Heap Dump:} A heap dump is a snapshot of the heap's state at a given time. It provides valuable information about the memory layout, active pointers, and data stored in the heap. Analyzing heap dumps can help in debugging memory-related issues and understanding the program's behavior.
+        
+        \item \textbf{Memory Addresses:} Each location in memory is identified by a unique memory address. These addresses are usually represented in hexadecimal notation. Note that the address $0x0$ is reserved for the \textit{NULL} pointer, which is used to indicate that a pointer does not point to any memory location.
+
+        \item \textbf{Pointer:} A pointer is a variable that stores the memory address of another variable. It is used to indirectly access the value of the variable it points to. Pointers are used extensively in C, particularly for dynamic memory allocation.
+        
+        \item \textbf{Data Structure:} A data structure is a collection of data values, the relationships among them, and the functions or operations that can be applied to the data. In the context of C programming, data structures are declared using the keyword \texttt{struct} and are byte aligned. This means that the size of the data structure is always a multiple of the size of the largest member of the structure. Structures can be nested within each other, and pointers can be used to indirectly access the members of a structure. Data structures are often stored in the heap using \texttt{malloc}.
+        
+        \item \textbf{Malloc headers:} When \texttt{malloc} is called, it allocates a block of memory in the heap and returns a pointer to the first byte of the block. The heap manager keeps track of these allocations through metadata, often stored in headers preceding the allocated blocks. These headers contain information such as the size of the allocated block and whether it is free or occupied. Note that the pointer returned by malloc in C points to the first byte of the block of memory that has been allocated for your use, not to the malloc header. The malloc header, is managed internally by the memory allocator and is not exposed to the programmer, but is visible in the heap dump.
+        
+    \end{itemize}
+
+    \subsubsection{Endianness}
+    
+    Endianness refers to the byte order used to represent multi-byte data types. In a \textit{little-endian} system, the least significant byte is stored first, while in a \textit{big-endian} system, the most significant byte is stored first. Knowing the endianness of the system is crucial for interpreting the content of memory \cite{InferenceEndianness17}.
+    
+    For instance, the hexadecimal value \textit{0x56343a198000} (taken from \textit{"HEAP\_START"} of \ref{lst:json-annotation-ex-1}) is represented as $550179058774$ ($\simeq 5.50e+11$) in decimal basis in a little-endian system, while it is represented as $94782313037824$ ($\simeq 9.48e+13$) in a big-endian system.
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        \paragraph{Little-Endian Conversion}
+        The conversion of a hexadecimal number in \textit{little-endian} format to a decimal number is given by the following formula:
+        \par % solve the underfull hbox warning
+        
+        \vspace{2em}  % Adds vertical space
+        \begin{center}
+            $
+            \text{Decimal} = \sum_{i=0}^{N-1} \left( \text{HexDigit}_{i} \times 16^{i} \right)
+            $
+        \end{center}
+        \vspace{1em}
+    \end{minipage}
+    
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        \paragraph{Big-Endian convertion}
+        And the convertion of a hexadecimal number in \textit{big-endian} format to a decimal number is given by following formula:
+        \par % solve the underfull hbox warning
+        
+        \vspace{2em}  % Adds vertical space
+        \begin{center}
+            $
+            \text{Decimal} = \sum_{i=0}^{N-1} \left( \text{HexDigit}_{N-1-i} \times 16^{i} \right)
+            $
+        \end{center}
+        \vspace{1em}
+    \end{minipage}
+
+    Here, $ \text{HexDigit}_{i} $ is the value of the \(i\)-th digit in the little-endian hexadecimal number, and \( N \) is the number of digits in the hexadecimal number. Note that $ \text{HexDigit}_{i} $ should be converted to its decimal equivalent ('A' becomes 10, 'B' becomes 11, etc.) before performing the calculation.
+
+    These formulas will be used later to convert pointer addresses from hexadecimal to decimal format in \textit{mem2graph}.
+
+    \subsubsection{The role of entropy in forensic analysis}
+
+    Entropy plays a pivotal role in forensic analysis, particularly in the context of memory dumps analysis. It serves as a measure of uncertainty and randomness, which can be crucial for tasks such as endianness detection and identifying encrypted keys in memory.
+
+    As defined by Shannon in the realm of information theory, it is a measure of the uncertainty or randomness associated with a set of possible outcomes \cite{InferenceEndianness17}. In digital applications, when calculated using the logarithm to base 2, entropy represents the amount of bits of information in a message.
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        \paragraph{Entropy Formula}
+        The entropy \( H \) of a message is calculated using the formula:
+        \par % solve the underfull hbox warning
+        
+        \vspace{2em}  % Adds vertical space
+        \begin{center}
+            $
+            H = - \sum_{i=1}^{n} p_i \log_2 p_i
+            $
+        \end{center}
+        \vspace{1em}
+
+        Where $ p_1, p_2, \ldots, p_n $ are the probabilities of the set of all possible messages \cite{InferenceEndianness17}.
+    \end{minipage}
+
+    Endianness, as presented before, refers to the byte order used to represent multi-byte data types in computer memory \cite{InferenceEndianness17}. It is necessary to know the endianness of the heap dump to correctly interpret the content of memory, and especially the addresses of potential pointers. In this context, entropy can be used to infer the endianness of a system by analyzing the distribution of byte values in a memory dump, as presented in \citetitle{InferenceEndianness17} \cite{InferenceEndianness17}.
+
+    Entropy is also a key element for encryption key detection, since those should be random byte sequences with high entropy \cite{SmartKex22}. By examining 8-byte aligned data for high entropy, it is possible to detect potential keys in a heap dump. Techniques such as the calculation of discrete differences and logical operations can further refine this detection as described in \citetitle{SmartKex22} \cite{SmartKex22}.
 
     \subsection{Graphs and Knowledge Graphs}
+    In this project, we (i.e. Clément Lahoche and the author) have built a program called \textit{mem2graph}, a generic tool developed in Rust for efficiency. It is used to convert a RAW memory dump into a graph representation. This graph is technically a directed Edge-labeled heterogeneous property graph, whose concepts are described later. As such, and while it is debatable whether or not \textit{mem2graph} can be seen as building Knowledge Graphs (KGs), it relies on many concepts from the domain, necessitating a proper introduction.
+
+    \subsubsection{Defining Graph Theory concepts}
+    Graph theory is a mathematical field concerned with the study of graphs. It has applications in various fields, including computer science, social sciences, or linguistics. Graphs are used to model pairwise relations between objects, and the study of graphs involves analyzing the properties of these relations. In a few words, a graph is just a collection of nodes and edges.
+    
+    A graph can be formally defined  as: \say{a pair \( G = (S, A) \) where:
+    \begin{itemize}
+        \item \( S \) is a finite set of vertices.
+        \item \( A \) is a set of pairs of vertices \((s_i, s_j) \in S^2\).
+    \end{itemize}
+    Graphs can be either directed or undirected. In a directed graph, the pairs \((s_i, s_j)\) are ordered, representing arcs from \(s_i\) to \(s_j\). In an undirected graph, the pairs are unordered, representing edges between \(s_i\) and \(s_j\) } \cite{GraphTheorySolnon}. Let's introduce some vocabulary to describe graphs:
+
+    \begin{itemize}
+        \item \textbf{Node (or Vertex)}: A single entity in the graph, often represented as a circle.
+        \item \textbf{Edge (or Arc)}: A connection between two nodes, often represented as a line or arrow.
+        \item \textbf{Degree}: The number of edges connected to a node.
+        \item \textbf{Path}: A sequence of edges that connect two nodes.
+        \item \textbf{Cycle}: A path that starts and ends at the same node.
+        every pair of nodes.
+        \item \textbf{Order}: The number of vertices in the graph.
+        \item \textbf{Adjascency}: Two nodes are adjacent if there is an edge between them.
+        \item \textbf{Loop}: An edge that connects a node to itself.
+        \item \textbf{Weight}: A value assigned to an edge.
+        \item \textbf{Ancestors (parents) and Descendants (children)}: A node \(s_i\) is an ancestor of \(s_j\) if there is a path from \(s_i\) to \(s_j\). A node \(s_j\) is a descendant of \(s_i\) if there is a path from \(s_i\) to \(s_j\).
+    \end{itemize}
+    
+    Various other terminologies and concepts exist in graph theory, but these are the most important ones for our purposes. For a more in-depth understanding of graph theory, the reader is encouraged to consult the work by \citeauthor{GraphTheorySolnon} as a quick introduction, \cite{GraphTheorySolnon} or a more in-depth one by \citeauthor{GraphTheoryIntro01} \cite{GraphTheoryIntro01}.
+
+    \subsubsection{Graphs types}
+    Graphs offer a flexible way to conceptualize, represent, and integrate diverse and incomplete data. Many graph models exist, each with its own advantages and disadvantages, as well as graph properties \footnote{Some parts of the following section are directly from a prior work for Seminar 5369S: Knowledge Graphs, written during summer 2023. As of the date of writting and to the best of my knowledge, this work has not been published, and as such, cannot be properly referenced.}. Those different types of graphs include:
+
+    \begin{itemize}
+        \item \textbf{Directed Edge-labelled Graphs (DEL):} The classic graph, set of nodes and edges that connect the nodes with in certain way. \acrshort{rdf} is a popular \acrshort{del} data model.
+        \item \textbf{Heterogeneous Graphs:} Each node and edge is assigned one type, allowing for partitioning nodes according to their type, which is useful for machine learning.
+        \item \textbf{Property Graphs:} Allows a set of property-value pairs and a label to be associated with nodes and edges. This model is used in Neo4j and offers great flexibility but is harder to handle and query.
+        \item \textbf{Graph Dataset:} A set of named graphs, with a default graph with no ID. Useful when working with different sources.
+        \item \textbf{Hypergraphs:} Allow edges that connect sets rather than pairs of nodes.
+    \end{itemize}
+
+    A given graph can have a range of properties that give some insights into its structure. Here are some important properties of graphs:
+
+    \begin{itemize}
+        \item \textbf{Connected Graph}: A graph is connected if there is a path between every pair of nodes.
+        \item \textbf{Disconnected Graph}: A graph is disconnected if there is at least one pair of nodes that are not connected by a path.
+        \item \textbf{Cyclic Graph}: A graph is cyclic if it contains at least one cycle.
+        \item \textbf{Acyclic Graph}: A graph is acyclic if it does not contain any cycles.
+        \item \textbf{Complete Graph}: A graph is complete if there is an edge between every pair of nodes.
+    \end{itemize}
+
+    \subsubsection{Graph vs Knowledge Graph}
+    A \acrfull{kg} is a specialized form of graph intended to accumulate and convey real-world knowledge. As said before, we are not technically building KGs, but we rely on many concepts from the domain. Research on \acrshort{kg} has further accelerated in recent years, and introduced significant improvement to Graph Theory, especially in the practical applications of graph construction and use for Machine Learning or Deep Learning \cite{KG21}. They have a number of benefits when compared with a relational model or NoSQL alternatives, such as the ability for data to evolve in a more flexible manner, and the capacity to organize data in a way that is not hierarchical. They can represent incomplete information, and does not require a precise schema \cite[p.2]{KG21}, which is invaluable in the context of memory analysis, where the structure of the heap is not known in advance.
+
+    While all KGs are graphs, not all graphs are KGs. However the line between the two is often blurry, and the distinction is not always clear. The term "knowledge graph" first appeared in 1973, but really gained popularity through a 2012 blog post about Google's Knowledge Graph \cite*{googleblog2023knowledgegraph}. Several definition attempts have been made, but none of them are universally accepted. Below are listed some of the most common definitions of Knowledge Graphs:
+    \begin{itemize}
+        \item \say{A graph of data intended to accumulate and convey knowledge of the real world, whose nodes represent entities of interest and whose edges represent potentially different relations between these entities.} \cite{KG21}
+        \item \say{A graph of data consisting of semantically described entities and relations of different types that are integrated from different sources. Entities have a unique identifier. KG entities and relations are semantically described using an ontology or, more clearly, an ontological representation.} \cite{CKG23}
+    \end{itemize}
+    
+    In KGs, edges are often labeled and may represent complex relationships like "is a subclass of" or "is married to," allowing for more expressive power. The very nature of KG makes any definition attempt difficult. Indeed, KG is a broad concept that can be applied to many different domains, use cases and can have diverse implementations. The definition of KGs is thus very context-dependent, and it's debatable where the line between a graph and a KG is drawn. 
+    
+    For the purpose of this thesis, we won't focus on this distinction and just consider that we deal with complex \textit{graphs}, which are graphs that are not necessarily KGs, but that can be used to represent complex relationships between entities and be leveraged using \acrshort{kg}-related tecnhiques for advance tasks like feature engineering, automated embedding, inductive reasoning and learning.
+
+    \subsubsection{Inductive Reasoning and Learning}
+    Inductive reasoning in Knowledge Graphs (KGs) involves techniques like embedding and Graph Convolutional Networks (GCNs) to learn the potential underlying structure of the graph. This is particularly useful for tasks like link prediction, node classification, and clustering.
+
+    For the sake of clarity and grouping, we will present the concepts of graph embedding and GCNs in the next sections, but it is important to note that they are not mutually exclusive. In fact, GCNs can be used to generate embeddings, and embeddings can be used as input for GCNs. As such, they are often used together in the context of KGs, or in our case, complex graphs.
 
 \section{Data processing for Machine Learning}\label{sec:background:processing}
+
     \subsection{Feature engineering}
+    * what is feature engineering
+    * why is it useful
+
+    \subsection{Embeddings vs Feature engineering}
+    * what are embeddings
+    * difference between the two
+    * when to use one or the other
 
     \subsection{Graph-based embeddings}
+    For the Graph Convolution Network part, we want to prepare the memory graph into a meaningful embedding.
+    * what techniques can be used for automatic embedding of the heap memory graph
+    * present some python libraries that can be used to embed the graph
+    * present the mathematical concepts involved, and their associated formulas
+
+    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. Here are some common and advanced techniques:
+    
+    \begin{itemize}
+        \item \textbf{Node2Vec}: This algorithm learns continuous feature representations for nodes by optimizing a neighborhood-preserving objective. It employs biased random walks and uses the Skip-gram model to generate embeddings.
+        
+        \item \textbf{DeepWalk}: Similar to Node2Vec, DeepWalk uses random walks to generate node sequences. It employs the Skip-gram model from natural language processing to learn embeddings. Unlike Node2Vec, it does not use biased walks.
+        
+        \item \textbf{Spectral Clustering}: This technique is based on the spectral theory of graphs. It utilizes the eigenvalues and eigenvectors of the Laplacian matrix of the graph to find an optimal embedding. Spectral Clustering is particularly useful for community detection.
+        
+        \item \textbf{LINE}: Large-scale Information Network Embedding (LINE) aims to preserve both local and global network structures. It optimizes two objectives: first-order and second-order proximities between nodes.
+        
+        \item \textbf{GloVe on Graphs}: An adaptation of the Global Vectors for Word Representation (GloVe), this method constructs a co-occurrence matrix based on node neighborhoods and then factorizes it to obtain embeddings.
+        
+        \item \textbf{Graph Factorization}: This method directly factorizes the adjacency matrix of the graph to learn node embeddings, making it computationally efficient but less capable of capturing complex structures.
+        
+        \item \textbf{SDNE (Structural Deep Network Embedding)}: SDNE employs a deep autoencoder to learn complex and non-linear node embeddings while preserving first-order and second-order proximities.
+    \end{itemize}
 
     \subsection{Dataset splitting and sampling}
+    * Explain why it is necessary
+    * present the different techniques, like folds and the associated python libraries (like scikit-learn) that can be used to do that.
 
 \section{Machine Learning and Deep Learning}\label{sec:background:ml}
     \subsection{Machine Learning}
-
-    
+    Introduce the importance of ML in today's research and breakthroughts
+    * what is ML
+    * how does it works
+    * model evaluation, concepts like precision, recall, F-1 score and so forth
 
     \subsection{Machine Learning models}
+    binary classification problem: either a block is the first block of a key, or it is not. Different ML models are suitable for the task (we are using Python Sciki-learn):
 
-    \subsection{Deep Learning}
+    * present the different models, pros and cons, that we can use, the maths and formulas behind
 
-    \subsection{GCN}
+    \subsection{Deep Learning and GCN}
+    We can also build our own Deep Learning neural network using Pytorch, specifically when dealing with automatically generated embeddings from the graph representation of the heap dump
+
+    * Present what is deep learning and neural Networks
+    * what are GCN
+    * present different architectures (python libraries that can be used to embed the grap and generate GCN for binary predicting key nodes)
+
+    \subsubsection{Graph Convolutional Networks (GCNs)}
+    Graph Convolutional Networks extend the concept of convolution from images to graphs. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features. Below are some common and advanced techniques:
+
+    \begin{itemize}
+        \item \textbf{Vanilla GCN}: The basic GCN model consists of an input layer, one or more hidden layers, and an output layer. Each layer is associated with a graph convolution operation that updates the node features based on their neighbors.
+        
+        \item \textbf{GraphSAGE (Graph Sample and Aggregation)}: This model generalizes the GCN framework by allowing various aggregation functions like mean, LSTM, and pooling to combine information from a node's neighbors.
+        
+        \item \textbf{ChebNet}: ChebNet uses Chebyshev polynomials to generalize the convolution operation in the spectral domain. This allows the model to capture a broader range of graph structures.
+        
+        \item \textbf{GAT (Graph Attention Networks)}: GAT introduces attention mechanisms into GCNs, enabling the model to weigh neighbors differently when aggregating information.
+        
+        \item \textbf{MoNet}: This model employs a mixture model to generalize the convolution operation, making it capable of handling graphs with diverse structures.
+        
+        \item \textbf{Graph Isomorphism Network (GIN)}: GIN is designed to capture the isomorphism between different graphs, making it powerful for tasks like graph classification.
+        
+        \item \textbf{Cluster-GCN}: A scalable method that divides the graph into clusters and performs mini-batch training, making it suitable for large graphs.
+        
+        \item \textbf{ARMA (AutoRegressive Moving Average)}: This model combines autoregressive models and moving averages to capture both spatial and temporal dependencies in graph data.
+    \end{itemize}
+
+
+
