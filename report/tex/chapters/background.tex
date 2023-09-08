@@ -460,7 +460,7 @@ The objective of this background section is multifaceted. Since the project has 
 
     Entropy plays a pivotal role in forensic analysis, particularly in the context of memory dumps analysis. It serves as a measure of uncertainty and randomness, which can be crucial for tasks such as endianness detection and identifying encrypted keys in memory.
 
-    As defined by Shannon in the realm of information theory, it is a measure of the uncertainty or randomness associated with a set of possible outcomes \cite{InferenceEndianness17}. In digital applications, when calculated using the logarithm to base 2, entropy represents the amount of bits of information in a message.
+    As defined by Shannon in the realm of information theory, it is a measure of the uncertainty or randomness associated with a set of possible outcomes \cite{InferenceEndianness17} \cite{TheoryOfCommunicationShannon1948}. In digital applications, when calculated using the logarithm to base 2, entropy represents the amount of bits of information in a message.
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         \paragraph{Entropy Formula}
@@ -535,7 +535,7 @@ The objective of this background section is multifaceted. Since the project has 
     \subsubsection{Graph vs Knowledge Graph}
     A \acrfull{kg} is a specialized form of graph intended to accumulate and convey real-world knowledge. As said before, we are not technically building KGs, but we rely on many concepts from the domain. Research on \acrshort{kg} has further accelerated in recent years, and introduced significant improvement to Graph Theory, especially in the practical applications of graph construction and use for Machine Learning or Deep Learning \cite{KG21}. They have a number of benefits when compared with a relational model or NoSQL alternatives, such as the ability for data to evolve in a more flexible manner, and the capacity to organize data in a way that is not hierarchical. They can represent incomplete information, and does not require a precise schema \cite[p.2]{KG21}, which is invaluable in the context of memory analysis, where the structure of the heap is not known in advance.
 
-    While all KGs are graphs, not all graphs are KGs. However the line between the two is often blurry, and the distinction is not always clear. The term "knowledge graph" first appeared in 1973, but really gained popularity through a 2012 blog post about Google's Knowledge Graph \cite*{googleblog2023knowledgegraph}. Several definition attempts have been made, but none of them are universally accepted. Below are listed some of the most common definitions of Knowledge Graphs:
+    While all KGs are graphs, not all graphs are KGs. However the line between the two is often blurry, and the distinction is not always clear. The term "knowledge graph" first appeared in 1973, but really gained popularity through a 2012 blog post about Google's Knowledge Graph \cite{googleblog2023knowledgegraph}. Several definition attempts have been made, but none of them are universally accepted. Below are listed some of the most common definitions of Knowledge Graphs:
     \begin{itemize}
         \item \say{A graph of data intended to accumulate and convey knowledge of the real world, whose nodes represent entities of interest and whose edges represent potentially different relations between these entities.} \cite{KG21}
         \item \say{A graph of data consisting of semantically described entities and relations of different types that are integrated from different sources. Entities have a unique identifier. KG entities and relations are semantically described using an ontology or, more clearly, an ontological representation.} \cite{CKG23}
@@ -543,53 +543,187 @@ The objective of this background section is multifaceted. Since the project has 
     
     In KGs, edges are often labeled and may represent complex relationships like "is a subclass of" or "is married to," allowing for more expressive power. The very nature of KG makes any definition attempt difficult. Indeed, KG is a broad concept that can be applied to many different domains, use cases and can have diverse implementations. The definition of KGs is thus very context-dependent, and it's debatable where the line between a graph and a KG is drawn. 
     
-    For the purpose of this thesis, we won't focus on this distinction and just consider that we deal with complex \textit{graphs}, which are graphs that are not necessarily KGs, but that can be used to represent complex relationships between entities and be leveraged using \acrshort{kg}-related tecnhiques for advance tasks like feature engineering, automated embedding, inductive reasoning and learning.
+    For the purpose of this thesis, we won't focus on this distinction and just consider that we deal with memory \textit{graphs}, which are graphs that are not necessarily KGs, but that can be used to represent complex relationships between entities extracted from memory dumps and be leveraged using \acrshort{kg}-related tecnhiques for advance tasks like feature engineering, automated embedding, inductive reasoning and learning.
 
     \subsubsection{Inductive Reasoning and Learning}
     Inductive reasoning in Knowledge Graphs (KGs) involves techniques like embedding and Graph Convolutional Networks (GCNs) to learn the potential underlying structure of the graph. This is particularly useful for tasks like link prediction, node classification, and clustering.
 
-    For the sake of clarity and grouping, we will present the concepts of graph embedding and GCNs in the next sections, but it is important to note that they are not mutually exclusive. In fact, GCNs can be used to generate embeddings, and embeddings can be used as input for GCNs. As such, they are often used together in the context of KGs, or in our case, complex graphs.
+    For the sake of clarity and grouping, we will present the concepts of graph embedding and GCNs in the next sections, but it is important to note that they are not mutually exclusive. In fact, GCNs can be used to generate embeddings, and embeddings can be used as input for GCNs. As such, they are often used together in the context of KGs, or in our case, memory graphs.
 
-\section{Data processing for Machine Learning}\label{sec:background:processing}
+\section{Data preprocessing for Machine Learning}\label{sec:background:processing}
+    \acrfull{ml} is a subfield of \acrfull{ai} that focuses on the development of algorithms that can learn from data and make predictions. It is a powerful tool that has been used to solve a wide range of problems, including image classification, speech recognition, and natural language processing. Before we can apply machine learning algorithms to a dataset, we must first prepare the data by performing various preprocessing steps. In this section, we will discuss the most common data preprocessing techniques, including data cleaning, feature engineering, and dataset splitting, as well as the importance of feature selection and dimensionality reduction. All those elements are crucial for the development of effective machine learning models for key extraction.
 
     \subsection{Feature engineering}
-    * what is feature engineering
-    * why is it useful
-
-    \subsection{Embeddings vs Feature engineering}
-    * what are embeddings
-    * difference between the two
-    * when to use one or the other
-
-    \subsection{Graph-based embeddings}
-    For the Graph Convolution Network part, we want to prepare the memory graph into a meaningful embedding.
-    * what techniques can be used for automatic embedding of the heap memory graph
-    * present some python libraries that can be used to embed the graph
-    * present the mathematical concepts involved, and their associated formulas
-
-    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. Here are some common and advanced techniques:
+    In the realm of machine learning and data science, \textit{features} refer to individual measurable attributes or characteristics of the phenomena under study. Those features can be of different types, and can be used to predict the value of a target variable. 
     
+    \subsubsection{Types of Features}
+    Features can be of different types, depending on the nature of the data. The type of feature determines how it is processed and utilized by the model. The most common types of features include:
+
     \begin{itemize}
-        \item \textbf{Node2Vec}: This algorithm learns continuous feature representations for nodes by optimizing a neighborhood-preserving objective. It employs biased random walks and uses the Skip-gram model to generate embeddings.
-        
-        \item \textbf{DeepWalk}: Similar to Node2Vec, DeepWalk uses random walks to generate node sequences. It employs the Skip-gram model from natural language processing to learn embeddings. Unlike Node2Vec, it does not use biased walks.
-        
-        \item \textbf{Spectral Clustering}: This technique is based on the spectral theory of graphs. It utilizes the eigenvalues and eigenvectors of the Laplacian matrix of the graph to find an optimal embedding. Spectral Clustering is particularly useful for community detection.
-        
-        \item \textbf{LINE}: Large-scale Information Network Embedding (LINE) aims to preserve both local and global network structures. It optimizes two objectives: first-order and second-order proximities between nodes.
-        
-        \item \textbf{GloVe on Graphs}: An adaptation of the Global Vectors for Word Representation (GloVe), this method constructs a co-occurrence matrix based on node neighborhoods and then factorizes it to obtain embeddings.
-        
-        \item \textbf{Graph Factorization}: This method directly factorizes the adjacency matrix of the graph to learn node embeddings, making it computationally efficient but less capable of capturing complex structures.
-        
-        \item \textbf{SDNE (Structural Deep Network Embedding)}: SDNE employs a deep autoencoder to learn complex and non-linear node embeddings while preserving first-order and second-order proximities.
+        \item \textbf{Numerical Features}: These are quantitative attributes representing measurements like height, weight, or age.
+        \item \textbf{Categorical Features}: These are qualitative attributes representing discrete classes or labels, such as gender (Male, Female) or educational level (High School, Bachelor's, Master's).
+        \item \textbf{Ordinal Features}: Similar to categorical features but with an inherent order, like ratings on a scale of 1 to 5.
+        \item \textbf{Text Features}: These contain textual data and often require special preprocessing steps like tokenization and vectorization.
+        \item \textbf{Temporal Features}: These are time-based attributes, such as timestamps, requiring special handling to capture time-dependent patterns.
+        \item \textbf{Geospatial Features}: These attributes represent geographical or spatial coordinates.
     \end{itemize}
 
-    \subsection{Dataset splitting and sampling}
-    * Explain why it is necessary
-    * present the different techniques, like folds and the associated python libraries (like scikit-learn) that can be used to do that.
+    Features are pivotal for the performance of machine learning models. The quality and pertinence of features can significantly influence the model's capability to discern underlying patterns in the data. Inadequately chosen or irrelevant features can lead to a poorly performing model, while carefully selected, relevant features can result in a robust and accurate model.
+
+    \subsubsection{The Curse of Dimensionality}
+    The \textit{curse of dimensionality} refers to a set of challenges that arise when dealing with high-dimensional data. As the number of features, or dimensions, in a dataset increases, the volume of the feature space grows exponentially. This exponential growth leads to several issues:
+
+    \begin{itemize}
+        \item \textbf{Data Sparsity}: In high-dimensional spaces, data points tend to be sparse, making it difficult for algorithms to identify patterns. The sparsity also means that the notion of "distance" becomes less meaningful, which is problematic for algorithms that rely on distance metrics.
+        
+        \item \textbf{Computational Complexity}: The exponential increase in volume demands significantly more computational power and memory, making it challenging to process and analyze the data efficiently.
+        
+        \item \textbf{Overfitting}: High dimensionality increases the risk of overfitting, where a model learns the noise in the data rather than the actual pattern. Overfit models perform poorly on unseen data.
+        
+        \item \textbf{Statistical Significance}: As dimensions increase, the amount of data required to achieve statistical significance also increases exponentially, often making it impractical to collect sufficient data.
+        
+        \item \textbf{Visualization and Interpretability}: High-dimensional data are difficult to visualize and interpret, making it challenging to derive intuitive insights.
+    \end{itemize}
+
+    Due to these challenges, many dimensionality reduction techniques have been developed to transform high-dimensional data into a lower-dimensional form, aiming to preserve as much of the relevant information as possible. These techniques are discussed in the next section.
+
+    \subsubsection{Feature Engineering techniques}
+    The meticulous process of selecting the most relevant features, or constructing new features from existing ones, is known as \textit{feature engineering}. This step can encompass normalization, transformation, and the creation of interaction terms among features. This complex process requires a deep understanding of the domain of study and the datasets, and is often a crucial step in the development of machine learning models \cite{FeatureEngineeringMadeEasy18}.
+
+    In the context of \acrlong{ml}, features essentially serve as the input variables $ X $ that a machine learning model employs to make predictions or inferences about the output variable $ Y $. But not all features are equally informative. Some features may be redundant, irrelevant, or even detrimental to the model's performance. Irrelevant features are those that do not contribute to the predictive power of the model, while redundant features are those that are highly correlated with other features. Feature engineering techniques, can be used to build, transform or eliminate features, thereby reducing the dimensionality of the data and enhancing model performance \cite{FeatureSelecExtract14}.
+
+    \begin{itemize}
+        \item \textbf{Scaling and Normalization:} Scaling and normalization are techniques used to transform the features to a similar scale. This is particularly important for algorithms that rely on distance metrics, such as \acrfull{knn} and \acrfull{svm}. Scaling and normalization can also help accelerate the training process by reducing the number of iterations required for the model to converge. Some common techniques include min-max scaling, z-score normalization, and log transformation.
+        
+        \item \textbf{Feature Extraction}: This technique involves transforming the original set of features into a new set of features, which is usually of lower dimensionality. The new features are often combinations of the original features and aim to capture as much of the information in the original data as possible. Many methods exit, like \acrfull{pca}, \acrfull{lda} and \acrfull{tsne} are often employed to transform high-dimensional data into a lower-dimensional form are commonly used for feature extraction \cite{FeatureSelecExtract14}.
+        
+        \item \textbf{Feature Selection}: Unlike feature extraction, feature selection aims to pick a subset of the most important features from the original set, without changing them \cite{FeatureSelecExtract14}. The goal is to remove irrelevant or redundant features that do not contribute significantly to the model's performance. Techniques like Recursive Feature Elimination (RFE) and using importance scores from tree-based algorithms like Random Forest are popular methods for feature selection.
+    \end{itemize}
+
+    Both techniques have their own advantages and disadvantages, and the choice between the two often depends on the specific requirements of the task at hand. Feature extraction is generally more suitable when the original features do not have much interpretability to begin with, or when transforming features can lead to a more compact and effective representation. On the other hand, feature selection is often preferred when it is important to maintain the interpretability of the features, or when computational efficiency is a concern \cite{FeatureEngineeringMadeEasy18}.
+
+    \subsubsection{Evaluating Features with Correlation Tests}
+    To assess the quality of features, various statistical measures can be employed. Correlation tests are statistical tests that measure the strength and direction of the relationship between two variables. Pearson, Kendall, and Spearman correlation coefficients are commonly used to quantify the linear or monotonic relationship between each feature and the target variable \cite{StatisticalMethodsInPractice09}. A high absolute value indicates a strong relationship, aiding in feature selection.
+
+    \begin{itemize}
+        \item \textbf{Pearson Correlation}: Measures the linear relationship between two variables. It ranges from -1 to 1, where -1 indicates a strong negative linear correlation, 1 indicates a strong positive linear correlation, and 0 indicates no linear correlation.
+        \item \textbf{Kendall's Tau}: A non-parametric test that measures the strength and direction of a monotonic relationship between two variables.
+        \item \textbf{Spearman's Rank}: Also a non-parametric test, it assesses how well an arbitrary monotonic function can describe the relationship between two variables without making any assumptions about the frequency distribution.
+    \end{itemize}
+
+    These techniques are useful for evaluating the relationship between each feature and allows to generate correlation matrices, which can be used to identify redundant features. It's also possible to evaluate each feature independently through univariate feature selection techniques. In Python's scikit-learn library \cite{ScikitLearn}, methods like \textit{F-test} and the \textit{p-value} are often used for this purpose.
+"
+    \begin{itemize}
+        \item \textbf{F-test value}: Measures the linear dependency between the feature variable and the target. A higher F-test value indicates a more useful feature.
+        \item \textbf{p-value}: Indicates the probability of an F-test value this large arising if the null hypothesis is true. A smaller p-value suggests rejecting the null hypothesis, making the feature significant.
+    \end{itemize}
+
+    In summary, features are the foundational elements of any machine learning model. The quality of these features, along with how they are processed and utilized, can markedly impact the model's performance. The significance of feature engineering cannot be overstated. Properly engineered features can drastically reduce modeling errors, leading to more accurate and reliable predictions. It serves as a bridge between raw data and predictive models, ensuring that the models are fed with the most relevant and informative features.
+
+    \subsection{Embeddings}
+    Embeddings are low-dimensional vector representations of high-dimensional objects. They are often used to capture complex relationships between objects and are particularly useful for machine learning tasks like clustering, classification, and link prediction. Embeddings are widely used in the field of natural language processing (NLP) to represent words, sentences, and documents \cite{UnderstandingWordEmbeddingsAndLM20}. In recent years, they have also been applied to graphs to learn node representations \cite{KG21}. In this section, we will discuss the concept of embeddings and explore some common techniques for creating them.
+    
+    \subsubsection{Embedding Creation vs Feature Engineering}    
+    Both embedding creation and feature engineering are techniques used to transform data for machine learning models. However, they are different in terms of their goals and how they are achieved.
+
+    \begin{itemize}
+        \item \textbf{Embedding Creation}: Embedding creation is the process of learning a low-dimensional vector representation of a high-dimensional object. This involves mapping discrete objects, such as words in \acrfull{nlp} or nodes in a graph in our case, to vectors of continuous values in a lower-dimensional space \cite{UnderstandingWordEmbeddingsAndLM20}. The goal is to capture the semantic or structural relationships between these objects. Specialized algorithms like Word2Vec for word embeddings or Node2Vec for graph embeddings are often used.
+        
+        \item \textbf{Feature Engineering}: As discussed before, it is a more general practice that involves creating new features or modifying existing ones to improve the performance of a machine learning model. While feature engineering can include creating embeddings, it also encompasses a wide range of other techniques like normalization, transformation, outlier detection, and handling missing values.
+    \end{itemize}
+
+    In general, feature engineering is a more manual process, while embedding creation is more automated. Feature engineering requires domain knowledge and understanding of the problem, while embedding creation can be done using a variety of machine learning techniques.
+
+    Thus, embedding creation is a specialized form of feature engineering aimed at mapping discrete objects to continuous vectors of numbers, usually for capturing complex relationships. Feature engineering, on the other hand, is a broader practice that can involve a variety of techniques, including but not limited to embedding creation.
+
+    \subsubsection{Graph-based embeddings}
+    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space \cite{KG21}. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. Here are some common and advanced techniques:
+
+    % need to complete this section with more details and references
+    
+    \begin{itemize}
+        \item \textbf{One-Hot Encoding}: This is a simple technique that represents each node as a vector of 0s and 1s, where the length of the vector is equal to the number of nodes in the graph. The vector contains a 1 at the index corresponding to the node and 0s everywhere else. As is, this method is not really suitable for large graphs as it results in a high-dimensional and sparse matrix representation \cite{KG22}.
+        
+        \item \textbf{Node2Vec}: This algorithm learns continuous feature representations for nodes by optimizing a neighborhood-preserving objective. It employs biased random walks and uses the Skip-gram model to generate embeddings. Node2Vec is particularly effective for capturing local structures and can be fine-tuned for specific tasks \cite{KG22}.
+        
+        \item \textbf{DeepWalk}: Similar to Node2Vec, DeepWalk uses random walks to generate node sequences. It employs the Skip-gram model from natural language processing to learn embeddings. Unlike Node2Vec, it does not use biased walks, making it more suitable for capturing global structures.
+        
+        \item \textbf{Spectral Clustering}: This technique is based on the spectral theory of graphs. It utilizes the eigenvalues and eigenvectors of the Laplacian matrix of the graph to find an optimal embedding. Spectral Clustering is particularly useful for community detection and can capture the global structure of the graph.
+        
+        \item \textbf{LINE}: Large-scale Information Network Embedding (LINE) aims to preserve both local and global network structures. It optimizes two objectives: first-order and second-order proximities between nodes. LINE is scalable and can handle large graphs efficiently.
+        
+        \item \textbf{GloVe on Graphs}: An adaptation of the Global Vectors for Word Representation (GloVe), this method constructs a co-occurrence matrix based on node neighborhoods and then factorizes it to obtain embeddings. It is effective for capturing semantic relationships between nodes.
+        
+        \item \textbf{Graph Factorization}: This method directly factorizes the adjacency matrix of the graph to learn node embeddings, making it computationally efficient but less capable of capturing complex structures. It is often used for large-scale graphs where computational resources are limited.
+        
+        \item \textbf{SDNE (Structural Deep Network Embedding)}: SDNE employs a deep autoencoder to learn complex and non-linear node embeddings while preserving first-order and second-order proximities. It is particularly effective for capturing intricate patterns and structures in the graph.
+    \end{itemize}
+
+    \subsection{Other preprocessing techniques for Machine Learning}
+    When working with real-world data and datasets, it is common to issues like missing values, outliers, and imbalanced classes that can adversely affect the performance of machine learning models. In this section, we will discuss some common preprocessing techniques used to improve the quality of data and ensure that the models can learn effectively.
+
+    \subsubsection{Data Cleaning}
+    Data cleaning is the process of detecting and correcting errors in the data. It is a crucial step in data preprocessing and involves various techniques like outlier detection, handling missing values, and data normalization. Data cleaning is necessary to ensure that the data is accurate and consistent, which is essential for machine learning models to learn effectively.
+
+    \begin{itemize}
+        \item \textbf{Outlier Detection}: Outliers are data points that deviate significantly from the rest of the dataset. They can be caused by errors in data collection or genuine variations. Outliers can skew the model's learning and should be identified and handled appropriately, either by removal or transformation.
+        
+        \item \textbf{Handling Missing Values}: Missing data can lead to biased or incorrect model training. Techniques for handling missing values include imputation, where missing values are replaced with statistical measures like mean, median, or mode, and deletion, where rows with missing values are removed.
+        
+        \item \textbf{Data Normalization}: Features with different scales can affect the performance of machine learning algorithms. Normalization rescales the features to a standard range, usually [0, 1], or transforms them to have a mean of 0 and a standard deviation of 1.
+        
+        \item \textbf{Encoding Categorical Variables}: Many machine learning algorithms require numerical input and output variables. Categorical variables are converted to numerical format through techniques like one-hot encoding or label encoding.
+        
+        \item \textbf{Text Cleaning}: In natural language processing tasks, text data may require cleaning to remove irrelevant characters, correct typos, or standardize text format.
+        
+        \item \textbf{Duplicate Removal}: Duplicate entries can bias the model and should be identified and removed from the dataset.
+        
+        \item \textbf{Feature Engineering}: While not strictly data cleaning, feature engineering involves transforming existing features or creating new ones to improve model performance.
+    \end{itemize}
+
+    \subsubsection{Dataset splitting and sampling}
+    One other typical step is the division of the dataset into training and testing sets. This separation is crucial for evaluating the generalization performance of a model. The training set is used to train the model, while the testing set is used to evaluate its performance on unseen data. Failing to separate these sets can lead to overfitting, where the model performs well on the training data but poorly on new, unseen data.
+
+    Various techniques exist for dataset splitting and sampling, each with its own advantages and disadvantages:
+
+    \begin{itemize}
+        \item \textbf{Random Split}: The dataset is randomly divided into training and testing sets based on a given ratio, such as 70\% for training and 30\% for testing. This method is simple but may result in imbalanced classes in the splits.
+        
+        \item \textbf{Stratified Split}: Similar to random split, but ensures that the distribution of classes is the same in both training and testing sets. This is particularly useful for imbalanced datasets.
+        
+        \item \textbf{k-Fold Cross-Validation}: The dataset is divided into 'k' subsets or "folds." The model is trained on k-1 folds and tested on the remaining fold. This process is repeated k times, each time with a different fold as the testing set. The average performance metric is used for evaluation.
+        
+        \item \textbf{Leave-One-Out Cross-Validation (LOOCV)}: A special case of k-Fold Cross-Validation where k is equal to the number of data points. Each data point is used once as the test set while the remaining points form the training set.
+        
+        \item \textbf{Bootstrapping}: Random samples are drawn with replacement from the dataset to create multiple training sets. The model is trained and tested on these sets, and the average performance is calculated.
+    \end{itemize}
+
+    \subsubsection{Dealing with Imbalanced Datasets}
+    Imbalanced datasets are those where the classes are not represented equally. This is a common issue in machine learning, especially in classification problems. An imbalanced dataset can lead to a biased model that may not effectively predict the minority class. Therefore, it is crucial to address this issue during data preprocessing.
+
+    \begin{itemize}
+        \item \textbf{Why it is Necessary}: In imbalanced datasets, machine learning algorithms tend to be biased towards the majority class, ignoring the minority class. This results in poor classification performance for the minority class, which is often the class of interest in problems like fraud detection, medical diagnosis, etc.
+        
+        \item \textbf{Oversampling}: This involves adding more copies of the minority class. Oversampling can be random with replacement, or it can involve generating synthetic samples.
+        
+        \item \textbf{Undersampling}: This involves removing some of the samples of the majority class. This method is generally not preferred as it can lead to loss of data.
+        
+        \item \textbf{SMOTE (Synthetic Minority Over-sampling Technique)}: SMOTE is an oversampling method that creates synthetic samples in the feature space. It selects two or more similar instances (using a distance measure) and perturbing an instance one at a time by a random amount within the difference to the neighboring instances.
+        
+        \item \textbf{ADASYN (Adaptive Synthetic Sampling)}: Similar to SMOTE, but it uses a weighted distribution for different minority class examples according to their level of difficulty in learning. 
+        
+        \item \textbf{Cost-sensitive Learning}: This involves modifying the algorithm to increase the weight of the minority class during training, thereby making the algorithm more sensitive to it.
+        
+        \item \textbf{Ensemble Methods}: Methods like Random Forest and Gradient Boosting can be used with techniques like bagging and boosting to handle imbalanced datasets effectively.
+        
+        \item \textbf{Resampling Methods}: These involve randomly partitioning the data into subsets, balancing each subset, and then aggregating the results.
+    \end{itemize}
+
+    To conclude this section, data preprocessing is a crucial step in machine learning. The number of concepts and techniques discussed here is by no means exhaustive, which further highlights the importance and complexity of data preprocessing. 
 
 \section{Machine Learning and Deep Learning}\label{sec:background:ml}
+    In the preceding sections, we have discussed the importance of data preprocessing and feature engineering for machine learning. In this section, we will discuss the machine learning pipeline and explore some common machine learning algorithms. We will also discuss deep learning and neural networks especially in the context of graphs, since they have gained popularity in recent years due to their superior performance on many tasks.
+
     \subsection{Machine Learning}
     Introduce the importance of ML in today's research and breakthroughts
     * what is ML
@@ -631,3 +765,8 @@ The objective of this background section is multifaceted. Since the project has 
 
 
 
+\begin{table}
+\begin{tabular}{l}
+and use in cyber-attacks\\
+\end{tabular}
+\end{table}
