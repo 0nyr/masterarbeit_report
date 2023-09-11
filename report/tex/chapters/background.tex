@@ -636,27 +636,74 @@ The objective of this background section is multifaceted. Since the project has 
 
     Thus, embedding creation is a specialized form of feature engineering aimed at mapping discrete objects to continuous vectors of numbers, usually for capturing complex relationships. Feature engineering, on the other hand, is a broader practice that can involve a variety of techniques, including but not limited to embedding creation.
 
-    \subsubsection{Graph-based embeddings}
-    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space \cite{KG21}. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. Here are some common and advanced techniques:
+    \subsubsection{Embeddings for graphs}\label{sec:background:processing:embedding:graph}
+    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space \cite{KG21}. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. A quite complete overwiew of the different techniques can be found in \citetitle{KG21}. Here are some common and advanced techniques:
 
     % need to complete this section with more details and references
+
+    \paragraph{Translational Models}
+    The first type of graph embeddings techniques is based around using transactional models that interpret edge labels as transformations from subject nodes to object nodes \citetitle{KG21}. 
+
+    \begin{itemize}
+        \item \textbf{TransE:} is one of the earliest and most straightforward translational models. It represents entities as points in a vector space and relations as translations between these points. The primary idea is that for a valid triple \((h, r, t)\), the equation \(h + r = t\) should hold, where \( h \) stands for the head entity, \( r \) represents the relation, and \( t \) is the tail entity. This model is simple and computationally efficient but is limited in its ability to capture complex relationships \cite{KG21}.
+        \item \textbf{TransH:} TransH extends TransE by introducing relation-specific hyperplanes. This allows the model to capture more complex relationships by projecting the entity embeddings onto these hyperplanes before performing translations \cite{KG21}.
+        \item \textbf{TransR:} TransR goes a step further by not only introducing relation-specific hyperplanes but also relation-specific translations. This allows for a more flexible representation of relations, accommodating various types of complexities \cite{KG21}.
+        \item Other improvements include \textit{TransD} or \textit{MuRP}, which shows that research in this domain is still very active.
+    \end{itemize}
+
+    \paragraph{Tensor Decomposition Models}
+    Tensor decomposition models represent entities and relations as vectors or matrices in a low-dimensional space. These models are based on the assumption that the relationship between entities can be represented by a bilinear function. They are computationally efficient and can capture complex relationships, but they are also limited in their ability to model asymmetric and reflexive relations.
+
+    \begin{itemize}
+        \item \textbf{RESCAL:} RESCAL employs a bilinear model where each relation is represented by a full-rank matrix. This allows for capturing asymmetric and reflexive relations but at the cost of increased computational complexity \cite{KG21}.
+        \item \textbf{DistMult:} DistMult simplifies RESCAL by assuming that the relation matrices are diagonal. This reduces the number of parameters and computational complexity, making it more scalable \cite{KG21} \cite{KG22}.
+        \item \textbf{ComplEx:} ComplEx extends DistMult by introducing complex-valued embeddings. This allows the model to capture asymmetric relations effectively while maintaining computational efficiency \cite{KG21} \cite{KG22}.
+    \end{itemize}
+
+    \paragraph{Neural Models}
+    Neural models employ neural networks to learn the features of entities and relations. This provides a more flexible and adaptive approach to graph embeddings.
+
+    \begin{itemize}
+        \item \textbf{ConvKB:} ConvKB employs a convolutional neural network to automatically learn the features of entities and relations. It is technical a translational model as introduced before, but uses a convolutional layer to capture the interactions between entities and relations. This provides a more flexible and adaptive approach to graph embeddings \cite{ConvKB18}.
+        \item \textbf{RotatE:} RotatE uses complex rotations in the embedding space to model relations. This neural model captures the semantics of relations in a more expressive manner \cite{KG22}.
+        \item \textbf{SDNE (Structural Deep Network Embedding)}: SDNE employs a deep autoencoder to learn complex and non-linear node embeddings while preserving first-order and second-order proximities. It is particularly effective for capturing intricate patterns and structures in the graph \cite{SDNE16}.
+        \item \textbf{R-GCN:} Relational Graph Convolutional Networks (R-GCNs) combine the strengths of GCNs and traditional embedding methods to capture both topological and semantic information \cite{RGCN18}. A more recent study by \citeauthor{RGCN22} argues that the main contribution of R-GCN lies in its message passing paradigm rather than the learned weights. This paper introduces a variant called Random R-GCN (RR-GCN) \cite{RGCN22}.
+        \item \textbf{ConvE:} ConvE employs convolutional layers to capture local and global interactions between entities and relations, offering a more expressive representation \cite{KG22}.
+    \end{itemize}
+
+    \paragraph{Language Models}
+    Language models utilize pre-trained language models to enrich the embeddings with contextual information. This approach leverages the recent developments of language models to capture the semantics of entities and relations.
+
+    \begin{itemize}
+        \item \textbf{BERT for KGE:} Utilizing pre-trained BERT models, this approach leverages the power of language models to enrich the embeddings with contextual information \cite{KGBERT19}.
+        \item \textbf{BART KGE:} Bidirectional and Auto-Regressive Transformers (BART) is a denoising autoencoder that can be used for various NLP tasks. This approach utilizes BART to learn entity and relation embeddings. The paper introducing this also compares other \acrshort{llm} like GPT-2 \cite{KGBART21}.
+        \item Due to the recent developments in NLP, this domain is still very active, and new approaches are being developed regularly.
+    \end{itemize}
+
+    \subsubsection{Word Embeddings}
+    Word embeddings are vector representations of words in a low-dimensional space. They are often used as input for machine learning models in natural language processing (NLP) tasks like text classification, sentiment analysis, and machine translation. Word embeddings are typically learned from large text corpora using unsupervised learning techniques like Word2Vec and GloVe. These embeddings can then be used to capture semantic relationships between words and phrases, which is particularly useful for NLP tasks \cite{UnderstandingWordEmbeddingsAndLM20}.
+
+    \begin{itemize}
+        \item \textbf{Word2Vec}: Word2Vec is a popular algorithm for learning word embeddings from text data. It employs a shallow neural network to learn the embeddings and is often used as a pre-processing step for NLP tasks \cite{KG22}.
+        \item \textbf{GloVe}: Global Vectors for Word Representation (GloVe) is another popular algorithm for learning word embeddings. It is based on the co-occurrence matrix of words and utilizes matrix factorization to learn the embeddings \cite{KG22}.
+    \end{itemize}
+
+    \paragraph{Graph Embeddings}
+    Graph embeddings are vector representations of nodes in a graph.Graph embeddings are typically learned using unsupervised learning techniques like Node2Vec and DeepWalk. These embeddings can then be used to capture structural relationships between nodes, which is particularly useful for graph analytics tasks \cite{KG21}.
     
     \begin{itemize}
         \item \textbf{One-Hot Encoding}: This is a simple technique that represents each node as a vector of 0s and 1s, where the length of the vector is equal to the number of nodes in the graph. The vector contains a 1 at the index corresponding to the node and 0s everywhere else. As is, this method is not really suitable for large graphs as it results in a high-dimensional and sparse matrix representation \cite{KG22}.
         
-        \item \textbf{Node2Vec}: This algorithm learns continuous feature representations for nodes by optimizing a neighborhood-preserving objective. It employs biased random walks and uses the Skip-gram model to generate embeddings. Node2Vec is particularly effective for capturing local structures and can be fine-tuned for specific tasks \cite{KG22}.
+        \item \textbf{Node2Vec}: This algorithm learns continuous feature representations for nodes by optimizing a neighborhood-preserving objective. It employs biased random walks and uses the Skip-gram model to generate embeddings. Node2Vec is particularly effective for capturing local structures and can be fine-tuned for specific tasks \cite{Node2vec16}.
         
-        \item \textbf{DeepWalk}: Similar to Node2Vec, DeepWalk uses random walks to generate node sequences. It employs the Skip-gram model from natural language processing to learn embeddings. Unlike Node2Vec, it does not use biased walks, making it more suitable for capturing global structures.
+        \item \textbf{DeepWalk}: Similar to Node2Vec, DeepWalk uses random walks to generate node sequences. It employs the Skip-gram model from natural language processing to learn embeddings. Unlike Node2Vec, it does not use biased walks, making it more suitable for capturing global structures \cite{Deepwalk14}.
         
         \item \textbf{Spectral Clustering}: This technique is based on the spectral theory of graphs. It utilizes the eigenvalues and eigenvectors of the Laplacian matrix of the graph to find an optimal embedding. Spectral Clustering is particularly useful for community detection and can capture the global structure of the graph.
         
-        \item \textbf{LINE}: Large-scale Information Network Embedding (LINE) aims to preserve both local and global network structures. It optimizes two objectives: first-order and second-order proximities between nodes. LINE is scalable and can handle large graphs efficiently.
+        \item \textbf{LINE}: Large-scale Information Network Embedding (LINE) aims to preserve both local and global network structures. It optimizes two objectives: first-order and second-order proximities between nodes. LINE is scalable and can handle large graphs efficiently \cite{LINEEmbedding15}.
         
-        \item \textbf{GloVe on Graphs}: An adaptation of the Global Vectors for Word Representation (GloVe), this method constructs a co-occurrence matrix based on node neighborhoods and then factorizes it to obtain embeddings. It is effective for capturing semantic relationships between nodes.
+        \item \textbf{Graph Factorization}: This method directly factorizes the adjacency matrix of the graph to learn node embeddings, making it computationally efficient but less capable of capturing complex structures. It is often used for large-scale graphs where computational resources are limited \cite{KG22}.
         
-        \item \textbf{Graph Factorization}: This method directly factorizes the adjacency matrix of the graph to learn node embeddings, making it computationally efficient but less capable of capturing complex structures. It is often used for large-scale graphs where computational resources are limited.
-        
-        \item \textbf{SDNE (Structural Deep Network Embedding)}: SDNE employs a deep autoencoder to learn complex and non-linear node embeddings while preserving first-order and second-order proximities. It is particularly effective for capturing intricate patterns and structures in the graph.
     \end{itemize}
 
     \subsection{Other preprocessing techniques for Machine Learning}
@@ -725,34 +772,265 @@ The objective of this background section is multifaceted. Since the project has 
     In the preceding sections, we have discussed the importance of data preprocessing and feature engineering for machine learning. In this section, we will discuss the machine learning pipeline and explore some common machine learning algorithms. We will also discuss deep learning and neural networks especially in the context of graphs, since they have gained popularity in recent years due to their superior performance on many tasks.
 
     \subsection{Machine Learning}
-    Introduce the importance of ML in today's research and breakthroughts
-    * what is ML
-    * how does it works
-    * model evaluation, concepts like precision, recall, F-1 score and so forth
+    Machine learning is a cornerstone in the field of artificial intelligence and has been instrumental in driving many of today's technological and scientific breakthroughs. From natural language processing to computer vision, machine learning algorithms play a critical role in making sense of large and complex data sets.
 
-    \subsection{Machine Learning models}
-    binary classification problem: either a block is the first block of a key, or it is not. Different ML models are suitable for the task (we are using Python Sciki-learn):
+        \subsubsection{What is Machine Learning}
+        Machine learning is a subfield of artificial intelligence that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. This learning process is based on the recognition of complex patterns in data and the making of intelligent decisions based on them \cite{ScienceMachineLearning15}.
 
-    * present the different models, pros and cons, that we can use, the maths and formulas behind
+        The machine learning pipeline typically involves several steps including some pre-steps like data collection, preprocessing, feature extraction that we have already discussed before, usually followed by model training, evaluation, and deployment. Algorithms are trained on a dataset, and the learned patterns are used to make predictions or decisions without human intervention. \acrshort{ml} algorithms can be broadly classified into three categories \cite{ScienceMachineLearning15}:
 
-    \subsection{Deep Learning and GCN}
-    We can also build our own Deep Learning neural network using Pytorch, specifically when dealing with automatically generated embeddings from the graph representation of the heap dump
+        \begin{itemize}
+            \item \textbf{Supervised Learning}: Algorithms are trained on labeled data, and the aim is to make predictions or map inputs to outputs.
+            \item \textbf{Unsupervised Learning}: Algorithms are trained on unlabeled data, focusing on the underlying structure or distribution in the data.
+            \item \textbf{Reinforcement Learning}: Algorithms learn to perform an action from state to state to maximize some type of reward or objective function.
+        \end{itemize}
 
-    * Present what is deep learning and neural Networks
-    * what are GCN
-    * present different architectures (python libraries that can be used to embed the grap and generate GCN for binary predicting key nodes)
+        In the following, we will focus on supervised and unsupervised learning, as they are the most relevant to our work.
 
-    \subsubsection{Graph Convolutional Networks (GCNs)}
-    Graph Convolutional Networks extend the concept of convolution from images to graphs. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features. Below are some common and advanced techniques:
+        \subsubsection{Model Evaluation}
+        Evaluating the performance of a machine learning model is crucial for understanding its effectiveness and suitability for a given task. It is not a trivial task as it depends on various factors like the type of data, the problem at hand, and the model itself \cite{EvaluatingQualityMLExplanations21}. In this section, we will discuss some common evaluation metrics for classification and regression models.
+    
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            \paragraph{Precision}
+            Precision is the ratio of correctly predicted positive observations to the total predicted positives. The formula for precision is:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \text{Precision} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}
+                $
+            \end{center}
+            \vspace{1em}
+        \end{minipage}
+    
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            \paragraph{Recall}
+            Recall is the ratio of correctly predicted positive observations to all the observations in the actual class. The formula for recall is:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \text{Recall} = \frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}
+                $
+            \end{center}
+            \vspace{1em}
+        \end{minipage}
+    
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            \paragraph{F-1 Score}
+            The F-1 Score is the weighted average of Precision and Recall, and it ranges from 0 to 1. The formula for the F-1 Score is:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \text{F-1 Score} = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}}
+                $
+            \end{center}
+            \vspace{1em}
+        \end{minipage}
+    
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            \paragraph{Accuracy}
+            Accuracy is the ratio of correctly predicted observations to the total observations. The formula for accuracy is:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \text{Accuracy} = \frac{\text{True Positives} + \text{True Negatives}}{\text{Total Observations}}
+                $
+            \end{center}
+            \vspace{1em}
+        \end{minipage}
+
+        These are the most common metrics used for evaluating classification models. Other metrics like the Area Under the Curve (AUC) and the Receiver Operating Characteristic (ROC) curve are also used for evaluating binary classification models. For regression models, metrics like Mean Squared Error (MSE), Root Mean Squared Error (RMSE), and Mean Absolute Error (MAE) are commonly used \cite{ScikitLearn}.
+
+        \subsection{Machine Learning Models for Binary Classification}
+        Binary classification is a supervised learning task where the goal is to predict a binary outcome, i.e., one of two possible classes (0 or 1). This is a truly classical task for a \acrshort{ml} model, with a range of applicable algorithms. As such, we rely on Python's Scikit-learn library for implementation.
+
+        \paragraph{Logistic Regression}
+        A specialized form of regression tailored for predicting binary outcomes. It employs the logistic function to map predicted values between 0 and 1. While straightforward and interpretable, its performance may be limited on complex, non-linear data \cite{nick_logistic_2007}.
+
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            The logistic function is defined as:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                P(y=1|x) = \frac{1}{1 + e^{-(\beta_0 + \beta_1 x)}}
+                $
+            \end{center}
+            \vspace{1em}
+            Where \( \beta_0 \) is the intercept and \( \beta_1 \) is the coefficient for the predictor variable \( x \).
+        \end{minipage}
+
+        \paragraph{Decision Trees}
+        These are versatile models used for both classification and regression. They partition the feature space into regions, making decisions at each node. While easy to visualize, they are susceptible to overfitting \cite{kotsiantis_decision_2013}.
+
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            Decision Trees use metrics like Gini impurity or entropy to make splits:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \text{Gini}(T) = 1 - \sum_{i=1}^{C} p_i^2
+                $
+            \end{center}
+            \vspace{1em}
+            Where \( T \) is a node and \( p_i \) is the proportion of class \( i \) instances among the training instances in node \( T \).
+        \end{minipage}
+
+        \paragraph{Random Forest}
+        An ensemble technique that aggregates predictions from multiple decision trees. Known for its robustness and ability to handle large, high-dimensional data \cite{probst_hyperparameters_2019}.
+
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            The final prediction is an average or majority vote from all trees:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \hat{y} = \frac{1}{n} \sum_{i=1}^{n} \hat{y_i}
+                $
+            \end{center}
+            \vspace{1em}
+            Where \( \hat{y} \) is the final prediction and \( \hat{y_i} \) is the prediction from the \( i^{th} \) tree.
+        \end{minipage}
+
+        \paragraph{Support Vector Machines (SVM)}
+        Effective for both classification and regression, SVMs find the hyperplane that best separates the data into classes. They excel in high-dimensional spaces \cite{wu_analysis_2006}.
+
+        \begin{minipage}{\dimexpr\linewidth-20pt}
+            The objective is to maximize the margin between classes:
+            \par
+            \vspace{2em}
+            \begin{center}
+                $
+                \max_{w, b} \frac{2}{\| w \|}
+                $
+            \end{center}
+            \vspace{1em}
+            Where \( w \) is the weight vector and \( b \) is the bias term.
+        \end{minipage}
+
+        \paragraph{k-Nearest Neighbors (k-NN)}
+        An instance-based algorithm that classifies a new point based on the majority class among its 'k' nearest neighbors \cite{laaksonen_classification_1996}.
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        The distance between points is often calculated using Euclidean distance:
+        \par
+        \vspace{2em}
+        \begin{center}
+            $
+            d(x, y) = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}
+            $
+        \end{center}
+        \vspace{1em}
+        Where \( d(x, y) \) is the distance between points \( x \) and \( y \), and \( n \) is the number of dimensions.
+    \end{minipage}
+
+    \subsection{Deep Learning}
+    Deep learning offers a powerful set of tools for automatically generating embeddings from the graph representation of heap dumps. Leveraging neural networks, we can build custom models using PyTorch to perform binary classification tasks, such as predicting key nodes in a heap dump. In this section, we will explore various neural network architectures that are well-suited for this task.
+
+    Neural Networks serve as the backbone of deep learning models \cite{DeepLearningBook16}. They consist of interconnected nodes or "neurons" organized into layers. Deep learning extends this architecture by employing multiple hidden layers, enabling the model to learn complex representations from data. This is particularly useful when dealing with graph-based heap dump representations, where the relationships between nodes can be intricate \cite{KG22}. 
+    
+    Choosing Deep Learning models is dependent on the task. As such, we need to present the different types of neural networks and their advantages and disadvantages. Below are some common neural network architectures:
+
+    \subsubsection{Recurrent Neural Networks (RNN)}
+    \acrfull{rnn} are particularly effective for sequence-based data. In the context of heap dumps, if the memory addresses or keys exhibit some form of sequential pattern, RNNs can be employed to capture these temporal dependencies for binary classification \cite[10.2]{DeepLearningBook16}.
 
     \begin{itemize}
-        \item \textbf{Vanilla GCN}: The basic GCN model consists of an input layer, one or more hidden layers, and an output layer. Each layer is associated with a graph convolution operation that updates the node features based on their neighbors.
+        \item \textbf{Advantages:}
+        \begin{itemize}
+            \item Good at capturing short-term dependencies in sequence data.
+            \item Relatively simpler architecture.
+        \end{itemize}
+        \item \textbf{Disadvantages:}
+        \begin{itemize}
+            \item Struggles with long-term dependencies due to the vanishing gradient problem.
+            \item May require more data for effective training.
+        \end{itemize}
+    \end{itemize}
+
+    \subsubsection{Long Short-Term Memory (LSTM)}
+    LSTMs are an extension of RNNs designed to capture long-term dependencies, making them suitable for more complex sequences \cite{hochreiter_long_1997}.
+
+    \begin{itemize}
+        \item \textbf{Advantages:}
+        \begin{itemize}
+            \item Effective in capturing long-term dependencies.
+            \item Less susceptible to the vanishing gradient problem.
+        \end{itemize}
+        \item \textbf{Disadvantages:}
+        \begin{itemize}
+            \item More complex and computationally intensive than RNNs.
+            \item May require fine-tuning of hyperparameters.
+        \end{itemize}
+    \end{itemize}
+
+    \subsubsection{Gated Recurrent Units (GRU)}
+    \acrfull{gru} offer a compromise between the simplicity of RNNs and the power of LSTMs. They are effective in capturing both short-term and long-term dependencies but with a less complex architecture \cite{chung_empirical_2014}.
+
+    \begin{itemize}
+        \item \textbf{Advantages:}
+        \begin{itemize}
+            \item Simpler architecture compared to LSTM.
+            \item Efficient in capturing long-term dependencies.
+        \end{itemize}
+        \item \textbf{Disadvantages:}
+        \begin{itemize}
+            \item May not perform as well as LSTMs for very complex sequences.
+            \item Still more computationally intensive than basic RNNs.
+        \end{itemize}
+    \end{itemize}
+
+    \subsubsection{Convolutional Neural Networks (CNN)}
+    Though traditionally used in image processing, CNNs can also be adapted for sequence data like heap dumps. They are excellent at identifying spatial hierarchies or patterns in the data \cite{DeepLearningBook16} \cite{lecun_gradient_based_1998}.
+
+    \begin{itemize}
+        \item \textbf{Advantages:}
+        \begin{itemize}
+            \item Highly effective in identifying local patterns.
+            \item Less prone to overfitting due to pooling layers.
+        \end{itemize}
+        \item \textbf{Disadvantages:}
+        \begin{itemize}
+            \item May not capture global dependencies as effectively as RNNs or LSTMs.
+            \item Requires a fixed-size input.
+        \end{itemize}
+    \end{itemize}
+
+    \subsubsection{Graph Convolutional Networks (GCN)}
+    Graph Convolutional Networks (GCNs) are a specialized form of neural networks designed to work directly with graphs \cite{KG22}. They are particularly useful for our task as they can automatically generate embeddings from the graph representation of heap dumps. These embeddings can then be used for binary classification to predict key nodes.
+
+    \begin{itemize}
+        \item \textbf{Advantages:}
+        \begin{itemize}
+            \item Capable of capturing both local and global graph structures.
+            \item No need for manual feature extraction from graphs.
+        \end{itemize}
+        \item \textbf{Disadvantages:}
+        \begin{itemize}
+            \item May require fine-tuning and a well-defined graph structure.
+            \item Computationally intensive for large graphs.
+        \end{itemize}
+    \end{itemize}
+
+    Several Python libraries can be used to implement GCNs for our specific task. Some of the notable ones are PyTorch Geometric, Spektral, and DGL (Deep Graph Library). These libraries offer pre-built GCN layers and various utilities to facilitate the embedding and binary classification of heap dump graphs.
+
+    \subsection{Graph Networks models}
+    As introduced before, Graph Convolutional Networks extend the concept of convolution from images to graphs. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features. 
+    
+    The challenge lies both in how to convert a given graph to a format that can be fed into a neural network (see \autoref{sec:background:processing:embedding:graph}) and how to design a neural network that can effectively learn from the graph data. In this section, we will discuss some common techniques for graph representation and explore some popular GN architectures.
+
+    % TODO: needs more references
+
+    \begin{itemize}
+        \item \textbf{Vanilla GCN}: The basic GCN model consists of an input layer, one or more hidden layers, and an output layer. Each layer is associated with a graph convolution operation that updates the node features based on their neighbors \cite{KG22}.
         
         \item \textbf{GraphSAGE (Graph Sample and Aggregation)}: This model generalizes the GCN framework by allowing various aggregation functions like mean, LSTM, and pooling to combine information from a node's neighbors.
         
         \item \textbf{ChebNet}: ChebNet uses Chebyshev polynomials to generalize the convolution operation in the spectral domain. This allows the model to capture a broader range of graph structures.
         
-        \item \textbf{GAT (Graph Attention Networks)}: GAT introduces attention mechanisms into GCNs, enabling the model to weigh neighbors differently when aggregating information.
+        \item \textbf{GAT (Graph Attention Networks)}: GAT introduces attention mechanisms into GCNs, enabling the model to weigh neighbors differently when aggregating information \cite{GAT17}.
         
         \item \textbf{MoNet}: This model employs a mixture model to generalize the convolution operation, making it capable of handling graphs with diverse structures.
         
@@ -763,7 +1041,7 @@ The objective of this background section is multifaceted. Since the project has 
         \item \textbf{ARMA (AutoRegressive Moving Average)}: This model combines autoregressive models and moving averages to capture both spatial and temporal dependencies in graph data.
     \end{itemize}
 
-
+    The background chapter has introduced a lot of concepts and techniques that are relevant to our work. We have discussed the importance of data preprocessing and feature engineering, explored various machine learning algorithms, and looked at some common neural network architectures. Although not exhaustive, this overview should provide a solid foundation for the methods, design and implementation that will be discussed in the next chapters.
 
 \begin{table}
 \begin{tabular}{l}
