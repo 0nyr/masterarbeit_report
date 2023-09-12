@@ -26,7 +26,7 @@ The objective of this background section is multifaceted. Since the project has 
     \say{The client sends a service request once a secure transport layer connection has been established. A second service request is sent
     after user authentication is complete. This allows new protocols to be defined and coexist with the protocols listed above} \cite{RFC4251}.
 
-    \subsubsection{SSH keys}
+    \subsubsection{SSH keys}\label{sec:background:ssh:ssh_keys}
     For the scope of this Masterarbeit, understanding SSH's key exchange and encryption mechanism is important. As Summarized in SSHKex \cite{SSHkex22}, the SSH key exchange procedure results in a derived master key \textit{K} and a hash value \textit{h}. These are critical for client-server communication encryption and session identification.
 
     During the key exchange, multiple session keys are computed for different purposes:
@@ -228,7 +228,7 @@ The objective of this background section is multifaceted. Since the project has 
 
     SmartKex has broad applications in the field of cybersecurity, particularly in memory forensics. Its machine learning-assisted methodology can be adapted for other types of sensitive data extraction, making it a versatile tool for researchers and practitioners alike. The project is open-source, with the code available on GitHub \footnote{\url{https://github.com/smartvmi/Smart-and-Naive-SSH-Key-Extraction}}.
 
-    \subsection{OpenSSH memory dumps dataset}
+    \subsection{OpenSSH memory dumps dataset}\label{sec:background:kex:dataset}
 
     SmartKex has contributed to the research community by generating a comprehensive annotated dataset of OpenSSH heap memory dumps \cite{SmartKex22}. The dataset is publicly available on Zenodo \footnote{\url{https://zenodo.org/record/6537904}}. 
 
