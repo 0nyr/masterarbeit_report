@@ -34,10 +34,18 @@
 \usepackage{dirtree} % directory tree
 \usepackage{float} % float images
 \usepackage{microtype} % better text formatting, avoid one word on a new line for example
+\usepackage{mathtools} % math tools
+\usepackage{amssymb} % math symbols
 
 % quotes and bibliography: https://www.overleaf.com/learn/latex/Typesetting_quotations
 \usepackage{csquotes}
-\usepackage{dirtytalk}
+\usepackage[
+    % Use the french style of quotes, which are more visibly distinct
+    left = \flqq{},% 
+    right = \frqq{},% 
+    leftsub = \flq{},% 
+    rightsub = \frq{} %
+]{dirtytalk}
 \DeclareQuoteStyle{english}{\glqq}{\grqq}{\glq}{\grq}
 
 % \usepackage[

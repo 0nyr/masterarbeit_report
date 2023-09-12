@@ -698,7 +698,7 @@ The objective of this background section is multifaceted. Since the project has 
         
         \item \textbf{DeepWalk}: Similar to Node2Vec, DeepWalk uses random walks to generate node sequences. It employs the Skip-gram model from natural language processing to learn embeddings. Unlike Node2Vec, it does not use biased walks, making it more suitable for capturing global structures \cite{Deepwalk14}.
         
-        \item \textbf{Spectral Clustering}: This technique is based on the spectral theory of graphs. It utilizes the eigenvalues and eigenvectors of the Laplacian matrix of the graph to find an optimal embedding. Spectral Clustering is particularly useful for community detection and can capture the global structure of the graph.
+        \item \textbf{Spectral Clustering}: This technique is based on the spectral theory of graphs. It utilizes the eigenvalues and eigenvectors of the Laplacian matrix of the graph to find an optimal embedding. Spectral Clustering is particularly useful for community detection and can capture the global structure of the graph \cite{SpectralNetworks13} \cite{SemiSupervisedClassificationSpectralConvGCN16}.
         
         \item \textbf{LINE}: Large-scale Information Network Embedding (LINE) aims to preserve both local and global network structures. It optimizes two objectives: first-order and second-order proximities between nodes. LINE is scalable and can handle large graphs efficiently \cite{LINEEmbedding15}.
         
@@ -1016,35 +1016,99 @@ The objective of this background section is multifaceted. Since the project has 
 
     Several Python libraries can be used to implement GCNs for our specific task. Some of the notable ones are PyTorch Geometric, Spektral, and DGL (Deep Graph Library). These libraries offer pre-built GCN layers and various utilities to facilitate the embedding and binary classification of heap dump graphs.
 
-    \subsection{Graph Networks models}
-    As introduced before, Graph Convolutional Networks extend the concept of convolution from images to graphs. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features. 
-    
-    The challenge lies both in how to convert a given graph to a format that can be fed into a neural network (see \autoref{sec:background:processing:embedding:graph}) and how to design a neural network that can effectively learn from the graph data. In this section, we will discuss some common techniques for graph representation and explore some popular GN architectures.
+    \subsection{Graph Neural Networks}
+    A \acrfull{gnn} constructs a neural network that mirrors the structure of the underlying data graph. In this architecture, nodes are linked according to their relationships in the data graph. The model is trained in a supervised fashion to map input features of nodes to their corresponding output features \cite{KG22}. These output features can either be manually annotated or sourced from a knowledge graph. 
 
-    % TODO: needs more references
+    Unlike traditional knowledge graph embeddings, GNNs offer the advantage of end-to-end supervised learning tailored for specific tasks. 
+    
+    With a dataset of labeled examples, GNNs can classify individual nodes or even entire graphs. The challenge lies both in how to convert a given graph to a format that can be fed into a neural network (see \autoref{sec:background:processing:embedding:graph}) and how to design a neural network that can effectively learn from the graph data. Note that the distinction between the two is not always clear since two problems are often tackled together. As such, the present classification is not exhaustive and arbitrary, even though it is based on the literature and meta-analysis of the field, like \citetitle{KG22} \cite{KG22} and \citetitle{GNNComprehensiveSurvey20} \cite{GNNComprehensiveSurvey20}.
+    
+    \acrshort{gnn}s have been employed in various applications, ranging from traffic prediction, recommender systems, and software verification \cite{GNNComprehensiveSurvey20}. Remarkably, GNNs can also serve as substitutes for conventional graph algorithms. For instance, they have been used to identify central nodes in knowledge graphs through supervised learning \cite{KG22}. The following sections delve into two specific types of GNNs: Recursive GNNs and Convolutional GNNs.
+
+    \subsubsection{Recursive Graph Neural Networks (RecGNNs)}
+    Recursive Graph Neural Networks (RecGNNs) serve as the foundational approach to graph neural networks \cite{KG22}. The model operates by passing messages between neighboring nodes to recursively compute results. The framework learns the functions that generate the expected output based on a training set of labeled nodes. \citeauthor{GNN08} \cite{GNN08} proposed a seminal \acrshort{gnn} model that uses feature vectors for nodes and edges, along with state vectors for nodes. Two parametric functions, the transition function and the output function, are used to update the state vectors and compute the final output for nodes, respectively. These functions are applied recursively until a fixpoint is reached. The model is highly flexible and can be adapted in various ways, such as defining neighboring nodes differently or using distinct parameters for each node \cite{GNN08}.
+
+    \paragraph{Learning Process in \acrshort{gnn}s}
+    The learning process in GNNs can be divided into three steps: input computation, node state update, and output computation. These steps are repeated until a fixpoint is reached, and the final output is computed for each node. Essentially, this involves finding the optimal parameters $ w $ such as for $ \varphi_{w} $ to best approximate the data in the learning dataset $ \mathcal{L} $. 
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        The learning task can be formulated as the minimization of a quadratic cost function $ e_{w} $ through iterative gradient descent \cite{GNN08}:
+        \par
+        \vspace{2em}
+        \begin{center}
+            \[
+            e_{w} = \sum_{i=1}^{p}\sum_{j=1}^{q_{i}}(t_{i,j}-\varphi_{w}(G_{i},n_{i,j}) )^2
+            \]
+        \end{center}
+        \vspace{1em}
+    \end{minipage}
+
+    Where:
+    \begin{itemize}
+        \item \( \mathcal{G} \): The set of graphs.
+        \item \( \mathcal{N} \): The subset of nodes.
+        \item \( \mathcal{D} = \mathcal{G} \times \mathcal{N} \): The set of pairs of a graph and nodes.
+        \item \( G_{i} = (N_{i},E_{i}) \in \mathcal{G} \): The graph.
+        \item \( N_{i} \): The set of nodes in graph \( G_{i} \).
+        \item \( E_{i} \): The set of edges in graph \( G_{i} \).
+        \item \( n_{i,j} \in N_{i} \): The \( j^{th} \) node of the graph \( G_{i} \).
+        \item \( q_{i} \leq |N_{i}| \): The number of supervised nodes in the graph \( G_{i} \).
+        \item \( p \leq |\mathcal{G}| \): The number of graphs in the learning set.
+        \item \( \mathcal{L} = \{(G_{i},n_{i,j},t_{i,j})\} \): The learning set.
+        \item \( t_{i,j} \in \mathbb{R}^m \): The target output for node \( n_{i,j} \).
+        \item \( m \): The number of outputs.
+        \item \( \mathbb{R}^m \): The \( m \)-dimensional Euclidean space.
+        \item \( \varphi_{w} : \mathcal{D} \to \mathbb{R}^m \): The function that maps the input to the output.
+        \item \( e_{w} \): Error function.
+    \end{itemize}
+
+    For graph-focused tasks, a special node is used for the target (\( t \)), whereas for node-focused tasks, supervision can be performed on every node. More information about the learning process can be found in \cite{GNN08}.
+
+    \subsubsection{Convolutional Graph Neural Networks (ConvGNNs)}
+    As introduced before, Graph Convolutional Networks extend the concept of convolution from images to graphs. \say{The core idea in the image setting is to apply small kernels (aka filters) over localised regions of an image using a convolution operator to extract features from that local region.} \cite{KG22}. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features.
+
+    \paragraph{Convolution filters}
+    A Convolutional Neural Network (CNN) is a type of neural network that uses convolutional filters to extract features from images. These filters are applied to local regions of the image to capture spatial patterns \cite{CNNIntro15}. The same concept can be extended to graphs, where the convolution filters are applied to local regions of the graph to capture structural patterns. 
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        The convolution operation on an image is historically defined as follows \cite{TutorialDeepLearningPart2}:
+        \par
+        \vspace{2em}
+        \begin{center}
+            \[
+            y_{i,j} = \sum_{k=-m}^{m} \sum_{l=-n}^{n} x_{i+k,j+l} \times w_{kl}
+            \]
+        \end{center}
+        \vspace{1em}
+    \end{minipage}
+
+    Where:
+    \begin{itemize}
+        \item \( y_{i,j} \): The output value at the coordinate $ (i,j) $ of the convolution output.
+        \item \( x_{i,j} \): The input value at the coordinate $ (i,j) $ of the input image.
+        \item \( w_{kl} \): The weight value (coefficient) of the kernel at the coordinate $ (k,l) $.
+        \item \( m \): The kernel width.
+        \item \( n \): The kernel height.
+    \end{itemize}
+    
+    Similar to this, ConvGNNs implement the transition function using convolutions. One of the challenges in ConvGNNs is defining regions of a graph, as nodes in a graph may have varying numbers of neighbors. Solutions to this problem involve using spectral or spatial representations of graphs \cite{SemiSupervisedClassificationSpectralConvGCN16} \cite{KG22}. An alternative approach employs attention mechanisms to learn the most important features \cite{GAT17}. Unlike RecGNNs, ConvGNNs apply a fixed number of convolutional layers and can use different kernels/weights at each distinct step.
+
+    Here are some common ConvGNN architectures. I recommend reading \citetitle{GCNAutoFiltering22} \cite{GCNAutoFiltering22} for a more in-depth discussion of these models:
 
     \begin{itemize}
         \item \textbf{Vanilla GCN}: The basic GCN model consists of an input layer, one or more hidden layers, and an output layer. Each layer is associated with a graph convolution operation that updates the node features based on their neighbors \cite{KG22}.
         
-        \item \textbf{GraphSAGE (Graph Sample and Aggregation)}: This model generalizes the GCN framework by allowing various aggregation functions like mean, LSTM, and pooling to combine information from a node's neighbors.
+        \item \textbf{GraphSAGE (Graph Sample and Aggregation)}: This model generalizes the GCN framework by allowing various aggregation functions like mean, LSTM, and pooling to combine information from a node's neighbors \cite{GraphSAGE17}.
         
-        \item \textbf{ChebNet}: ChebNet uses Chebyshev polynomials to generalize the convolution operation in the spectral domain. This allows the model to capture a broader range of graph structures.
+        \item \textbf{ChebNet}: ChebNet uses Chebyshev polynomials to generalize the convolution operation in the spectral domain. This allows the model to capture a broader range of graph structures \cite{GNNComprehensiveSurvey20}.
         
         \item \textbf{GAT (Graph Attention Networks)}: GAT introduces attention mechanisms into GCNs, enabling the model to weigh neighbors differently when aggregating information \cite{GAT17}.
         
-        \item \textbf{MoNet}: This model employs a mixture model to generalize the convolution operation, making it capable of handling graphs with diverse structures.
+        \item \textbf{MoNet}: This model employs a mixture model to generalize the convolution operation, making it capable of handling graphs with diverse structures \cite{MoNet17}.
         
-        \item \textbf{Graph Isomorphism Network (GIN)}: GIN is designed to capture the isomorphism between different graphs, making it powerful for tasks like graph classification.
+        \item \textbf{Graph Isomorphism Network (GIN)}: GIN is designed to capture the isomorphism between different graphs, making it powerful for tasks like graph classification \cite{GCNAutoFiltering22}.
         
-        \item \textbf{Cluster-GCN}: A scalable method that divides the graph into clusters and performs mini-batch training, making it suitable for large graphs.
-        
-        \item \textbf{ARMA (AutoRegressive Moving Average)}: This model combines autoregressive models and moving averages to capture both spatial and temporal dependencies in graph data.
+        \item Research on the topic is still ongoing, and a lot of new architectures are being proposed: Cluster-GCN, TAGCN, AutoGCN, and many more \cite{GCNAutoFiltering22}. It's worth noting that many of these models are not mutually exclusive and can be combined to create more powerful models.
     \end{itemize}
 
     The background chapter has introduced a lot of concepts and techniques that are relevant to our work. We have discussed the importance of data preprocessing and feature engineering, explored various machine learning algorithms, and looked at some common neural network architectures. Although not exhaustive, this overview should provide a solid foundation for the methods, design and implementation that will be discussed in the next chapters.
-
-\begin{table}
-\begin{tabular}{l}
-and use in cyber-attacks\\
-\end{tabular}
-\end{table}
