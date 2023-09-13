@@ -105,6 +105,8 @@
 \newacronym{pca}{PCA}{Principal Component Analysis}
 \newacronym{lda}{LDA}{Linear Discriminant Analysis}
 \newacronym{tsne}{t-SNE}{t-distributed Stochastic Neighbor Embedding}
+\newacronym{msb}{MSB}{Most Significant Bit}
+\newacronym{lsb}{LSB}{Least Significant Bit}
 
 %deep learning
 \newacronym{lstm}{LSTM}{Long Short-Term Memory}
@@ -137,8 +139,8 @@
 \setcounter{tocdepth}{3} % set depth of table of contents
 \setcounter{secnumdepth}{3}  % Numbering depth of sections
 
-% code 
-\usepackage{listings}
+% ------------------------------ code ------------------------------
+\usepackage{listings} % code listings
 
 % code listing style
 \usepackage{bera}% optional: just to have a nice mono-spaced font
@@ -151,6 +153,18 @@
 \definecolor{delimcolor}{rgb}{0,0.5,0}
 \definecolor{red}{rgb}{1,0,0}
 \colorlet{numb}{magenta!60!black}
+
+\lstset{
+  language=bash,
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  showstringspaces=false,
+  tabsize=4,
+  captionpos=b
+}
 
 \lstdefinestyle{json}{
   basicstyle=\ttfamily\small,

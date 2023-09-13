@@ -274,7 +274,7 @@ The objective of this background section is multifaceted. Since the project has 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         Here is an example of content of a RAW memory dump file, displayed using \textit{vim} and \textit{xdd} commands:
 
-        \begin{lstlisting}[style=hexdump, caption={Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}]
+        \begin{lstlisting}[style=hexdump, caption={16 bytes per line visualization of a Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}]
             00000000: 0000 0000 0000 0000 5102 0000 0000 0000  ........Q.......
             00000010: 0607 0707 0707 0303 0200 0006 0401 0206  ................
             00000020: 0200 0001 0100 0107 0604 0100 0000 0203  ................
@@ -295,7 +295,7 @@ The objective of this background section is multifaceted. Since the project has 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         The same example as before, a memory dump file, displayed using \textit{vim} and \textit{xdd -c 8} commands:
 
-        \begin{lstlisting}[style=hexdump, caption={Hex Dump}]
+        \begin{lstlisting}[style=hexdump, caption={8 bytes per line visualization of a Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}, label={lst:hexdump-8bytes}]
             00000000: 0000 0000 0000 0000  ........
             00000008: 5102 0000 0000 0000  Q.......
             00000010: 0607 0707 0707 0303  ........
@@ -1092,6 +1092,8 @@ The objective of this background section is multifaceted. Since the project has 
     \end{itemize}
     
     Similar to this, ConvGNNs implement the transition function using convolutions. One of the challenges in ConvGNNs is defining regions of a graph, as nodes in a graph may have varying numbers of neighbors. Solutions to this problem involve using spectral or spatial representations of graphs \cite{SemiSupervisedClassificationSpectralConvGCN16} \cite{KG22}. An alternative approach employs attention mechanisms to learn the most important features \cite{GAT17}. Unlike RecGNNs, ConvGNNs apply a fixed number of convolutional layers and can use different kernels/weights at each distinct step.
+
+    % TODO: Give more details about doing convolutions on graphs
 
     Here are some common ConvGNN architectures. I recommend reading \citetitle{GCNAutoFiltering22} \cite{GCNAutoFiltering22} for a more in-depth discussion of these models:
 
