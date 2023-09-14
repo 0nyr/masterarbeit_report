@@ -141,12 +141,16 @@ def load_heap_dump(heap_dump_file_path):
         
 #     return entropy
 
-def get_entropy(data):
+def get_entropy(data: bytes):
+    """
+    Computes the entropy of a byte array, using Shannon's formula.
+    """
+
     if len(data) == 0:
         return 0.0
     
     # Count the occurrences of each byte value
-    unique, counts = np.unique(data, return_counts=True)
+    _, counts = np.unique(data, return_counts=True)
     
     # Calculate the probabilities
     prob = counts / len(data)

@@ -142,20 +142,243 @@ The dataset that serves as the basis for this thesis has been introduced before 
         \end{lstlisting}
     \end{minipage}
 
-    One last check we can do, is verify if the potential pointers are  8-bytes aligned. This can be done by checking if the last 3 bits of the potential address are 0, or using a modulo 8 operation. A simple python function can be used to check that:
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        One last check we can do, is verify if the potential pointers are  8-bytes aligned. This can be done by checking if the last 3 bits of the potential address are 0, or using a modulo 8 operation. A simple python function can be used to check that:
 
-    \begin{lstlisting}[language=python, caption={Python function to check if a potential pointer is 8-bytes aligned}]
-        def is_pointer_aligned(pointer: int) -> bool:
-            """
-            Check if a pointer is 8-bytes aligned.
-            """
-            return pointer % 8 == 0
-    \end{lstlisting}
+        \begin{lstlisting}[language=python, caption={Python function to check if a potential pointer is 8-bytes aligned}]
+            def is_pointer_aligned(pointer: int) -> bool:
+                """
+                Check if a pointer is 8-bytes aligned.
+                """
+                return pointer % 8 == 0
+        \end{lstlisting}
+    \end{minipage}
 
-    Using this function on the potential pointers we have found so far, we can see that all of them are indeed 8-bytes aligned. This is a good sign for pointer detection. 
+    Using this function on the potential pointers we have found so far, we can see that all of them are indeed 8-bytes aligned. This is a good sign for pointer detection, as we now have a range of tests that can be used to detect potential pointers from other potentially random values.
 
+    Here is the pseudo-code for the pointer detection algorithm. This algorithm is presented for a full heap dump file:
+
+    \begin{algorithm}
+        \caption{Pointer Detection Algorithm}
+        \begin{algorithmic}[1]
+        \Procedure{PointerDetection}{$\text{heapDumpFile, HEAP\_START}$}
+            \State $\text{heapStart} \gets \text{hex\_str\_to\_int}(HEAP\_START)$
+            \State $\text{heapEnd} \gets \text{heapStart} + \text{FileSize}(\text{heapDumpFile})$
+            \State $\text{position} \gets 0$
+            \State $\text{potentialPointers} \gets []$
+            \While{$\text{position} < \text{FileSize}(\text{heapDumpFile})$}
+                \State $\text{block} \gets \text{Read8Bytes}(\text{heapDumpFile, position})$
+                \If{$\text{block} \neq 0$}
+                    \State $\text{pointer} \gets \text{pointer\_str\_to\_int}(\text{block})$
+                    \If{$\text{heapStart} \leq \text{pointer} \leq \text{heapEnd}$}
+                        \If{$\text{is\_pointer\_aligned}(\text{pointer})$}
+                            \State $\text{Append}(\text{pointer}, \text{potentialPointers})$
+                        \EndIf
+                    \EndIf
+                \EndIf
+                \State $\text{position} \gets \text{position} + 8$
+            \EndWhile
+            \State \Return $\text{potentialPointers}$
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    This pseudo-code outlines the steps for detecting potential pointers in the heap dump file. It starts by reading the heap dump file 8 bytes at a time. For each 8-byte block, it checks if the block is non-zero and within the heap range. If so, it checks if the potential pointer is 8-bytes aligned using the \texttt{is\_pointer\_aligned} function we described before. If all conditions are met, the potential pointer is added to the list of potential pointers. The algorithm returns this list at the end.
+    
     \subsubsection{Detecting potential keys}
-    Detection potential keys 
+    % speak about SmartKex22 brute force approach
+    % describe the algorithm to detect potential keys
+
+    Encryption key prediction is the main focus of the present thesis. As such, we will now focus on how to detect potential keys in heap dump files. The paper \citetitle{SmartKex22} introduces 2 algorithms for key detection. The first one is a brute force approach that consists in trying all the possible keys in the heap dump file. The second one is a more sophisticated approach that uses a set of rules to detect potential keys.
+    
+    The first brute-force algorithm is given by:
+
+    \begin{algorithm}[H]
+    \caption{SSH keys brute-force algorithm from \citetitle{SmartKex22} \cite{SmartKex22}}
+    \begin{algorithmic}[1]
+    \Procedure{FindIVAndKey}{$\text{netPacket}, \text{heapDump}$}
+        \State $\text{ivLen} \gets 16$ \Comment{Based on the encryption method}
+        \State $\text{keyLen} \gets 24$ \Comment{Based on the encryption method}
+        \State $i \gets \text{sizeof(cleanHeapDump)}$
+        \State $r \gets 0$
+        \While{$r < i$}
+            \State $\text{pIV} \gets \text{heapDump}[r : r + \text{ivLen}]$
+            \State $x \gets 0$
+            \While{$x < i$}
+                \State $\text{pKey} \gets \text{heapDump}[x : x + \text{keyLen}]$
+                \State $f \gets \text{decrypt}(\text{netPacket}, \text{pIV}, \text{pKey})$
+                \If{$f$ is TRUE}
+                    \State \textbf{return} $\text{pIV}, \text{pKey}$
+                \EndIf
+                \State $x \gets x + 8$ \Comment{The IV is 8-bytes aligned}
+            \EndWhile
+            \State $r \gets x + 8$ \Comment{The key is 8-bytes aligned}
+        \EndWhile
+    \EndProcedure
+    \end{algorithmic}
+    \end{algorithm}
+    
+    Algorithm~1 outlines the brute-force approach for finding the Initialization Vector (IV) and the key. Initially, the lengths \(\text{ivLen}\) and \(\text{keyLen}\) are set based on the encryption method used for the heap. The algorithm then takes the first \(\text{ivLen}\) bytes from the heap dump to serve as the potential IV (\(pIV\)). Subsequently, \(\text{keyLen}\) bytes are extracted from the heap dump, starting from the first byte, to act as the potential key (\(pKey\)). The algorithm iterates through this potential key until it reaches the end of the heap dump. If decryption of the network packet is unsuccessful, the process is repeated by reading the next potential IV and the subsequent potential key \cite{SmartKex22}. 
+
+    This algorithm is fairly straightforward, and can be implemented in a few lines of code. However, it is also very inefficient, as it tries all the possible keys in the heap dump file. It also needs some encrypted network packets to be able to test the keys, which are not included in the dataset. As such, we will not implement this algorithm.
+    
+    This is why the authors of the paper have also developed a more sophisticated algorithm that uses a set of rules to detect potential keys.
+
+    No pseudo-code is given for the second algorithm, but the paper \citetitle{SmartKex22} gives a description of the algorithm. It rely on the high-entropy assumption of encryption keys. The algorithm is inspired by image processing techniques, and can be described as follows:
+
+    \begin{algorithm}
+        \caption{Image-processing inspired Preprocessing Algorithm, as described in \citetitle{SmartKex22} \cite{SmartKex22}}
+        \begin{algorithmic}[1]
+        \Procedure{Preprocessing}{$\text{heapData}$}
+            \State \textbf{Reshape} $\text{heapData}$ into $N \times 8$ matrix $X$
+            \For{$i = 0$ to $N-1$}
+                \For{$j = 0$ to $7$}
+                    \State $Y[i][j] = |X[i][j] - X[i][j+1]| \& |X[i][j] - X[i+1][j]|$
+                    \State $Z[i] = \text{count}(Y[i][k] == 0) \geq 4$
+                    \If{$i < N-1$}
+                        \State $R[i] = Z[i] \& Z[i+1]$
+                    \EndIf
+                \EndFor
+            \EndFor
+            \State \textbf{Extract} 128-byte slices from $R$ for training
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+    
+    This Preprocessing Algorithm serves as a crucial step in adapting the heap data for machine learning models. The algorithm begins by reshaping the raw heap data into an \(N \times 8\) matrix \(X\), since keys are 8-bytes aligned \cite{SmartKex22}. Here, \(N \times 8\) is the size of the original heap data in bytes. It then calculates the discrete differences of the bytes in both vertical and horizontal directions, storing the results in matrix \(Y\). The algorithm employs a logical AND operation on these differences to identify high-entropy regions, which are likely candidates for encryption keys. Each 8-byte row in \(Y\) is examined for randomness, and if at least half of its bytes differ from adjacent bytes, it is marked as a potential part of an encryption key. The algorithm then filters out isolated rows that are unlikely to be part of an encryption key, resulting in an array \(R\). Finally, 128-byte slices are extracted from \(R\) for training the machine learning model. This preprocessing step not only adapts the data for machine learning but also narrows down the search space for potential encryption keys, thereby enhancing the efficiency of the subsequent steps. 
+
+    However, this algorithm is not as efficient as it could be. It rely on using a kind of sliding window, which is not easily parallelizable. Also, the entropy-inspired computation is not as straightforward as it could be. That why we propose a new algorithm that is more efficient and more easily parallelizable.
+
+    In order to perform some \acrshort{ml} techniques, and because the keys we are looking for can have a range of possible lengths (16, 24, 32, or 64 bytes), we shift the focus from detecting the full key, to just be able to predict the address of the key. That way, we can deal with keys of different sizes, and we can also use the same algorithm to detect the IV. This is why we will focus on detecting potential keys addresses, and not the full keys.
+
+    We thus introduce a new algoritm for narrowing the search space for potential keys. This algorithm is inspired by the paper \citetitle{SmartKex22}, but is more efficient and more easily parallelizable, as it focuses on producing pairs of blocks of 8 bytes with high entropy. It uses directly the Shannon entropy formula, with each entropy computation being independent from the others.
+
+    \begin{algorithm}
+        \caption{Entropy Based Detection of Potential Key blocks}
+        \begin{algorithmic}[1]
+        \Procedure{EntropyDetection}{$\text{heapData}$}
+            \State \textbf{Pad} $\text{heapData}$ with 0s to be 8-bytes aligned
+            \State \textbf{Reshape} $\text{heapData}$ into $N \times 8$ matrix $X$
+            \For{$i = 0$ to $N-1$,}
+                \State $entropy[i] = \text{ShannonEntropy}(X[i])$ \Comment{Independents, compute in parallel.}
+            \EndFor
+            \State \textbf{Add} $entropy$ 2 by 2 pairs into $entropy\_pairs$ \Comment{Keep block indexes in resulting tuples.}
+            \State \textbf{Sort} $entropy\_pairs$ by entropy as $sorted\_pairs$
+            \State \Return $\text{SortedPairs}(\text{sorted\_pairs})$
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    The \textit{Entropy Based Detection of Potential Key blocks} algorithm takes a raw heap dump, represented by the variable \texttt{heapData}, as input. The data is first padded with zeros to align it to 8-byte blocks and then reshaped into an $N \times 8$ matrix $X$. The Shannon entropy is computed for each 8-byte block in parallel, resulting in an array \texttt{entropy}. Subsequently, the entropy values of adjacent blocks are summed to form pairs, which are stored in \texttt{entropy\_pairs} along with their block indexes. These pairs are then sorted by their entropy sums to produce \texttt{sorted\_pairs}. The idea of using pairs of blocks instead of a single block or more that two blocks is related to the minimim key size, which is 16 bytes. This means that we need at least 2 blocks to be able to detect a potential key. The algorithm returns sorted pairs, so that we can easily extract the ones with the highest entropy sums. Given the index of a block, its actual memory address can be recomputed using the \texttt{HEAP\_START} address available in annotations.
+    
+    Using this algorithm, let's continue to explore our example heap dump file from \autoref{lst:hexdump-8bytes}. We will use the following python function to compute the Shannon entropy of a given block of 8 bytes:
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+    \begin{lstlisting}[language=python, caption={Python function to compute the Shannon entropy of a given block of 8 bytes}]
+        def get_entropy(data: bytes):
+            """
+            Computes the entropy of a byte array, using Shannon's formula.
+            """
+
+            if len(data) == 0:
+                return 0.0
+            
+            # Count the occurrences of each byte value
+            _, counts = np.unique(data, return_counts=True)
+            
+            # Calculate the probabilities
+            prob = counts / len(data)
+            
+            # Calculate the entropy using Shannon's formula
+            entropy = -np.sum(prob * np.log2(prob))
+            
+            return entropy
+    \end{lstlisting}
+    \end{minipage}
+
+    This function used np array function for efficient computation. We can now use this function to compute the entropy of each block of 8 bytes in the heap dump file. We can then sort the pair of blocks by their entropy, and keep the ones with the highest entropy.
+    
+    When applied to the file \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, the algorithm produced $ 16896 $ entropy pairs, with $ 631 $ pairs having the maximum entropy sum. Another test using the index to address conversion and the JSON annotation file also indicate that all of the 6 key addresses are within the $ 631 $ pairs with the highest entropy sum.
+    
+    This allows to reduce significantly the search space for potential keys, to already less that 4\% of the original heap dump file, which is significantly better that the 30\% reduction obtained by the preprocessing algorithm described in the paper SmartKex \cite{SmartKex22}, but less that the 2\% reduction obtained by the \acrshort{ml}-based processing algorithm described in the paper \cite{SmartKex22}. However the same paper indicated that it was tested only for Key A and Key C, whereas this algorithm is tested for all the keys. Keep in mind that this is just an example for a single random file in the dataset, as a way to introduce the subject. In-depth experiments will be done in the dedicated chapter on \acrlong{ml}.
+
+    Indeed, it is important to mention that we can rely on the JSON annotation files for providing labelling for key address prediction. Using this, we do not need to decrypt the network packets to be able to train our \acrshort{ml} models. This is a huge advantage, and is also required since we don't have the encrypted network packets in the dataset. Since we don't have those, and since the keys are already given, that is why we will focus on key address prediction, and not on key prediction.
+
+    \subsubsection{Detecting potential data structures}
+    Since the dataset contain whole heap dump file, we can also try to detect potential data structures in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers.
+    
+    Since OpenSSH is written in C, we can expect to find some C data structures in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. This function takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. Looking at the code \footnote{The dataset has been produced on a \texttt{x86\_64} architecture, so as an example code, we have looked at uClibc for a \lstinline[language=c]|malloc| implementation: \url{https://git.busybox.net/uClibc/tree/libc/stdlib/malloc/malloc.c} } for \lstinline[language=c]|malloc|, we can see the following:
+    
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        \begin{lstlisting}[language=c, caption={Malloc implementation for uclibc}]
+        /* Include extra space to record the size of the allocated block.  */
+        size += MALLOC_HEADER_SIZE;
+        \end{lstlisting}
+    \end{minipage}
+    
+    A \lstinline[language=c]|malloc| call is expected to allocate a memory block of the size of the data structure, plus 8 bytes (). This is because the \lstinline[language=c]|malloc| function also stores some metadata about the allocated memory block. This metadata is stored in the bytes that are allocated in addition to the data structure size. This is why we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will also try to detect potential data structures in the heap dump file.
+
+    We don't know which implementation of \lstinline[language=c]|malloc| has been used for the OpenSSH programs used to generate the dataset. However, we can expect it to be similar to the one used in uclibc, a lightweight C library that is often used in embedded systems. 
+
+    In Linux on a \texttt{x86\_64} architecture, the malloc function typically uses a block (chunk) header to store metadata about each allocated block. This header is placed immediately before the block of memory returned to the user. The exact layout can vary depending on the implementation of the C library (e.g., glibc, musl), but generally, it contains the following:
+
+    \begin{itemize}
+        \item \textbf{Size of the Block}: The size of the allocated block, usually in bytes. This size often includes the size of the header itself and may be aligned to a multiple of 8 or 16 bytes.
+        \item \textbf{Flags}: Various flags that indicate the status of the block, such as whether it is free or allocated, or whether the previous block is free or allocated. These flags are often stored in the least significant bits of the size field, taking advantage of the fact that the size is usually aligned, leaving the least significant bits zeroed.
+    \end{itemize}
+    
+    Since the malloc header respects the endianness of the system, we can expect to find the malloc header in little-endian format in the heap dump file. Using vim on \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, we can use the following command to find some potential malloc headers:
+
+    \begin{lstlisting}[language=bash, caption={Vim command to find potential malloc headers}]
+        :/[0-9a-f]\{4}0\{12}
+    \end{lstlisting}
+    
+    This gives something like the following:
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=16cm]{dataset/structure_examples_1010-1644391327-heap_potential_malloc_header_highlight_heap_start.png}
+        \caption{Attempt at malloc header detection in \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, at heap start.}
+    \end{figure}
+
+    Indeed, after a first zero block of 8 bytes, we expect a first data structure to be allocated at the start of the heap. Here this data structure is of size $ 5102000000000000_{16LE} $ (little-endian hex format) or $ 593_{10} $ bytes. The fact that it is an odd number is due to the \acrshort{lsb} being set to 1, to indicate that the block is allocated (flag). This means that the real size of the structure is actually $ 593_{10} - 1_{10} = 592_{10} $. This value is 8-byte aligned.
+
+    Since we know that the allocator allocates chunks after chunks, we can expect the next chunk to be allocated at the address $ 5102000000000000_{16LE} + 592_{10} = 5082193a34560000_{16LE} =  $. Let's have a look there:
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=16cm]{dataset/structure_examples_1010-1644391327-heap_potential_malloc_header_highlight_0x250.png}
+        \caption{Attempt at malloc header detection in \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, at index $ 592_{10} = 250_{16} $.}
+    \end{figure}
+
+    There, we can see a zero block, followed by what we can expect to be another malloc header. By doing the same process, we can thus propose an algorithm to detect the malloc headers, and thus the structures in the heap dump file.
+
+    \begin{algorithm}[H]
+        \caption{Malloc Header Detection Algorithm}
+        \begin{algorithmic}[1]
+        \Procedure{MallocHeaderDetection}{$\text{heapDumpFile}$}
+            \State $\text{position} \gets 0$
+            \While{$\text{position} < \text{FileSize}(\text{heapDumpFile})$}
+                \State $\text{block} \gets \text{Read8Bytes}(\text{heapDumpFile, position})$
+                \If{$\text{block} \neq 0$}
+                    \State $\text{size} \gets \text{ConvertToSize}(\text{block}) - 1$ \Comment{$-1$ due to the flag}
+                    \State \textbf{Assert} $ \text{size} \mod 8 = 0$ \Comment{Check if the size is 8-bytes aligned}
+                    \State $\text{position} \gets \text{position} + 8 + \text{size}$ \Comment{Leap over the data structure}
+                \Else
+                    \State $\text{position} \gets \text{position} + 8$
+                \EndIf
+            \EndWhile
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the data structure. The process is repeated until reaching the end of the heap dump file.
+
+    \section{Hardware and software architecture}
+
+    \subsection{Hardware architectures}
+
+    \subsection{Software architectures and tools}
 
 
 \section{Programs development}

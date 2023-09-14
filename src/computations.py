@@ -72,6 +72,16 @@ print(
     "0103010100000000 (little-endian):",
     pointer_str_to_addr("0103010100000000")
 )
+print(
+    "5102000000000000 (little-endian):",
+    pointer_str_to_addr("5102000000000000")
+)
+print(
+    "expected next structure:",
+    int_to_little_endian_hex_string(
+        HEAP_START_ADDR + 592
+    )
+)
 
 list_of_potential_pointers = [
     "0000000000000000", 
