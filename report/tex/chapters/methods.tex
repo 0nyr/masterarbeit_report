@@ -398,7 +398,7 @@ The dataset that serves as the basis for this thesis has been introduced before 
         \item \textbf{RAM:} 64GB DDR5 4800MHz Samsung
     \end{itemize}
 
-    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
+    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system \cite{NixOS08}. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
     
     Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset, and even reprogrammed and better optimized programs in Rust that we have tested would take more that 10 hours to process the dataset. Small bash and python scripts have been run on this laptop, but all the main experiments have been run on the server.
     
@@ -412,22 +412,49 @@ The dataset that serves as the basis for this thesis has been introduced before 
 
     This server is running \texttt{Ubuntu 20.04.6 LTS} and is used to run the \acrshort{ml} experiments on the dataset, as it is much more powerful than the laptop. This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
 
-    \subsection{Software architectures, languages and tools}
+    \subsection{Software, languages and tools}
+    In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used.
+
     In this section, as a reference for the reader, we will describe the software architectures, languages and tools that have been used throughout this thesis.
 
+    Throughtout the project, we have come to use a range of programming languages. Initial tests have been done using shell and bash command and simple scripts. However, as the project grew, we quickly moved to more powerful programming languages. 
 
-\section{Programs development}
+    Python version 3.11 has been the main language for high level data science and \acrshort{ml} development. This new version of python features many improvements over the previous version, and especially in terms of performance. Better error messages, exception groups, improved support for f-strings, support for TOML configuration files, variadic generics, improved support for asyncio, and new modules for working with cryptography and machine learning are just some of the new features of this new version of python. While relatively new, this is why we have decided to use this version of python for the development of the \acrshort{ml} part of the project.
+
+    Although Python is a popular and powerful language, it is not the most efficient language. As such, we have used Rust for some parts of the project, especially when no high level library is needed and when performances are critical to be able to parse efficiently the dataset. Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety. It is a very powerful language, and is especially useful for low-level programming. We have used it for the development of the algorithms that are used to extract the data from the dataset.
+
+    \subsubsection{Packaging and deployment}
+    We made an extensive use of git repositories for version control, with GitHub as a main platform for hosting the repositories. An ever growing number of script and programs have been developed for this thesis. As such, we have needed a way to easily deploy those programs on different machines.
+
+    Rust comes with a handful of tools for managing packages and dependencies. Cargo is Rust's build system and package manager. Cargo downloads your Rust project's dependencies, compiles your project, makes executables, and runs the tests. It is a powerful tool that allows to easily manage Rust projects. However, it is not the best tool for deploying programs on different machines. 
+
+    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one linux distribution to the other. This was especially a problem when development was done on a Fedora system but the server was running Ubuntu. 
+
+    An example is the library \texttt{pygraphviz}. This library relies on third parties system libraries, that have different names depending on the linux distribution:
+    
+    \begin{itemize}
+        \item \textbf{Ubuntu:} \lstinline[language=bash]|sudo apt-get install graphviz graphviz-dev| is needed before a correct install of the Python \texttt{pygraphviz} library. 
+        \item \textbf{Fedora:} \lstinline[language=bash]|sudo dnf install graphviz graphviz-devel| is needed before installing \texttt{pygraphviz}
+    \end{itemize}
+
+    Although it can be seen as a minor issue, this is just one example among dozens of libraries. This is real problem with \texttt{conda}. This is why we have decided to use Nix for managing python packages and dependencies. Nix is a purely functional package manager \cite{NixOriginalThesis06}. It allows to easily manage packages and dependencies, and to easily deploy programs on different machines as it guarantees reproducible builds. It is also very useful for development, as it allows to easily create isolated environments for development. This is why we have used Nix for managing the python packages and dependencies. Gradually, Nix has become a superset of other package managers like pip, conda, or cargo. 
+    
+    Any Nix project comes with either a \textit{shell.nix} or a more modern \textit{flake.nix}. Those files are used to describe the project, and to list all necessary dependencies. Since we are developping on NixOS, the integration of Nix with the operating system is very good, and can be easily setup.
+    
+    Nix is however really straightforward to install on any other distribution through the use of a single script available online. It can be install in as little as one command.
+
+
+%\section{Programs development}
 % describe the programs developped for the Masterarbeit
 % * mem2graph
 
-In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used. In this section, we will do a general overview of the programs we have developed for this thesis. More details about the programs will be discussed further in their respective chapters.
+% In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used. In this section, we will do a general overview of the programs we have developed for this thesis. More details about the programs will be discussed further in their respective chapters.
 
 
-In this section, we will describe the programs we have developed for this thesis. We will first describe the program we have developed to explore the dataset. Then, we will describe the program we have developed to extract the data from the dataset. Finally, we will describe the program we have developed to analyze the data.
+% In this section, we will describe the programs we have developed for this thesis. We will first describe the program we have developed to explore the dataset. Then, we will describe the program we have developed to extract the data from the dataset. Finally, we will describe the program we have developed to analyze the data.
 
 
-\section{Packaging and deployment with Nix}
+%\section{Packaging and deployment with Nix}
 
-
-Dataset in Methods Chapter: On the other hand, if the specific features and challenges of your dataset are more related to your methodology—for example, how you cleaned, balanced, or sampled the data—then these details would fit well into the Methods chapter. This is especially relevant if the issues tackled are more about "how-to" rather than "why."
+The chapter has been an overview of the dataset, development environment, and tools used for this thesis. In the next chapter, we will dive deeper into the graph memory representation and associated algorithms and programs.
 
