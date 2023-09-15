@@ -79,7 +79,7 @@ print(
 print(
     "expected next structure:",
     int_to_little_endian_hex_string(
-        HEAP_START_ADDR + 592
+        HEAP_START_ADDR + 592 + 8
     )
 )
 

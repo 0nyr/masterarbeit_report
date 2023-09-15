@@ -343,7 +343,9 @@ The dataset that serves as the basis for this thesis has been introduced before 
 
     Indeed, after a first zero block of 8 bytes, we expect a first data structure to be allocated at the start of the heap. Here this data structure is of size $ 5102000000000000_{16LE} $ (little-endian hex format) or $ 593_{10} $ bytes. The fact that it is an odd number is due to the \acrshort{lsb} being set to 1, to indicate that the block is allocated (flag). This means that the real size of the structure is actually $ 593_{10} - 1_{10} = 592_{10} $. This value is 8-byte aligned.
 
-    Since we know that the allocator allocates chunks after chunks, we can expect the next chunk to be allocated at the address $ 5102000000000000_{16LE} + 592_{10} = 5082193a34560000_{16LE} =  $. Let's have a look there:
+    Since we know that the allocator allocates chunks after chunks, we can expect the next chunk to be allocated at the address $ 5102000000000000_{16LE} + 592_{10} + 8_{10} = 5882193a34560000_{16LE} =  $. Note that we need to add 8 to the size to account for the malloc header block.
+    
+    In vim, since the address start at 0, we have to look at $ 592_{10} + 8_{10} = 258_{16} $. Let's have a look there:
 
     \begin{figure}[H]
         \centering
@@ -351,7 +353,7 @@ The dataset that serves as the basis for this thesis has been introduced before 
         \caption{Attempt at malloc header detection in \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, at index $ 592_{10} = 250_{16} $.}
     \end{figure}
 
-    There, we can see a zero block, followed by what we can expect to be another malloc header. By doing the same process, we can thus propose an algorithm to detect the malloc headers, and thus the structures in the heap dump file.
+    There, we can see a zero block, followed by what we can expect to be another malloc header at address $ 258_{16} $. By doing the same process, we can thus propose an algorithm to detect the malloc headers, and thus the structures in the heap dump file.
 
     \begin{algorithm}[H]
         \caption{Malloc Header Detection Algorithm}
@@ -363,7 +365,7 @@ The dataset that serves as the basis for this thesis has been introduced before 
                 \If{$\text{block} \neq 0$}
                     \State $\text{size} \gets \text{ConvertToSize}(\text{block}) - 1$ \Comment{$-1$ due to the flag}
                     \State \textbf{Assert} $ \text{size} \mod 8 = 0$ \Comment{Check if the size is 8-bytes aligned}
-                    \State $\text{position} \gets \text{position} + 8 + \text{size}$ \Comment{Leap over the data structure}
+                    \State $\text{position} \gets \text{position} + 8 + \text{size}$ \Comment{Leap over data structure. + 8 for the header.}
                 \Else
                     \State $\text{position} \gets \text{position} + 8$
                 \EndIf
@@ -372,13 +374,46 @@ The dataset that serves as the basis for this thesis has been introduced before 
         \end{algorithmic}
     \end{algorithm}
 
-    The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the data structure. The process is repeated until reaching the end of the heap dump file.
+    The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the data structure and the header. The process is repeated until reaching the end of the heap dump file.
 
     \section{Hardware and software architecture}
+    Throughtout this thesis, we have used a variety of hardware and software architectures. 
+    
+    \subsection{Hardware development and testing environment}
+    In this section, as a reference for the reader, we will describe shortly the hardware development environment. All environments are running some Linux \texttt{x86\_64} distribution.
 
-    \subsection{Hardware architectures}
+    At the start of the project, around the end of 2022, the project started on a old laptop \textit{HP EliteBook Folio 1040 G2}, running \texttt{Ubuntu 22.04 LTS (Jammy Jellyfish)} with the following specifications:
 
-    \subsection{Software architectures and tools}
+    \begin{itemize}
+        \item \textbf{CPU:} 5th Generation Intel Core i7-5600U 2.6 GHz (max turbo frequency 3.2-GHz), 4 MB L3 Cache, 15W
+        \item \textbf{GPU:} Intel HD Graphics 5500
+        \item \textbf{RAM:} 8GB DDR3L SDRAM (1600 MHz, 1.3v)
+    \end{itemize}
+
+    This device was used for the first experiments, and for the development of the first programs. However, it was not powerful enough to run the experiments on the whole dataset, and especially working on \acrshort{ml} part. As such, we have moved to a more powerful machine, a \textit{TUXEDO InfinityBook Pro 16 - Gen7} with the following specifications:
+
+    \begin{itemize}
+        \item \textbf{CPU:} 12th Gen Intel i7-12700H (20) @ 4.600GHz
+        \item \textbf{GPU:} NVIDIA Geforce RTX 3070 Ti Laptop GPU
+        \item \textbf{RAM:} 64GB DDR5 4800MHz Samsung
+    \end{itemize}
+
+    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
+    
+    Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset, and even reprogrammed and better optimized programs in Rust that we have tested would take more that 10 hours to process the dataset. Small bash and python scripts have been run on this laptop, but all the main experiments have been run on the server.
+    
+    In that context, we were provided a development server towards the end of the thesis, around august 2023. This server is a \textit{AS-4124GS-TNR} with the following specifications:
+
+    \begin{itemize}
+        \item \textbf{CPU:} 2x AMD EPYC 7662 (256) @ 2.000GHz
+        \item \textbf{GPU:} NVIDIA Geforce RTX 3090 Ti
+        \item \textbf{RAM:} 512GB DDR4 3200MHz
+    \end{itemize}
+
+    This server is running \texttt{Ubuntu 20.04.6 LTS} and is used to run the \acrshort{ml} experiments on the dataset, as it is much more powerful than the laptop. This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
+
+    \subsection{Software architectures, languages and tools}
+    In this section, as a reference for the reader, we will describe the software architectures, languages and tools that have been used throughout this thesis.
 
 
 \section{Programs development}
