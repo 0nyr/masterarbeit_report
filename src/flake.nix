@@ -20,6 +20,7 @@
 
             # python packages
             pythonPackages.numpy
+            pythonPackages.tqdm
           ];
 
           buildInputs = with pkgs; [ ];

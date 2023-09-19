@@ -25,6 +25,9 @@ This section will be dedicated to describe the methods developped around this pr
 Now, let's describe the memory graph representation. The goal is to be able to represent a memory dump as a graph. This modelization makes sense since the heap dump can be considered as having data structures as nodes, being connected by pointers acting as arrows. This is a very natural way to represent a memory dump. However in our cases, and since the goal is to make predictions on raw bytes, we will not use the data structures as nodes, but rather the memory blocks directly. This is because we want to be able to make predictions on raw bytes, and not on data structures. 
 
 % introduce the type of the graph, the nodes and edge
+The main idea behind the following memory graph representation is to be able to represent the whole content of a heap dump file as a directed graph that contains the address as well as the byte block of every element. This last point is especially important since we want to be able to make predictions on raw bytes, and not on data structures. This is why we will not use the data structures as nodes, but rather the memory blocks directly. 
+
+In the 
 
 \subsection{Graph Construction}
 % graph construction algorithm
