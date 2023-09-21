@@ -60,15 +60,13 @@ def is_a_number(value: str | int) -> bool:
 
 def validate_json(json_data: dict) -> dict:
     errors = {}
-    is_json_correct = True
-    mandatory_keys = ['HEAP_START', 'SSH_STRUCT_ADDR', 'SESSION_STATE_ADDR']
+    mandatory_json_keys = ['HEAP_START', 'SSH_STRUCT_ADDR', 'SESSION_STATE_ADDR']
 
     dp("file:", json_data["file"])
     
-    for key in mandatory_keys:
+    for key in mandatory_json_keys:
         if key not in json_data or not is_hex_address_correct(json_data[key]):
             errors[key] = False
-            is_json_correct = False
         else:
             errors[key] = True
 
@@ -150,9 +148,12 @@ def main():
     
     total_files = 0
     incorrect_files = 0         # files with incorrect annotations
-    incomplete_files = 0        # files with incomplete annotations
+    files_with_incomplete_keys = 0        # files with incomplete annotations for non empty keys
+    files_with_empty_keys = 0         # file with empty keys
     broken_files = 0            # files that are not JSON
     broken_file_paths = []      # paths of broken files
+    files_with_missing_heap_start = 0
+    files_correct_complete = 0
     total_number_of_keys = 0
     total_incomplete_keys = 0
     total_incorrect_keys = 0
@@ -197,7 +198,13 @@ def main():
             if errors["incorrect_keys"] > 0:
                 incorrect_files += 1
             if errors["incomplete_keys"] > 0:
-                incomplete_files += 1
+                files_with_incomplete_keys += 1
+            if errors["HEAP_START"] == False:
+                files_with_missing_heap_start += 1
+            if errors["missing_keys"] > 0:
+                files_with_empty_keys += 1
+            if errors["incorrect_keys"] == 0 and errors["incomplete_keys"] == 0 and errors["missing_keys"] == 0:
+                files_correct_complete += 1
             
             # write to CSV file if JSON is incorrect
             if errors["incorrect_keys"] > 0 or errors["incomplete_keys"] > 0:
@@ -226,9 +233,12 @@ def main():
     
     # print stats
     print(f"Total number of checked JSON files: {total_files}")
+    print(f"Total number of correct and complete annotated JSON files: {files_correct_complete}")
     print(f"Total number of broken JSON files: {broken_files}")
-    print(f"Total number of incomplete JSON annotation files: {incomplete_files}")
+    print(f"Total number of JSON annotation files with incomplete_keys: {files_with_incomplete_keys}")
     print(f"Total number of incorrect JSON annotation files: {incorrect_files}")
+    print(f"Total number of JSON annotation files with empty keys: {files_with_empty_keys}")
+    print(f"Total number of files with missing HEAP_START: {files_with_missing_heap_start}")
     print(f"Total number of SSH keys: {total_number_of_keys}")
     print(f"Total number of missing (empty) SSH keys: {total_missing_keys}")
     print(f"Total number of incompletly annotated SSH keys: {total_incomplete_keys}")

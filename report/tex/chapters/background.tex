@@ -1,10 +1,16 @@
 \chapter{Background}\label{sec:background}
 
-% Introduce the related state-of-the-art and background information in order to understand the method developed in the thesis. 
+% Purpose: Provide the necessary context for your research. This may include the problem you are solving, why it's important, and the related state-of-the-art and background information in order to understand the work developed in the thesis.
+% 
+% Content:
+%     + Fundamental concepts or theories
+%     + Terminology definitions
+%     + High-level overview of the problem domain
+%     + Historical context if applicable
+%
+% Audience: Assumes the reader may not be an expert in the specific area of your research but has some knowledge of the broader field.
 
-The evolving landscape of cybersecurity necessitates robust techniques for safeguarding digital communications. OpenSSH, a pivotal element in this landscape, is a popular implementation of the Secure Shell (\acrshort{ssh}) protocol, which enables secure communication between two networked devices. The protocol is widely used in the industry, particularly in the context of remote access to servers. Using digital forensic techniques, it is possible to extract the SSH keys from memory dumps, which can then be used to decode encrypted communications thus allowing the monitoring of controlled systems. At the crux of this Masterarbeit is the development of machine learning algorithms to predict SSH keys within these heap dumps, focusing on using graph-like-structures and vectorization for custom embeddings. With an interdisciplinary approach that fuses traditional feature engineering with graph-based methods as well as memory modelization for inductive reasoning and learning inspired by recent developments in \acrfull{kg}s, this research not only leverages existing machine learning paradigms but also explores new avenues, such as \acrfull{gcn}.
-
-The objective of this background section is multifaceted. Since the project has seen two distinct phases, one more classical \acrfull{ml} approach, and a second one centered aroung graph-based advanced learning methods, the background section is divided into several subsections that introduce the reader to the different concepts and techniques used in the project. First, it aims to offer an overview of SSH protocols, particularly focusing on OpenSSH key implementations \autoref{sec:background:ssh}. Second, it delineates the dataset and prior work on key extraction techniques including SmartKey \autoref{sec:background:kex}. Third, it delves into the technical aspects of graphs modelization \autoref{sec:background:graph}, followed by feature engineering and embeddings both traditional and graph-based \autoref{sec:background:processing}. Finally, it addresses the machine learning models employed in the research, emphasizing their suitability for maximizing recall in key prediction \autoref{sec:background:ml}. By fusing these distinct but interrelated areas, this section lays the foundation for the research methodologies and hypotheses tested in this study.
+This section is dedicated to the background information needed to understand the work developed in the thesis. It provides the necessary context for the research, including the problem being solved, why it's important, and the related state-of-the-art and background information. It also includes fundamental concepts and theories, terminology definitions, and a high-level overview of the problem domain. It serves as a primer to the rest of the report, providing the necessary context for the research and is intended for readers who may not be experts in the specific area of the research but have some knowledge of the broader field.
 
 \section{SSH and OpenSSH Implementation}\label{sec:background:ssh}
 
@@ -27,15 +33,21 @@ The objective of this background section is multifaceted. Since the project has 
     after user authentication is complete. This allows new protocols to be defined and coexist with the protocols listed above} \cite{RFC4251}.
 
     \subsubsection{SSH keys}\label{sec:background:ssh:ssh_keys}
-    For the scope of this Masterarbeit, understanding SSH's key exchange and encryption mechanism is important. As Summarized in SSHKex \cite{SSHkex22}, the SSH key exchange procedure results in a derived master key \textit{K} and a hash value \textit{h}. These are critical for client-server communication encryption and session identification.
+    For the purposes of this Masterarbeit, a comprehensive understanding of SSH's key exchange and encryption mechanism is important. As outlined in SSHKex \cite{SSHkex22}, the SSH protocol utilizes a key exchange procedure that culminates in a derived master key \( K \) and a hash value \( h \). These components are pivotal for encrypting client-server communications and identifying sessions.
 
-    During the key exchange, multiple session keys are computed for different purposes:
+    During the key exchange process, Diffie-Hellman is employed to negotiate an ephemeral shared key between the client and the server \cite{RFC4251} \cite{StackExchangeSSHuseRASandDH23}. This ephemeral key is then signed by the server using either RSA, DSA, or another suitable signature algorithm (see \ref{subsubsec:background:ssh:hashing}). The signed key confirms to the client that the negotiated key is indeed from the intended server and not an imposter or a middleman, thereby preventing man-in-the-middle (MITM) attacks.
+
+    In addition, the host key of the server is used to sign the Diffie-Hellman parameters. This key is not to be confused with the client key listed in the server's \texttt{authorized\_keys} file, which is used later for client authentication.
+
+    The key exchange process results in multiple session keys computed for various purposes:
 
     \begin{itemize}
-        \item \textbf{Initialization Vectors:} Key A and Key B are used for initialization vectors from the client to the server and vice versa.
-        \item \textbf{Encryption Keys:} Key C and Key D serve as encryption keys for client-to-server and server-to-client communications, respectively.
-        \item \textbf{Integrity Keys:} Key E and Key F are used to maintain the integrity of the data transmitted between the client and server.
+        \item \textbf{Initialization Vectors:} Key A and Key B are designated for initialization vectors from the client to the server and vice versa.
+        \item \textbf{Encryption Keys:} Key C and Key D act as encryption keys for client-to-server and server-to-client communications, respectively.
+        \item \textbf{Integrity Keys:} Key E and Key F are utilized to preserve the integrity of data transmitted between the client and server.
     \end{itemize}
+
+    This approach provides forward secrecy: if the private key is stolen, it does not compromise the encryption of old sessions. This is because the Diffie-Hellman parameters are ephemeral and discarded once they are no longer needed. Therefore, the only long-lasting keypair is used for authentication purposes.
 
     \subsubsection{SSH key encryption}
     These keys are computed using hash functions that take the master key \textit{K} and a hash value \textit{h}, a unique letter (A, B, C, D, E, or F), and the session ID as inputs. This is summarized in \citetitle{OpenSSHUnderHood07}:
@@ -60,7 +72,6 @@ The objective of this background section is multifaceted. Since the project has 
     OpenSSH is composed of several tools and daemons, including client and server components \cite{PortableOpenSSHGitHub}:
     \begin{itemize}
         \item \textbf{ssh:} The basic client program that allows to log into and execute commands on a remote machine.
-        \item \textbf{scp:} A program for securely copying files between machines.
         \item \textbf{sftp:} An interactive file transfer program that uses SSH to secure the connection.
         \item \textbf{sshd:} This is the SSH daemon that runs on the server. This is used for connecting to a remote machine when using the SSH client from another system.
         \item \textbf{ssh-agent:} The program that holds private keys in memory, so one doesn't have to enter ones passphrase every time.
@@ -71,7 +82,7 @@ The objective of this background section is multifaceted. Since the project has 
         \item Several other tools to support the SSH protocol and the OpenSSH implementation.
     \end{itemize}
 
-    \subsubsection{OpenSSH hashing}
+    \subsubsection{OpenSSH hashing}\label{subsubsec:background:ssh:hashing}
     OpenSSH employs a variety of hash functions and algorithms to secure data, most commonly using SHA1. However, SHA1 is increasingly seen as weak due to its vulnerability to collision attacks \cite{OpenSSHUnderHood07}. In light of this, the contemporary standard leans towards SHA512. The hash functions are used alongside cipher algorithms like \say{Advance Encryption Standard (AES) Cipher Block Chaining (CBC), AES Counter (AES-CTR), and ChaCha20} \cite{SmartKex22}. The Message Authentication Code (MAC) typically uses either MD5 or SHA1 hash algorithms in combination with a secret key. Since cybersecurity and cryptography are constantly evolving, so do \acrshort{ssh} and OpenSSH. Depending on the version \cite{OpenSSHUnderHood07}, the available hash options include:
     
     \begin{itemize}
@@ -156,241 +167,15 @@ The objective of this background section is multifaceted. Since the project has 
         \item \textbf{Sarracenia (SSHKex):} Introduced in 2018, Sarracenia is a high-interaction SSH honeypot that has been enhanced by SSHKex. Instead of \say{requiring the VM to be paused for every incoming or outgoing packet, which degrades the server performance} \cite{SSHkex22}, SSHKex allows for the extraction of derived SSH session keys. This reduces the performance degradation significantly, as the VM is paused less frequently \cite{SSHkex22} \cite{SarraceniaSSHHoneypot18}.
     \end{itemize}
 
-    These honeypots are useful tools for gathering intelligence on potential threats. However, they are not without their limitations. For instance, they are not able to mimic a real system, such that attackers might be able to detect them  \citetitle{SSHHoneypotEffectiveness23}. Hence, the need for more advanced SSH honeypots that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research, further enhancing the state of SSH honeypots.
+    These honeypots are useful tools for gathering intelligence on potential threats. However, they are not without their limitations.
 
-\section{Prior work on key extraction}\label{sec:background:kex}
+    \subsection{Research context and motivation for this Masterarbeit}
 
-    \subsection{SSHKex}\label{sec:background:kex:sshkex}
+    Security and malware detection are active areas of research, with SSH honeypots being a particularly promising tool for gathering intelligence on potential threats. However, they are not without their limitations. For instance, they are not able to perfectly mimic a real system, such that attackers might be able to detect them \citetitle{SSHHoneypotEffectiveness23}. 
     
-    SSHKex is a research project that aims to address the challenges of analyzing encrypted SSH traffic by leveraging \acrfull{vmi} techniques. Developed by \citeauthor{SSHkex22}, the project focuses on extracting SSH keys and decrypting SSH network traffic in a stealthy, non-intrusive manner while maintaining evidence integrity \cite{SSHkex22}. This paper is itself a continuation of the work presented in \citetitle{SarraceniaSSHHoneypot18} \cite{SarraceniaSSHHoneypot18}, which introduced Sarracenia, a high-interaction SSH honeypot. It is also related to a range of other research projects and papers \cite[section 5.6 and 6]{SSHkex22}.
+    As explained in \citetitle{SSHHoneypotEffectiveness23}: \say{As attackers become more sophisticated with their ransomware and malware campaigns, there is a significant need for security researchers to assist the greater community by running vulnerable honeypot machines to collect malicious software}. \citeauthor{SSHHoneypotEffectiveness23} explain that \say{the ability to collect meaningful malware from attackers depends on how the attackers receive the honeypot. Most attackers fingerprint targets before they launch their attack, so it would be very beneficial for security researchers to understand how to hide honeypots from fingerprinting and trick the attackers into depositing malware.} They conclude that \say{What is certain is that if a cautious attacker believes they are in a honeypot, they will leave without depositing malware onto the system, which reduces the effectiveness of the honeypot for security research.} We can extrapolate this conclusion to SSH honeypots, which are also vulnerable to fingerprinting and detection by attackers. 
     
-    The SSHKex approach combines standard network traffic capturing methods with dynamic SSH session key extraction. It assumes that the SSH implementation running on the server is known, which is crucial for the key extraction process. The project employs VMI tools like LibVMI and Volatility to gain a complete and untainted view of all guest VM's state information. This allows to efficiently locate SSH session keys in the main memory of a Linux machine. 
-
-    Here is a summary of the SSHKex methodology for key extraction:
-    \begin{enumerate}
-        \item \textbf{Data Structure Information:} The method leverages detailed knowledge about the data structures used to store the keys. Specific debugging symbols corresponding to the SSH implementation version on the target system provide essential offset values to facilitate the extraction of key material. The structures of interest include \texttt{struct ssh}, \texttt{struct session\_state}, \texttt{struct newkeys}, and \texttt{struct sshenc}. These structures store a range of information such as IP addresses, ports, session states, and encryption keys.
-
-        \item \textbf{Tracing OpenSSH Functions:} Function tracing is employed to identify the precise locations of data structures and to extract keys at the right time. The focus is on two key functions: \texttt{kex\_derive\_keys} (which initiates key generation) and \texttt{do\_authentication2} (which kicks off user authentication).
-
-        \item \textbf{Breakpoints Injection:} Software breakpoints are intentionally placed in the program execution to facilitate debugging. SSHKex utilizes Virtual Machine Introspection (VMI) to inject these breakpoints at the initial points of the two aforementioned key functions.
-
-        \item \textbf{Key Extraction:} Upon calling the \textit{kex\_derive\_keys} function, SSHKex initially stores the address of the \textit{ssh struct}. The actual keys are extracted from memory when the \textit{do\_authentication2} function is subsequently called, adhering to the known structures. 
-
-        \item \textbf{Key Indexing:} OpenSSH stores client-to-server and server-to-client keys in distinct indices of the \texttt{newkeys} structure. SSHKex extracts keys based on these specific indices.
-
-        \item \textbf{Handling Multiple Connections:} To manage multiple SSH connections, OpenSSH spawns child processes. SSHKex extends its key extraction strategy to each child process by identifying them through their unique process IDs.
-    \end{enumerate}
-    
-    One of the key strengths of SSHKex is its focus on stealthiness, preservation, and evidence integrity. The approach aims to be as unobtrusive as possible, avoiding any modifications to the system under investigation. This is particularly important in forensic contexts, where the integrity of the evidence is crucial \cite{SSHkex22}.
-
-    \subsection{SmartKex}
-
-    SmartKex is a direct followup project that focuses on the extraction of SSH keys from heap memory dumps. Its primary objective is to automate the process of SSH key extraction from heap memory dumps. The project introduces a machine learning-assisted methodology that significantly improves the efficiency and accuracy of key extraction compared to traditional brute-force methods. This method is also significantly more straightforward to implement compared to the previous SSHKex approach, which requires detailed knowledge of the SSH implementation and the ability to inject breakpoints into the program execution.
-
-    SmartKex discusses two distinct methods for SSH key extraction:
-    \begin{itemize}
-        \item \textbf{Brute-Force Baseline Method:} This is a traditional approach that scans through the heap memory to identify potential keys based on known patterns.
-        \item \textbf{Machine Learning-Assisted Method:} This  approach uses a Random Forest algorithm trained on a highly imbalanced dataset using \acrshort{smote} balancing. The machine learning model is designed to identify SSH keys with high precision and recall rates, but is not exact as compared to the brute-force method since it is based on a probabilistic model.
-    \end{itemize}
-
-        \subsubsection{Baseline brute-force method}
-
-        Here is a summary of SmartKex's brute-force method for SSH key extraction from heap dumps \cite{SmartKex22}:
-        \begin{enumerate}
-            % complete the following with information from Christopher
-            %   * how (which tool) was used to generate the dataset
-            %   * what architecture from 
-            \item \textbf{Heap Dump Generation:} Heap dump binary files of OpenSSH server process have been generated (ASK HOW) and serves as the input for the key extraction process. The exact process and architecture is not described in SmartKex paper, but we suppose it was done on a \textit{linux-x86\_64} architecture.
-            
-            \item \textbf{Data Reduction:} To minimize the heap size, the method removes memory pages that are irrelevant (empty) based on Hamming distance.
-            
-            \item \textbf{Brute-force key search:} Starting from the first byte, a key length of 128 bytes is taken from the heap dump as the potential key. The algorithm iterates over the entire heap, continuously updating the potential key until the heap's end is reached.
-            
-            \item \textbf{Decryption Attempt:} For every potential key, an attempt is made to decrypt network packets. If decryption fails, the process is repeated with a new potential key.
-        \end{enumerate}
-        
-        Although the brute-force approach is exact, it is computationally expensive. It performs poorly especially when keys are located at the end of the heap dump \cite[section 6.2]{SmartKex22}.
-
-        \subsubsection{SmartKex machine-learning method}
-
-        The real innovation of SmartKex is its machine learning-assisted methodology for SSH key extraction. At the cost fo exactness, this approach is significantly faster than the brute-force method and has a high degree of accuracy in identifying encryption keys. It also allows for the heap size to be reduced to less than 2\% of its original size, further optimizing the extraction process.
-
-        Here is a summary of SmartKex's machine learning-assisted method for SSH key extraction from heap dumps \cite{SmartKex22}:
-
-        \begin{enumerate}
-            \item \textbf{Heap Dump inputs:} Similarly to the brute-force method, heap dump binary files of OpenSSH also serve as inputs for the key extraction process.
-            \item \textbf{Preprocessing:} The raw heap dump is resized into an $N \times 8$ matrix. High entropy parts of the heap dump, which are likely to be encryption keys, are identified using the logical AND operation on the vertical and horizontal differences of adjacent bytes. This creates an array that flags potential key locations.
-            \item \textbf{Training:} A Random Forest algorithm is trained on 128-byte slices of the preprocessed heap. The dataset is imbalanced, with the slices that contain keys being rare. A stacked classifier approach is used, comprising a high precision classifier and a high recall classifier.
-            \item \textbf{Key Identification:} The machine learning model is used to predict which 128-byte slices of the heap dump are likely to contain encryption keys. These slices are then subjected to a brute-force method to actually extract the keys.
-        \end{enumerate}
-        
-    SmartKex is significantly faster than the brute-force method alone and has a high degree of accuracy in identifying encryption keys. It also allows for the heap size to be reduced to less than 2\% of its original size, further optimizing the extraction process.
-
-    SmartKex has broad applications in the field of cybersecurity, particularly in memory forensics. Its machine learning-assisted methodology can be adapted for other types of sensitive data extraction, making it a versatile tool for researchers and practitioners alike. The project is open-source, with the code available on GitHub \footnote{\url{https://github.com/smartvmi/Smart-and-Naive-SSH-Key-Extraction}}.
-
-    \subsection{OpenSSH memory dumps dataset}\label{sec:background:kex:dataset}
-
-    SmartKex has contributed to the research community by generating a comprehensive annotated dataset of OpenSSH heap memory dumps \cite{SmartKex22}. The dataset is publicly available on Zenodo \footnote{\url{https://zenodo.org/record/6537904}}. 
-
-    \begin{minipage}{\dimexpr\linewidth-20pt}
-        The dataset is organized into two top-level directories: $Training$ and $Validation$ with an additional $Performance\_Test$. The first two main directories are further divided based on the SSH scenario, such as immediate exit, port-forward, secure copy, and shared connection. Each of these subdirectories is then categorized by the software version that generated the memory dump. Within these, the heaps are organized based on their key lengths, providing a multi-layered structure that aids in specific research queries.
-
-        \begin{figure}[H]
-            \centering
-            \caption{Illustration of the Dataset Directory Structure}
-            \label{fig:dataset_structure}
-            \begin{minipage}{0.6\textwidth}
-            \dirtree{%
-            .1 /.
-            .2 Performance\_Test.
-            .3 V\_7\_1\_P1.
-            .4 16.
-            .4 24.
-            .4 32.
-            .3 ....
-            .2 Training.
-            .3 basic.
-            .4 V\_6\_0\_P1.
-            .5 16.
-            .5 24.
-            .5 32.
-            .4 ....
-            .3 ....
-            .2 Validation.
-            .3 basic.
-            .4 V\_6\_0\_P1.
-            .5 16.
-            .5 24.
-            .5 32.
-            .4 ....
-            .3 ....
-            }
-        \end{minipage}
-        \end{figure}
-    \end{minipage}
-
-    Two primary file formats are used to store the data: JSON and RAW. The JSON files contain meta-information like the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. The RAW files, on the other hand, contain the actual heap dump of the OpenSSH process.
-
-    \begin{minipage}{\dimexpr\linewidth-20pt}
-        Here is an example of content of a RAW memory dump file, displayed using \textit{vim} and \textit{xdd} commands:
-
-        \begin{lstlisting}[style=hexdump, caption={16 bytes per line visualization of a Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}]
-            00000000: 0000 0000 0000 0000 5102 0000 0000 0000  ........Q.......
-            00000010: 0607 0707 0707 0303 0200 0006 0401 0206  ................
-            00000020: 0200 0001 0100 0107 0604 0100 0000 0203  ................
-            00000030: 0103 0101 0000 0000 0000 0000 0000 0002  ................
-            00000040: 0001 0000 0000 0000 0000 0100 0000 0001  ................
-            00000050: 8022 1a3a 3456 0000 007f 1a3a 3456 0000  .".:4V.....:4V..
-            00000060: f040 1a3a 3456 0000 9032 1a3a 3456 0000  .@.:4V...2.:4V..
-            00000070: 608b 1a3a 3456 0000 9047 1a3a 3456 0000  `..:4V...G.:4V..
-        \end{lstlisting}
-    \end{minipage}
-
-    The original file contains the raw byte content of the heap dump of a specific version of OpenSSH. It is a binary file, which means that it is not human-readable. However, it can be converted to a human-readable format using the \textit{xxd} command. The first column to the left represents the offset in hexadecimal. The last column represents the actual content of the bytes, in ASCII format. The columns in between represent the content of the bytes in hexadecimal format.
-
-    Since hexadecimal is a base-16 number system, each byte is represented by two hexadecimal digits. The ASCII representation of the bytes is displayed on the right, and is only used for reference, as it is not always possible to convert the bytes to ASCII. For instance, the bytes at offset 0x10 are not printable characters, and thus cannot be converted to ASCII. Each line represents 16 bytes, and the offset is incremented by 16 for each line.
-
-    For the purpose of this thesis, it will be more interesting to visualize the content of the heap dump as 8 bytes lines. This can be achieved by using the \textit{xxd} command with the \textit{-c} option, as shown in the following example:
-
-    \begin{minipage}{\dimexpr\linewidth-20pt}
-        The same example as before, a memory dump file, displayed using \textit{vim} and \textit{xdd -c 8} commands:
-
-        \begin{lstlisting}[style=hexdump, caption={8 bytes per line visualization of a Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}, label={lst:hexdump-8bytes}]
-            00000000: 0000 0000 0000 0000  ........
-            00000008: 5102 0000 0000 0000  Q.......
-            00000010: 0607 0707 0707 0303  ........
-            00000018: 0200 0006 0401 0206  ........
-            00000020: 0200 0001 0100 0107  ........
-            00000028: 0604 0100 0000 0203  ........
-            00000030: 0103 0101 0000 0000  ........
-            00000038: 0000 0000 0000 0002  ........
-            00000040: 0001 0000 0000 0000  ........
-            00000048: 0000 0100 0000 0001  ........
-            00000050: 8022 1a3a 3456 0000  .".:4V..
-            00000058: 007f 1a3a 3456 0000  ...:4V..
-            00000060: f040 1a3a 3456 0000  .@.:4V..
-            00000068: 9032 1a3a 3456 0000  .2.:4V..
-            00000070: 608b 1a3a 3456 0000  `..:4V..
-            00000078: 9047 1a3a 3456 0000  .G.:4V..
-        \end{lstlisting}
-    \end{minipage}
-
-    This example shows the exact content of the preceding one. 
-
-    To this RAW file is associated a JSON file, which contains its annotations.  
-
-    \begin{minipage}{\dimexpr\linewidth-20pt}
-         Here is a example of content of a JSON annotation file that comes with the previous RAW file:
-
-        %\begin{lstlisting}[language=json, , ]
-        \begin{lstlisting}[style=json, caption={Complete JSON example, from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841.json}}, label={lst:json-annotation-ex-1}]
-            {
-                "SSH_PID": "5070",
-                "SSH_STRUCT_ADDR": "56343a1a4800",
-                "session_state_OFFSET": "0",
-                "SESSION_STATE_ADDR": "56343a1a8d30",
-                "newkeys_OFFSET": "344",
-                "NEWKEYS_1_ADDR": "56343a1aaa40",
-                "NEWKEYS_2_ADDR": "56343a1aab40",
-                "enc_KEY_OFFSET": "0",
-                "mac_KEY_OFFSET": "48",
-                "name_ENCRYPTION_KEY_OFFSET": "0",
-                "ENCRYPTION_KEY_1_NAME_ADDR": "56343a1a9db0",
-                "ENCRYPTION_KEY_1_NAME": "aes128-gcm@openssh.com",
-                "ENCRYPTION_KEY_2_NAME_ADDR": "56343a1a3fb0",
-                "ENCRYPTION_KEY_2_NAME": "aes128-gcm@openssh.com",
-                "key_ENCRYPTION_KEY_OFFSET": "32",
-                "key_len_ENCRYPTION_KEY_OFFSET": "20",
-                "iv_ENCRYPTION_KEY_OFFSET": "40",
-                "iv_len_ENCRYPTION_KEY_OFFSET": "24",
-                "KEY_A_ADDR": "56343a1a3170",
-                "KEY_A_LEN": "12",
-                "KEY_A_REAL_LEN": "12",
-                "KEY_A": "feb5fd4ef0759b034d69b858",
-                "KEY_B_ADDR": "56343a1a33e0",
-                "KEY_B_LEN": "12",
-                "KEY_B_REAL_LEN": "12",
-                "KEY_B": "f50b988297fa19709445c4ee",
-                "KEY_C_ADDR": "56343a1aa1b0",
-                "KEY_C_LEN": "16",
-                "KEY_C_REAL_LEN": "16",
-                "KEY_C": "f5b53280e944db0fe196668d877cd4c0",
-                "KEY_D_ADDR": "56343a1a4010",
-                "KEY_D_LEN": "16",
-                "KEY_D_REAL_LEN": "16",
-                "KEY_D": "ac4f18a963d9e72c857497b7dc9d088d",
-                "KEY_E_ADDR": "56343a1a7d90",
-                "KEY_E_LEN": "0",
-                "KEY_E_REAL_LEN": "0",
-                "KEY_E": "",
-                "KEY_F_ADDR": "56343a1a2f60",
-                "KEY_F_LEN": "0",
-                "KEY_F_REAL_LEN": "0",
-                "KEY_F": "",
-                "HEAP_START": "56343a198000"
-            }
-        \end{lstlisting}
-    \end{minipage}
-
-    Those annotation files contain the meta-information about the heap dump, such as the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. Those annotations are invaluable for the development of machine learning models for key extraction. 
-    
-    However, it is worth noting that the dataset is not perfect, as some of the annotations are sometimes missing. This is probably due to the fact that the annotations were generated automatically, and some of the keys were not correctly identified. For instance, in \textit{Training/basic/V\_7\_8\_P1/16/}, literally the first file of the dataset contains an incorrect annotation file, as some of the keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
-
-    \begin{minipage}{\dimexpr\linewidth-20pt}
-        Here is an example of content of a JSON annotation file with missing keys:
-
-        \begin{lstlisting}[style=json, caption={Missing keys in JSON annotation file \textit{Training/basic/V\_6\_0\_P1/16/24375-1644243522.json}}]
-            {
-                "ENCRYPTION_KEY_NAME": "aes128-ctr",
-                "ENCRYPTION_KEY_LENGTH": "16",
-                "KEY_C": "689e549a80ce4be95d8b742e36a229bf",
-                "KEY_D": "76788e66a56d2b61eec294df37422fcb",
-                "HEAP_START": "5589d41e0000"
-            }
-        \end{lstlisting}
-    \end{minipage}   
-
-    The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications, including but not limited to machine learning models for key extraction and malware detection.
+    Hence, the need for more advanced SSH honeypots-inspired tools that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research (see \ref{chapter:related_work}), further enhancing the state of SSH honeypots. It aims to develop algorithms, proof of concepts and tools that can extract SSH keys from memory dumps of a real server, and use them to decrypt SSH traffic. This could lead to the developement of new tools for SSH monitoring, as discussed in the future work section \ref{conclusion:sec:future_work}.
 
 \section{Graph-based memory modelization}\label{sec:background:graph}
 

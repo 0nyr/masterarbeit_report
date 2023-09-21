@@ -1,3 +1,19 @@
 \chapter{Conclusion}\label{chap:conclusion}
 
-Summarize the thesis and provide a outlook on future work.  
+% Summarize the thesis and provide a outlook on future work.
+
+The evolving landscape of cybersecurity necessitates robust techniques for safeguarding digital communications. OpenSSH, a pivotal element in this landscape, is a popular implementation of the Secure Shell (\acrshort{ssh}) protocol, which enables secure communication between two networked devices. The protocol is widely used in the industry, particularly in the context of remote access to servers. Using digital forensic techniques, it is possible to extract the SSH keys from memory dumps, which can then be used to decode encrypted communications thus allowing the monitoring of controlled systems. At the crux of this Masterarbeit is the development of machine learning algorithms to predict SSH keys within these heap dumps, focusing on using graph-like-structures and vectorization for custom embeddings. With an interdisciplinary approach that fuses traditional feature engineering with graph-based methods as well as memory modelization for inductive reasoning and learning inspired by recent developments in \acrfull{kg}s, this research not only leverages existing machine learning paradigms but also explores new avenues, such as \acrfull{gcn}.
+
+\section{Summary of Results}
+
+\section{Outlook on Future Work}\label{conclusion:sec:future_work}
+
+% What are the next steps? What are the open questions? What are the limitations of your work?
+
+The present report and related Masterarbeit work have introduced a range of new algorithms and implementations. 
+
+In order to integrate efficiently the machine learning part into the \textit{mem2graph} program, more work is needed. Incorporating the machine learning directly after the memory graph construction would greatly improve the efficiency, for instance in the objective of developping a real-time OpenSSH memory forensics tool.
+
+The pipeline and algorithms introduced specifically for the OpenSSH memory dump dataset could be applied to other memory dump datasets. The \textit{mem2graph} program is designed to be modular and extensible, and the algorithms are designed to be as generic as possible. The \textit{mem2graph} program could be used to generate memory graphs for other memory dump datasets, and the machine learning algorithms could be applied to other memory dump datasets. Only some minor algorithm changes are needed, related to the architecture used to generate or extract the heap dump. This would be a major step towards a generic memory forensics tool for machine learning assisted extraction.
+
+Indeed, and as illustrated by the background section, there exist so many \acrshort{ml} architectures and solutions that it is impossible to cover them all. The present work has focused on the most popular and promising architectures, but there are many more that could be explored. The programs developped to support \acrshort{ml} pipelines are designed to be modular and extensible, and could be used to explore other \acrshort{ml} models.

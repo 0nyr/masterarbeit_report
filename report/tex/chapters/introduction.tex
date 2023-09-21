@@ -22,9 +22,9 @@ The are other approaches that allows to decrypt SSH connections without relying 
 
 At the very beginning of this thesis, the objective was to answer the following research questions:
 \begin{itemize}
-	\item RQ1: What is the state of the art in the field of security key detection in heap dump memory?
-	\item RQ2: What are the challenges of security key detection in heap dump memory?
-	\item RQ3: How can the existing methods for detecting SSH keys in OpenSSH heap dumps be improved?
+	\item What is the state of the art in the field of security key detection in heap dump memory?
+	\item What are the challenges of security key detection in heap dump memory?
+	\item How can the existing methods for detecting SSH keys in OpenSSH heap dumps be improved?
 \end{itemize}
 
 The SmartVMI project has already made significant progress in the detection of SSH keys in OpenSSH heap dumps. An open dataset of memory dumps has been created, and a simple yet effective method for detecting SSH keys has been developed. The dataset has been used to train and test simple machine learning algorithms, and the results have been promising. The research has been published in the form of two papers, SSHkex \cite{SSHkex22} and SmartKex \cite{SmartKex22}, which is the basis of this thesis. 
@@ -32,9 +32,12 @@ The SmartVMI project has already made significant progress in the detection of S
 However, there is still room for improvement, particularly in the area of machine learning algorithms. This thesis seeks to build upon the existing research by refining feature extraction techniques and exploring innovative methods for effective key detection prediction. The objective is to accurately predict the presence and location of SSH keys within memory dumps. Rooted in this context, this Masterarbeit aims to address several key research questions:
 
 \begin{itemize}
-	\item RQ4: What features are most indicative of SSH keys in memory dumps?
-	\item RQ5: How can these features be extracted from memory dumps and used to train machine learning algorithms?
-	\item RQ6: How can machine learning algorithms be optimized for the prediction of SSH keys in memory dumps? 
+	\item \textbf{Memory graph:} How can we develop a memory graph representation to improve the prediction of SSH keys in memory dumps?
+	\item \textbf{Memory graph embedding:} How can we develop a memory graph embedding representation to improve the prediction of SSH keys in memory dumps?
+	\item \textbf{Feature importance:} What features are most indicative of SSH keys in memory dumps?
+	\item \textbf{Feature extraction:} How can these features be extracted from memory dumps and used to train machine learning algorithms?
+	\item \textbf{\acrshort{ml} for key prediction:} How can machine learning algorithms be optimized for the prediction of SSH keys in memory dumps? 
+	\item \textbf{\acrlong{gcn} for key prediction:} How can \acrshort{gcn} be used to improve the prediction of SSH keys in memory dumps, and how does it compare to traditional machine learning algorithms?
 \end{itemize}
 
 By tackling these research questions, this thesis seeks not only to advance the academic understanding of SSH key prediction and digital forensics but also to provide practical insights that could lead to the development of more secure and effective systems.
@@ -53,10 +56,31 @@ In alignment with the principles of Open Science, this thesis aims to be not jus
 \end{enumerate}
 
 To ensure the highest level of reproducibility and accessibility, this thesis includes what might seem like exhaustive details, such as hardware or software specifications, precise shell commands and some code implementations used during the research. These are included to provide a complete picture and to minimize the friction for those who wish to replicate the experiments, whatever their level of expertise may be. By adhering to the principles of Open Science, this thesis aims to contribute to a more transparent, collaborative, and efficient scientific community.
+	
+	\subsection{GitHub Repositories}
+
+	In the context of the present Masterarbeit, a number of GitHub repositories have been created to facilitate the sharing of code and data. These repositories are listed below:
+
+	\begin{itemize}
+		\item \textbf{masterarbeit\_report}: Repository containing the LaTeX code for the report as well as several small scripts related to dataset exploration. \url{https://github.com/0nyr/masterarbeit_report}
+		\item \textbf{mem2graph}: Memory graph creation utility built in Rust, featuring different graph creation and embedding strategies. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/mem2graph}
+		\item \textbf{research-base}: Custom Python framework for developing programs that include all the basics of a research project, such as logging, environment and argument loading, result keeping, and more. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/research-base}
+		\item \textbf{data\_processing\_masterarbeit}: Python program for data processing and machine learning for SSH key prediction. \url{https://github.com/0nyr/data_processing_masterarbeit}
+		\item \textbf{phdtrack\_project\_3}: Historical repository containing the first version of the memory graph creation utility and the first version of the dataset creation script. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/phdtrack_project_3}
+	\end{itemize}
 
 \section{Structure of the Thesis}
 
 % Explain the structure of the thesis. 
+
+
+
+
+
+
+
+
+
 
 \begin{comment}
 \section{Example citation \& symbol reference}\label{sec:citation}

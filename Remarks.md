@@ -4,12 +4,12 @@
 
 * [X] Assumption: Hearders can be detected from started
 * [ ] Refactor background and related work.
-* [ ] Assumption: Clibrary on alloc
+* [X] Assumption: Clibrary on alloc
 * [ ] Add this https://sourceware.org/glibc/wiki/MallocInternals to backgroud/ method
 * [ ] Complete the dataset exploration with a drawing of head dump composition
 * [ ] https://www.gnu.org/software/libc/manual/html_node/The-GNU-Allocator.html
-* [ ] Add negative vspace to make latex better
-* [ ] How can we parse a head dump so as to generate a graph from it.
+* [X] Add negative vspace to make latex better
+* [X] RQ: How can we parse a head dump so as to generate a graph from it.
 
 ## Json annotation verification
 
