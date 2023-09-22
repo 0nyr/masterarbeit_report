@@ -3,8 +3,9 @@
 > 19.09.2023
 
 * [X] Assumption: Hearders can be detected from started
-* [ ] Refactor background and related work.
+* [X] Refactor background and related work.
 * [X] Assumption: Clibrary on alloc
+* [ ] Improve heap start detection algo explainations
 * [ ] Add this https://sourceware.org/glibc/wiki/MallocInternals to backgroud/ method
 * [ ] Complete the dataset exploration with a drawing of head dump composition
 * [ ] https://www.gnu.org/software/libc/manual/html_node/The-GNU-Allocator.html

@@ -29,3 +29,20 @@ def is_8_bytes_aligned(value):
     Returns a boolean indicating whether the input int is 8 bytes aligned.
     """
     return (value % 8) == 0
+
+def get_heap_start_addr(json_annotations: dict):
+    """
+    Returns the heap start address as an integer.
+    """
+    heap_start_addr = hex_str_to_addr(json_annotations["HEAP_START"])
+    return heap_start_addr
+
+def is_address_in_heap_dump(
+    address: int, 
+    heap_start_addr: int, 
+    heap_size_in_bytes: int
+) -> bool:
+    """
+    Returns a boolean indicating whether the input address is in the heap dump.
+    """
+    return (address >= heap_start_addr) and (address < (heap_start_addr + heap_size_in_bytes))

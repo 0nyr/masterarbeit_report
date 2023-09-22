@@ -1,6 +1,6 @@
-/home/onyr/code/phdtrack/phdtrack_data/Training/Training/client/V_7_8_P1/24/14594-1644921072.json
-/home/onyr/code/phdtrack/phdtrack_data/Training/Training/client/V_7_8_P1/24/16290-1644921072.json
-/home/onyr/code/phdtrack/phdtrack_data/Training/Training/client/V_7_8_P1/24/16216-1644921072.json
-/home/onyr/code/phdtrack/phdtrack_data/Training/Training/client/V_7_8_P1/24/14860-1644921072.json
-/home/onyr/code/phdtrack/phdtrack_data/Training/Training/client/V_7_8_P1/24/16450-1644921072.json
-/home/onyr/code/phdtrack/phdtrack_data/Training/Training/client/V_7_8_P1/24/15376-1644921072.json
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/14594-1644921072.json
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/16290-1644921072.json
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/16216-1644921072.json
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/14860-1644921072.json
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/16450-1644921072.json
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/15376-1644921072.json

@@ -2,29 +2,14 @@ import heapq
 import json
 import numpy as np
 
+from utils import mem_utils
+from utils.heap_dump import load_heap_dump
+
 HEAP_DUMP_FILE_PATH: str = "/home/onyr/code/phdtrack/phdtrack_data/Training/Training/basic/V_7_8_P1/16/5070-1643978841-heap.raw"
 BLOCK_SIZE_IN_BYTES: int = 8
 
 ########### Addresses manipulations ###########
-from utils import mem_utils
 
-def get_json_annotations(heap_dump_file_path: str):
-    """
-    Returns the JSON annotations as a list of dictionaries.
-    """
-    json_file_path = heap_dump_file_path.replace("-heap.raw", ".json")
-
-    # Load the JSON annotations.
-    json_annotations = json.load(open(json_file_path, "r"))
-
-    return json_annotations
-
-def get_heap_start_addr(json_annotations: dict):
-    """
-    Returns the heap start address as an integer.
-    """
-    heap_start_addr = mem_utils.hex_str_to_addr(json_annotations["HEAP_START"])
-    return heap_start_addr
 
 def convert_block_index_to_address(block_index: int, heap_start_addr: int):
     """
@@ -86,60 +71,6 @@ def determine_nb_keys_in_top_entropy_pairs(
     print("found_keys:", found_keys)
 
     return nb_keys_in_top_entropy_pairs
-
-
-########### Algorithm ###########
-def load_heap_dump(heap_dump_file_path):
-    """
-    Loads a raw heap dump file.
-
-    Args:
-        heap_dump_file_path: The path to the heap dump file.
-
-    Returns:
-        The contents of the heap dump file as a byte array.
-    """
-
-    with open(heap_dump_file_path, "rb") as f:
-        return f.read()
-
-
-# def get_entropy(data):
-#     """
-#     Computes the entropy of a byte array.
-
-#     Args:
-#         data: The byte array to compute the entropy of.
-
-#     Returns:
-#         The entropy of the byte array.
-#     """
-
-#     # Count the number of occurrences of each byte value.
-#     byte_counts = np.bincount(data)
-
-#     # The entropy is the sum of p * log(p) for each byte value p.
-#     entropy = -np.sum(byte_counts[byte_counts > 0] * np.log2(byte_counts[byte_counts > 0]))
-
-#     return entropy
-
-# def get_entropy(data):
-#     from collections import Counter
-#     from math import log2
-
-#     if len(data) == 0:
-#         return 0.0
-    
-#     # Count the occurrences of each byte value
-#     frequency = Counter(data)
-#     entropy = 0.0
-    
-#     # Calculate the entropy
-#     for count in frequency.values():
-#         prob = count / len(data)
-#         entropy -= prob * log2(prob)
-        
-#     return entropy
 
 def get_entropy(data: bytes):
     """

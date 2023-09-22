@@ -1,12 +1,12 @@
-{ pkgs ? import <nixpkgs> {} }:
+# { pkgs ? import <nixpkgs> {} }:
 
-pkgs.mkShell {
-  buildInputs = [
-    pkgs.texlive.combined.scheme-full
-    pkgs.biber
-    pkgs.gnumake
-  ];
-}
+# pkgs.mkShell {
+#   buildInputs = [
+#     pkgs.texlive.combined.scheme-full
+#     pkgs.biber
+#     pkgs.gnumake
+#   ];
+# }
 
 # buildInputs = with pkgs.texlive; [
   #   # General Tools

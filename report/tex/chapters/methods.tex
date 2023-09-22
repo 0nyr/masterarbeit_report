@@ -318,6 +318,8 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \end{algorithmic}
     \end{algorithm}
 
+    Note that I have simplified this algorithm. The \texttt{is\_hex\_address\_correct} function requires other manipulations to be called, since it checks that the given value is in the range of the heap dump addresses. To do so, it requires handling potentially missing \texttt{HEAP\_START} annotation, hexadecimal conversion with correct endianness, and other manipulations like determining the size of the heap dump. The full code is available in the \texttt{check\_annotations.py} file.
+
     The script runs in a few seconds on all the $103595$ JSON annotation files, and give the following results:
 
     \begin{itemize}

@@ -14,20 +14,94 @@ It checks the following:
 The script creates a CSV file containing the invalid JSON files, with 
 information about the errors.
 """
-
+import os
 import json
 import csv
 from tqdm import tqdm
 
 from utils.mem_utils import hex_str_to_addr
 from utils.file_loading import get_all_nested_files
+from utils.mem_utils import get_heap_start_addr
+from utils.mem_utils import is_address_in_heap_dump
 
 DEBUG = False
 
-INPUT_DIR_PATH = "/home/onyr/code/phdtrack/phdtrack_data/"
+INPUT_DIR_PATH = "/home/onyr/code/phdtrack/phdtrack_data_clean/"
 #INPUT_DIR_PATH = "/home/onyr/code/phdtrack/predicting_ssh_key_masterarbeit_report/src/test_files"
 CSV_REPORT_PATH = "/home/onyr/code/phdtrack/predicting_ssh_key_masterarbeit_report/src/results/malformed_json_files_report.csv"  # Replace this with your directory path
 TXT_BROKEN_FILES_PATH = "/home/onyr/code/phdtrack/predicting_ssh_key_masterarbeit_report/src/results/broken_json_files.txt"  # Replace this with your directory path
+
+# -------------------- CLI arguments -------------------- #
+import sys
+import argparse
+
+# wrapped program flags
+class CLIArguments:
+    args: argparse.Namespace
+
+    def __init__(self) -> None:
+        self.__log_raw_argv()
+        self.__parse_argv()
+    
+    def __log_raw_argv(self) -> None:
+        print("Passed program params:")
+        for i in range(len(sys.argv)):
+            print("param[{0}]: {1}".format(
+                i, sys.argv[i]
+            ))
+    
+    def __parse_argv(self) -> None:
+        """
+        python main [ARGUMENTS ...]
+
+        Parse program arguments.
+            -w max ml workers (threads for ML threads pool, -1 for illimited)
+            -d debug
+            -fad path to annotated DOT graph directory
+            -fa load file containing annotated DOT graph
+        """
+        parser = argparse.ArgumentParser(description='Program [ARGUMENTS]')
+        parser.add_argument(
+            "--delete",
+            action='store_true',
+            help="Delete all annotation files and their corresponding heap dump files, when the annotation file is not correct complete."
+        )
+        parser.add_argument(
+            '--debug', 
+            action='store_true',
+            help="debug, True or False"
+        )
+
+        # save parsed arguments
+        self.args = parser.parse_args()
+
+        # overwrite debug flag
+        global DEBUG
+        DEBUG = self.args.debug
+
+        # log parsed arguments
+        print("Parsed program params:")
+        for arg in vars(self.args):
+            print("{0}: {1}".format(
+                arg, getattr(self.args, arg)
+            ))
+
+def delete_json_and_raw_file(json_file_path: str) -> None:
+    """
+    Delete the JSON annotation file and its corresponding heap dump file.
+    """
+    raw_file_path = json_file_path.replace(".json", "-heap.raw")
+    print(f"Deleting {json_file_path} and {raw_file_path}")
+    os.remove(json_file_path)
+    os.remove(raw_file_path)
+
+def determine_heap_size_in_bytes(json_file_path: str) -> int:
+    """
+    Determine the heap size in bytes from the size in byte 
+    of the heap dump file.
+    """
+    raw_file_path = json_file_path.replace(".json", "-heap.raw")
+    return os.path.getsize(raw_file_path)
 
 def dp(*args, **kwargs):
     """
@@ -36,11 +110,19 @@ def dp(*args, **kwargs):
     if DEBUG:
         print(*args, **kwargs)
 
-def is_hex_address_correct(value: str) -> bool:
+def is_hex_address_correct(
+        value: str,
+        heap_start_addr: int | None = None,
+        heap_size_in_bytes: int | None = None
+) -> bool:
     try:
         int_addr_value = hex_str_to_addr(value)
         assert int_addr_value > 0       # check value is greater than 0
         assert int_addr_value % 8 == 0  # check value is 8 bytes aligned
+
+        # check if address value is in the range of the heap
+        if heap_start_addr is not None and heap_size_in_bytes is not None:
+            assert is_address_in_heap_dump(int_addr_value, heap_start_addr, heap_size_in_bytes)
 
         return True
     except ValueError:
@@ -58,17 +140,37 @@ def is_a_number(value: str | int) -> bool:
     except ValueError:
         return False
 
-def validate_json(json_data: dict) -> dict:
+def validate_json(json_data: dict, json_file_path: str) -> dict:
     errors = {}
-    mandatory_json_keys = ['HEAP_START', 'SSH_STRUCT_ADDR', 'SESSION_STATE_ADDR']
+
+    # check Heap start address
+    heap_start_addr: int | None = None
+    heap_size_in_bytes: int | None = None
+    if "HEAP_START" not in json_data:
+        errors["HEAP_START"] = False
+    else:
+        errors["HEAP_START"] = True
+        # get information about the heap
+        heap_start_addr = get_heap_start_addr(json_data)
+        heap_size_in_bytes = determine_heap_size_in_bytes(json_file_path)
+
+    # check other important json annotations
+    important_json_keys = ['SSH_STRUCT_ADDR', 'SESSION_STATE_ADDR']
 
     dp("file:", json_data["file"])
     
-    for key in mandatory_json_keys:
-        if key not in json_data or not is_hex_address_correct(json_data[key]):
+    for key in important_json_keys:
+        if (key not in json_data or 
+            not is_hex_address_correct(
+                json_data[key], 
+                heap_start_addr=heap_start_addr,
+                heap_size_in_bytes=heap_size_in_bytes
+            )):
             errors[key] = False
         else:
             errors[key] = True
+            if key == "SESSION_STATE_ADDR":
+                dp("SESSION_STATE_ADDR:", "is in heap of range (", hex(heap_start_addr), ",", hex(heap_start_addr + heap_size_in_bytes), ")")
 
     # get all key names
     key_names: list[str] = set()
@@ -109,7 +211,12 @@ def validate_json(json_data: dict) -> dict:
                 error_messages.append(message)
                 dp(message)
             # check SSH key address
-            elif not is_hex_address_correct(json_data[f"{base_key}_ADDR"]):
+            elif (
+                not is_hex_address_correct(
+                    json_data[f"{base_key}_ADDR"],
+                    heap_start_addr=heap_start_addr,
+                    heap_size_in_bytes=heap_size_in_bytes
+            )):
                 incorrect_keys += 1
                 message = f"Key {base_key} has incorrect address."
                 error_messages.append(message)
@@ -143,6 +250,9 @@ def validate_json(json_data: dict) -> dict:
     return errors
 
 def main():
+    # parse CLI arguments
+    cli = CLIArguments()
+
     json_file_paths = get_all_nested_files(INPUT_DIR_PATH, "json")
     print(f"Total number of JSON files to check: {len(json_file_paths)}")
     
@@ -154,6 +264,8 @@ def main():
     broken_file_paths = []      # paths of broken files
     files_with_missing_heap_start = 0
     files_correct_complete = 0
+    nb_deleted_json_files = 0
+
     total_number_of_keys = 0
     total_incomplete_keys = 0
     total_incorrect_keys = 0
@@ -183,11 +295,14 @@ def main():
                 except json.JSONDecodeError:
                     broken_files += 1
                     broken_file_paths.append(file_path)
+                    if cli.args.delete:
+                        delete_json_and_raw_file(file_path)
+                        nb_deleted_json_files += 1
                     continue
 
             json_data["file"] = file_path
 
-            errors = validate_json(json_data)
+            errors = validate_json(json_data, file_path)
 
             # counting
             total_number_of_keys += errors["total_keys"]
@@ -205,6 +320,18 @@ def main():
                 files_with_empty_keys += 1
             if errors["incorrect_keys"] == 0 and errors["incomplete_keys"] == 0 and errors["missing_keys"] == 0:
                 files_correct_complete += 1
+
+            # delete JSON file if JSON is incorrect, incomplete or with empty keys
+            if cli.args.delete:
+                if (
+                        errors["incorrect_keys"] > 0 or 
+                        errors["incomplete_keys"] > 0 or 
+                        errors["missing_keys"] > 0 or 
+                        errors["HEAP_START"] == False
+                    ):
+                    delete_json_and_raw_file(file_path)
+                    nb_deleted_json_files += 1
+                
             
             # write to CSV file if JSON is incorrect
             if errors["incorrect_keys"] > 0 or errors["incomplete_keys"] > 0:
@@ -243,6 +370,9 @@ def main():
     print(f"Total number of missing (empty) SSH keys: {total_missing_keys}")
     print(f"Total number of incompletly annotated SSH keys: {total_incomplete_keys}")
     print(f"Total number of incorrectly annotated SSH keys: {total_incorrect_keys}")
+
+    if cli.args.delete:
+        print(f"[❌] Total number of DELETED JSON files: {nb_deleted_json_files}")
 
 if __name__ == "__main__":
     main()
