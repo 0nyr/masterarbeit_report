@@ -330,6 +330,33 @@ This section is dedicated to the background information needed to understand the
     
     For the purpose of this thesis, we won't focus on this distinction and just consider that we deal with memory \textit{graphs}, which are graphs that are not necessarily KGs, but that can be used to represent complex relationships between entities extracted from memory dumps and be leveraged using \acrshort{kg}-related tecnhiques for advance tasks like feature engineering, automated embedding, inductive reasoning and learning.
 
+    \subsubsection{Ontologies}\label{sec:background:ontology}
+    An ontology is a formal representation of knowledge within a domain, providing a structured framework for organizing and interpreting information. It consists of a set of concepts, relationships, and rules that define how data is interconnected and how it can be reasoned about. Ontologies are often used to model a domain and support reasoning about entities and their relationships \cite{KG22}.
+
+    Ontologies play a crucial role in the development and utility of knowledge graphs. They provide a semantic layer to the knowledge graph, enabling machines to understand the meaning and context of the data. The axioms and rules in an ontology enable automated reasoning, allowing the knowledge graph to infer new facts from existing data. Ontologies also help in maintaining the quality and consistency of data by enforcing constraints and validation rules. Finally, ontologies enable interoperability by providing a common vocabulary for data exchange and integration. Different popular ontologies exists, such as \acrfull{owl} or \acrfull{rdf}.
+
+    By incorporating ontologies, knowledge graphs become more than just a collection of nodes and edges; they become a rich, interconnected web of semantically meaningful information that can be easily queried, analyzed, and extended. We will be refering to concepts that have been inspired by ontologies in the next sections, like \textit{rdf:Bag}.
+
+    The \texttt{rdf:Bag} container is a part of the Resource Description Framework (RDF) used to represent collections where the order of elements is not significant. Unlike other containers such as \texttt{rdf:Seq} and \texttt{rdf:Alt}, \texttt{rdf:Bag} permits duplicate entries. It can be used to model unsorted collections of resources or literals. An instance of \texttt{rdf:Bag} can be represented as a graph where each node connected to the root node represents an item in the collection \cite{OrderedDataInRDF20}. For example, consider a root node named \texttt{"DataStructure"} with a property \texttt{Address} specifying its \texttt{malloc header address}.
+
+    \begin{figure}[H]
+        \centering
+        \begin{tikzpicture}[>=stealth, every node/.style={shape=rectangle, draw, align=center}]
+            % Nodes
+            \node (root) at (0,0) {DataStructure\\Address: malloc header address};
+            \node (item1) at (-2,-2) {Item 1};
+            \node (item2) at (0,-2) {Item 2};
+            \node (item3) at (2,-2) {Item 3};
+            % Edges
+            \draw[->] (root) -- (item1);
+            \draw[->] (root) -- (item2);
+            \draw[->] (root) -- (item3);
+        \end{tikzpicture}
+        \caption{Graphical representation of an \texttt{rdf:Bag} container.}
+    \end{figure}
+
+    This small example illustrate how we can represent a container, or a relationship of belonging, using a graph. This is a concept that will be used later in the memory modelization process.
+
     \subsubsection{Inductive Reasoning and Learning}
     Inductive reasoning in Knowledge Graphs (KGs) involves techniques like embedding and Graph Convolutional Networks (GCNs) to learn the potential underlying structure of the graph. This is particularly useful for tasks like link prediction, node classification, and clustering.
 

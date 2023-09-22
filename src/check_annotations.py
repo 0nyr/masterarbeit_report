@@ -18,11 +18,12 @@ import os
 import json
 import csv
 from tqdm import tqdm
+from utils.heap_dump import is_address_in_heap_dump
+from utils.json_annotation import get_heap_start_addr
 
 from utils.mem_utils import hex_str_to_addr
 from utils.file_loading import get_all_nested_files
-from utils.mem_utils import get_heap_start_addr
-from utils.mem_utils import is_address_in_heap_dump
+
 
 DEBUG = False
 
