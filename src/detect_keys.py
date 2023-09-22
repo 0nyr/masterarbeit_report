@@ -3,19 +3,12 @@ import json
 import numpy as np
 
 from utils import mem_utils
-from utils.heap_dump import load_heap_dump
+from utils.heap_dump import bytes_to_ndarray, convert_block_index_to_address, get_blocks_from_heap_dump, load_heap_dump
+from utils.json_annotation import get_heap_start_addr, get_json_annotations
 
 HEAP_DUMP_FILE_PATH: str = "/home/onyr/code/phdtrack/phdtrack_data/Training/Training/basic/V_7_8_P1/16/5070-1643978841-heap.raw"
 BLOCK_SIZE_IN_BYTES: int = 8
 
-########### Addresses manipulations ###########
-
-
-def convert_block_index_to_address(block_index: int, heap_start_addr: int):
-    """
-    Converts a block index to an address.
-    """
-    return heap_start_addr + block_index * BLOCK_SIZE_IN_BYTES
 
 def get_keys_addresses(json_annotations: dict) -> tuple[list[int], dict[int, str]]:
     """
@@ -91,20 +84,7 @@ def get_entropy(data: bytes):
     
     return entropy
 
-
-def bytes_to_ndarray(data: bytes) -> np.ndarray:
-    # Calculate the number of rows needed for the 2D array
-    num_rows = len(data) // 8
-    
-    # Convert bytes to numpy array
-    arr = np.frombuffer(data, dtype=np.uint8)
-    
-    # Reshape the array into a 2D array with rows of 8 bytes
-    arr_reshaped = arr.reshape(num_rows, 8)
-    
-    return arr_reshaped
-
-def get_entropy_pairs(data: bytes):
+def get_entropy_pairs(heap_dump_file_path: str) -> list[tuple[int, int, float]]:
     """
     Computes the entropy of each pair of adjacent blocks in a byte array.
 
@@ -114,17 +94,8 @@ def get_entropy_pairs(data: bytes):
     Returns:
         A list of pairs of (index, entropy) tuples, where each tuple represents the index of a pair of adjacent blocks and the entropy of that pair of blocks.
     """
-    print("len(data) before padding:", len(data))
-    # if len(data) % 8 != 0, then we need to pad the data with 0s.
-    if len(data) % 8 != 0:
-        #data = np.pad(data, (0, 8 - (len(data) % 8)), mode="constant")
-        data = data + b"\x00" * (8 - (len(data) % 8))
-        
-        print("type(data):", type(data))
-        print("len(data) after padding:", len(data))
-
     # Split the data into blocks of 8 bytes.
-    blocks = bytes_to_ndarray(data)
+    blocks = get_blocks_from_heap_dump(heap_dump_file_path)
 
     # Compute the entropy of each block.
     entropies = [get_entropy(block) for block in blocks]
@@ -143,17 +114,13 @@ def get_entropy_pairs(data: bytes):
 
     return entropy_pairs
 
-
 def main():
     """
     The main function.
     """
 
-    # Load the heap dump file.
-    data = load_heap_dump(HEAP_DUMP_FILE_PATH)
-
     # Compute the entropy of each pair of adjacent blocks.
-    entropy_pairs = get_entropy_pairs(data)
+    entropy_pairs = get_entropy_pairs(HEAP_DUMP_FILE_PATH)
 
     # Sort the entropy pairs by entropy in descending order.
     entropy_pairs.sort(key=lambda x: x[2], reverse=True)

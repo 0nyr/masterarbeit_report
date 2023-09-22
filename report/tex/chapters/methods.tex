@@ -770,7 +770,9 @@ Now, let's describe the memory graph representation. The goal is to be able to r
 % introduce the type of the graph, the nodes and edge
 The main idea behind the following memory graph representation is to be able to represent the whole content of a heap dump file as a directed graph that contains the address as well as the byte block of every element. This last point is especially important since we want to be able to make predictions on raw bytes, and not on data structures. This is why we will not use the data structures as nodes, but rather the memory blocks directly. 
 
-In the 
+Our memory graph representation is composed of a directed graph, where each node is a memory block, and each edge is either indicative of a pointer link or a structure membership relationship.
+
+The graph is directed because the pointers are directed. We will also consider the relationship of belonging to a data structure as oriented from the data structure header block to the data structure member blocks. This is because we want to be able to make predictions on raw bytes, and not on data structures. This is why we will not use the data structures as nodes, but rather the memory blocks directly. The graph in t he case of semantic embedding for key block prediction is not weighted. 
 
 \subsection{Graph Construction}
 % graph construction algorithm
