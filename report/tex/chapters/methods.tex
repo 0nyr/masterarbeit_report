@@ -755,6 +755,7 @@ Initially, we have been working and manipulating the code provided by SmartKex\f
     \item We wanted to explore the dataset and learn by doing.
     \item The original code was not designed to be used as a library, but rather as a standalone script.
     \item The original code was just a few hundred lines of code and was not designed to be easily extensible, nor to be able to handle a large number of memory dumps.
+    \item We wanted to modernize code by using the latest stable stversion of Python.
 \end{itemize}
 
 We decided to build a memory graph representation at that moment because we wanted to be able to add more information to the memory blocks than just their raw bytes. This new program was called \texttt{ssh\_key\_discover}, and relied on a number of Python libraries to work, like \texttt{graphviz}. This was a all-in-one library, composed of 2 sections, \texttt{mem\_graph} and \texttt{ml\_discovery}. The first one is dedicated to building the memory graph, while the second one is dedicated to the data science and machine learning part.
@@ -771,9 +772,66 @@ The main idea behind the following memory graph representation is to be able to 
 
 Our memory graph representation is composed of a directed graph, where each node is a memory block, and each edge is either indicative of a pointer link or a structure membership relationship. This second representation is directly inspired by collection representation in \acrlong{kg} ontologies. In the case of \acrshort{rdf}, this could be equivalent to a \textbf{rdf:Bag}, which is an unordered container \cite{OrderedDataInRDF20} (see \ref{sec:background:ontology}). The graph is directed because the pointers are directed. We will also consider the relationship of belonging to a data structure as oriented from the data structure header block to the data structure member blocks.
 
+Our memory graph representation is inherently a property graph. Each node and edge can have properties. The properties of an edge are the type of the edge, which can be either a pointer or a structure membership relationship.
 
+\begin{itemize}
+    \item \textbf{dts:} Data Structure Membership Relationship
+    \item \textbf{ptr:} Pointer Relationship (direction is from the source to the target)
+\end{itemize}
+
+In our case, the properties of a node are at minimum the address and the byte block.  The graph is also heterogeneous since our nodes can have different types corresponding to their infered characteristics. 
+
+\begin{itemize}
+    \item \textbf{PN:} Pointer Node. This is a node whose bytes have been identified as a pointer.
+    \item \textbf{DTN:} Data Structure Node. This is a node whose bytes have been identified as a data structure header. In the graph, this node is the root node of an allocated structure.
+    \item \textbf{KN:} Key Node. This is a node whose bytes have been identified as a key. This identification relies both on the annotations and some verification checks.
+    \item \textbf{VN:} Value Node. These are all blocks that have not been identified. It is the default  node type.
+\end{itemize}
+
+These nodes and edges form the base of the memory graph representation. Below is a simplified (truncated) example of a memory graph representation. The full example is available in \ref{appendix:mem_graph:17016-1643962152:full}. For clarity, the addresses are not displayed in this simplified version. Another version of this graph with real addresses is available in \ref{appendix:mem_graph:17016-1643962152:truncated}.
+
+\begin{figure}[H]\label{appendix:mem_graph:17016-1643962152:simplified}
+    \centering
+    \includegraphics[width=16cm]{graphs/17016-1643962152_truncated_no_addresses.png}
+    \caption{Visualization of a truncated memory graph generated from \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. The addresses are not displayed for imploved readability. Version with addresses here \ref{appendix:mem_graph:17016-1643962152:truncated}.}
+\end{figure}
+
+The given graph represents a memory layout with various types of nodes, each serving a specific purpose. The graph contains \gls{dtn} nodes, which act as the root nodes for allocated structures and are colored in cyan. These DTN nodes are connected to \gls{kn} nodes, which are identified as keys and are colored in green. The \gls{pn} nodes, colored in orange, are pointers and can be connected to value nodes or key nodes. Finally, the graph includes \gls{vn} nodes, which are the default node types and are colored in grey. These nodes have not been identified as any specific type and may contain arbitrary values.
+
+The idea behind this representation will be to try to make predictions on the \gls{kn} nodes, which are the nodes that have been identified as keys. Using the graph, we can build an embedding of the nodes and as such, add more information to a given byte block than just its raw bytes. This is the basis of the semantic embedding, which will be discussed later.
+
+This example is based on the heap dump file \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw} and has been generated using \texttt{mem2graph}, and the \textbf{sfdp} layout algorithm from \texttt{graphviz} using the following command:
+
+\begin{lstlisting}[language=bash, caption={Command used to generate the memory graph visualization of \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}}]
+    sfdp -Gsize=30! -Goverlap=voronoi -Tpng 17016-1643962152_truncated_no_addresses.gv > 17016-1643962152_truncated_no_addresses.png
+\end{lstlisting}
 
 \subsection{Graph Construction}
+Now that the basis of the memory graph representation has been described, let's dive in the graph construction process. 
+
+\subsubsection{Graph Construction steps}
+The graph construction process is composed of several steps:
+
+1. graph initialization
+* loading a given heap dump file and its associated annotation file
+* perform some checks on the annotation file, like checking if the annotation file is valid, that all annotations are present
+
+2. graph building
+* build the graph from heap dump byte blocks
+* perform data structure detection step
+* perform pointer detection step
+
+3. graph annotation
+* replace VN by KN from annotation file
+* add other annotations like SSH_STRUCT
+After this step, its possible to export the graph to a file, like a \texttt{.dot} file or a \texttt{.gv} file for visualization or other purposes.
+
+4. Generate embedding from graph
+different embedding are possible. We will focus on the semantic embedding which is a general way to embed the graph by addind the related graph structure and vicinity information to each node.
+
+\subsubsection{Graph Construction Algorithms}
+
+
 % graph construction algorithm
 % graph annotation algorithm
 

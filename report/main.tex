@@ -76,8 +76,27 @@
 \makeglossaries
 \newglossaryentry{nodes}
 {
-    name=nodes,
-    description={A node is an entity in a graph, it can be a person, a place, a thing, or any other entity.}
+  name=nodes,
+  description={A node is an entity in a graph, it can be a person, a place, a thing, or any other entity.}
+}
+\newglossaryentry{dtn}{
+  name={DTN},
+  description={Data Structure Node. This is a node whose bytes have been identified as a data structure header. In the graph, this node is the root node of an allocated structure.}
+}
+
+\newglossaryentry{pn}{
+  name={PN},
+  description={Pointer Node. This is a node whose bytes have been identified as a pointer.}
+}
+
+\newglossaryentry{kn}{
+  name={KN},
+  description={Key Node. This is a node whose bytes have been identified as a key. This identification relies both on the annotations and some verification checks.}
+}
+
+\newglossaryentry{vn}{
+  name={VN},
+  description={Value Node. These are all blocks that have not been identified. It is the default node type.}
 }
 
 \newacronym{kg}{KG}{Knownledge Graph}
