@@ -1,4 +1,5 @@
 import numpy as np
+from utils.mem_utils import block_bytes_to_addr, is_8_bytes_aligned
 
 BLOCK_SIZE_IN_BYTES = 8
 
@@ -71,3 +72,36 @@ def get_blocks_from_heap_dump(
     heap_dump_blocks = bytes_to_ndarray(heap_dump)
     
     return heap_dump_blocks
+
+def get_heap_size_in_bytes(blocks: np.ndarray) -> int:
+    """
+    Returns the size of the heap in bytes.
+    """
+    return len(blocks) * BLOCK_SIZE_IN_BYTES
+
+def is_valid_pointer(
+    block: bytes,
+    heap_start_addr: int,
+    heap_size_in_bytes: int,
+) -> bool:
+    """
+    Returns a boolean indicating whether the input 
+    block is a valid pointer.
+
+    A valid pointer is 8 bytes aligned 
+    and is pointing to an address that is in the heap dump.
+    """
+    # Check that the block is 8 bytes aligned
+    if not is_8_bytes_aligned(block):
+        return False
+    
+    # Convert the block to an address
+    block_addr = block_bytes_to_addr(block)
+    
+    # Check that the address is in the heap dump
+    if not is_address_in_heap_dump(
+        block_addr, heap_start_addr, heap_size_in_bytes
+    ):
+        return False
+    
+    return True

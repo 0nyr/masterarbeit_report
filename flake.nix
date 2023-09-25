@@ -27,6 +27,9 @@
             # the environment.
             pythonPackages.python
 
+            # testing
+            pythonPackages.pytest
+
             # python packages
             pythonPackages.numpy
             pythonPackages.tqdm

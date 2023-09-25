@@ -14,6 +14,12 @@ def pointer_str_to_addr(hex_str: str) -> int:
     byte_addr = bytes.fromhex(hex_str)
     return int.from_bytes(byte_addr, byteorder='little', signed=False)
 
+def block_bytes_to_addr(block: bytes) -> int:
+    """
+    Convert a block of bytes to an address.
+    """
+    return int.from_bytes(block, byteorder='little', signed=False)
+
 def int_to_little_endian_hex_string(value):
     """
     Convert an integer value as a little-endian hex string.
@@ -22,8 +28,10 @@ def int_to_little_endian_hex_string(value):
     hex_string = '0x' + ''.join(f'{byte:02x}' for byte in bytes)
     return hex_string
 
-def is_8_bytes_aligned(value):
+def is_8_bytes_aligned(value: bytes):
     """
     Returns a boolean indicating whether the input int is 8 bytes aligned.
     """
-    return (value % 8) == 0
+    # Convert the bytes to an integer
+    value_as_int = int.from_bytes(value, byteorder='little')
+    return (value_as_int % 8) == 0

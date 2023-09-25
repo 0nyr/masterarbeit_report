@@ -8,7 +8,16 @@
 * [ ] Finished KG-construction part.
 * [ ] Finish Dataset data structure exploration part.
 
+The following command was used to find the example file from `phdtrack_data_clean`:
 
+```shell
+ ❮onyr ★ nixos❯ ❮mem2graph❯❯ find ~/code/phdtrack/phdtrack_data_clean/ -type f -name "17016-1643962152-heap.raw"
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24/17016-1643962152-heap.raw
+```
+
+#### notes:
+
+The last block is only composed of zeros, and the heap is truncated 2 blocks before the real end. This chunk should be removed.
 
 ### Fri 22 Sep 2023
 
