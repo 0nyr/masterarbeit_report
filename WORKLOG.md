@@ -1,7 +1,16 @@
 # Logs
 
+### Mon 25 Sep 2023
 
-### Fri 22 Sep
+* [ ] write script to check GLIBC allocation processes. Count nb of allocated and unallocated data structures
+* [ ] write script to count nb of files in each subdirectories of the cleaned dataset
+* [ ] Create RUST pipeline for semantic embedding with entropy filtering. Just keep blocks that are inside chunks with highest entropy. Add a check to verify that first key blocks are all included.
+* [ ] Finished KG-construction part.
+* [ ] Finish Dataset data structure exploration part.
+
+
+
+### Fri 22 Sep 2023
 
 Generating graph examples.
 

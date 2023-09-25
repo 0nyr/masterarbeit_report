@@ -169,6 +169,49 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     In the scripts and programmed that have been developped for the following thesis, we have implemented a number of checks and tests to ensure that these assumptions are met. If not, the programs will raise an error, log the problem and generally skip the data. This behavior is implemented to ensure that the programs are robust to unexpected data, and to ensure that the results are reliable. These assumptions, and related problems will be discussed and measured at several locations in the following sections.
 
+    \subsection{Dataset production system information}\label{sec:methods:dataset:production_system_information}
+    Neither the paper \citetitle{SmartKex22} nor the dataset itself provide information about the hardware and software used for its generation. This is important since we will be exploring allocated raw bytes which depend on the system and C library used. We obtained some information about the dataset generation by contacting the authors of the paper. 
+
+    As specified in a mail from Reiser, Hans, the dataset was generated on a system with the following command output:
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+    \begin{lstlisting}[language=bash, caption={Command and logs of the C-library version used for the dataset generation}]
+        root@debian10:~# ldd --version
+        ldd (Debian GLIBC 2.28-10) 2.28
+        Copyright (C) 2018 Free Software Foundation, Inc.
+        This is free software; see the source for copying conditions.  There is NO
+        warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+        Written by Roland McGrath and Ulrich Drepper.
+    \end{lstlisting}
+    \end{minipage}
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+    \begin{lstlisting}[language=bash, caption={Command and logs of the Linux Standard Base Release used for the dataset generation}]
+        root@debian10:~# lsb_release -a
+        No LSB modules are available.
+        Distributor ID:     Debian
+        Description:        Debian GNU/Linux 10 (buster)
+        Release:            10
+        Codename:           buster
+    \end{lstlisting}
+    \end{minipage}
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+    \begin{lstlisting}[language=bash, caption={Command and logs of the OS and kernel version used for the dataset generation}]
+        root@debian10:~# uname -a
+        Linux debian10 4.19.0-16-amd64 #1 SMP Debian 4.19.181-1 (2021-03-19) x86_64 GNU/Linux
+    \end{lstlisting}
+    \end{minipage}
+
+    He also precise that the CPU used was an Intel Xeon CPU, either a E5-2609 or a E3-1230. From those commands, we can deduce the following crucial system related information:
+
+    \begin{itemize}
+        \item \textbf{CPU architecture:} \lstinline[language=bash]|x86_64|
+        \item \textbf{OS version:} \lstinline[language=bash]|Debian GNU/Linux 10 (buster)|
+        \item \textbf{Kernel version:} \lstinline[language=bash]|4.19.0-16-amd64|
+        \item \textbf{C library version:} \lstinline[language=bash]|Debian GLIBC 2.28-10|
+    \end{itemize}
+
     \subsection{Estimating the dataset balancing for key prediction}
     First, let's quickly estimate what the dataset is composed about. This will later be used to estimate the balancing of data for our key prediction goal. Some quick linux commands can be used to get a general overview of the dataset.
     
@@ -592,21 +635,10 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     Indeed, it is important to mention that we can rely on the JSON annotation files for providing labelling for key address prediction. Using this, we do not need to decrypt the network packets to be able to train our \acrshort{ml} models. This is a huge advantage, and is also required since we don't have the encrypted network packets in the dataset. Since we don't have those, and since the keys are already given, that is why we will focus on key address prediction, and not on key prediction.
 
-    \subsubsection{Detecting potential data structures}
-    Since the dataset contain whole heap dump file, we can also try to detect potential data structures in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers.
+    \subsection{Data structure exploration}
+    Since the dataset contain whole heap dump file, we can also try to detect potential data structures in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers. However for data structure, we can rely on our knowledge of the C library used to know exactly what to look for.
     
-    Since OpenSSH is written in C, we can expect to find some C data structures in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. This function takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. Looking at the code \footnote{The dataset has been produced on a \texttt{x86\_64} architecture, so as an example code, we have looked at uClibc for a \lstinline[language=c]|malloc| implementation: \url{https://git.busybox.net/uClibc/tree/libc/stdlib/malloc/malloc.c} } for \lstinline[language=c]|malloc|, we can see the following:
-    
-    \begin{minipage}{\dimexpr\linewidth-20pt}
-        \begin{lstlisting}[language=c, caption={Malloc implementation for uclibc}]
-        /* Include extra space to record the size of the allocated block.  */
-        size += MALLOC_HEADER_SIZE;
-        \end{lstlisting}
-    \end{minipage}
-    
-    A \lstinline[language=c]|malloc| call is expected to allocate a memory block of the size of the data structure, plus 8 bytes (). This is because the \lstinline[language=c]|malloc| function also stores some metadata about the allocated memory block. This metadata is stored in the bytes that are allocated in addition to the data structure size. This is why we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will also try to detect potential data structures in the heap dump file.
-
-    We don't know which implementation of \lstinline[language=c]|malloc| has been used for the OpenSSH programs used to generate the dataset. However, we can expect it to be similar to the one used in uclibc, a lightweight C library that is often used in embedded systems. 
+    Since OpenSSH is written in C, we can expect to find some C data structures in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. It takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. We know that the dataset has been produced using \texttt{GLIBC 2.28} \ref{sec:methods:dataset:production_system_information}. Looking directly at the code for \lstinline[language=c]|malloc| in \texttt{GLIBC 2.28}, we can read in the comments that \say{Minimum overhead per allocated chunk: 4 or 8 bytes. Each malloced chunk has a hidden word of overhead holding size and status information} \cite{MallocGLIBC2001}. This is what we refer to as the \textit{malloc header}. This means that we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will also try to detect potential data structures in heap dump files.
 
     In Linux on a \texttt{x86\_64} architecture, the malloc function typically uses a block (chunk) header to store metadata about each allocated block. This header is placed immediately before the block of memory returned to the user. The exact layout can vary depending on the implementation of the C library (e.g., glibc, musl), but generally, it contains the following:
 
@@ -614,7 +646,100 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{Size of the Block}: The size of the allocated block, usually in bytes. This size often includes the size of the header itself and may be aligned to a multiple of 8 or 16 bytes.
         \item \textbf{Flags}: Various flags that indicate the status of the block, such as whether it is free or allocated, or whether the previous block is free or allocated. These flags are often stored in the least significant bits of the size field, taking advantage of the fact that the size is usually aligned, leaving the least significant bits zeroed.
     \end{itemize}
+
+    \subsubsection{How \texttt{malloc} from GLIBC 2.28 Handles Heap Allocation}
+
+    The \texttt{malloc} function in GLIBC 2.28 uses a boundary tag method to manage chunks of memory. Each chunk contains metadata that helps in the allocation and deallocation of memory \cite{MallocGLIBC2001} \cite{MallocInternalsWiki2023}. Below are the key components of a chunk:
+
+    A chunck is a contiguous section of memory, in our case composed of several blocks of 8 bytes, that is handled by \texttt{malloc}. It contains the following components \cite{MallocInternalsWiki2023}:
+
+    \begin{enumerate}
+        \item \textbf{Size of Previous Chunk}: This field exists only if the previous chunk is unallocated and its \texttt{P} (PREV\_INUSE) bit is clear. It helps in finding the front of the previous chunk.
+        
+        \item \textbf{Size of Chunk}: This field contains the size of the chunk in bytes along with three flags: \texttt{A} (NON\_MAIN\_ARENA), \texttt{M} (IS\_MMAPPED), and \texttt{P} (PREV\_INUSE). These flags are in the last 3 \acrshort{lsb}s of the size field. This precise block is considered in the following report as the \textit{malloc header} block.
+        
+        \item \textbf{User Data}: This is the actual memory space that is returned to the user.
+        
+        \item \textbf{Size of Next Chunk}: This is the size of the next contiguous chunk.
+        
+        \item \textbf{Foot}: This is the same as the size of the chunk but is used for application data.
+        
+        \item \textbf{Flags}:
+        \begin{itemize}
+            \item \texttt{A} (NON\_MAIN\_ARENA): Indicates if the chunk is in the main arena or a thread-specific arena.
+            \item \texttt{M} (IS\_MMAPPED): Indicates if the chunk is allocated via \texttt{mmap}.
+            \item \texttt{P} (PREV\_INUSE): Indicates if the previous chunk is in use.
+        \end{itemize}
+    \end{enumerate}
+
+    The chunck allocation process involves the following concepts: 
+
+    \begin{enumerate}
+        \item \textbf{Initialization}: The very first chunk allocated always has the \texttt{P} bit set to prevent access to non-existent memory.
+        
+        \item \textbf{Free Chunks}: Free chunks are stored in circular doubly-linked lists. They contain forward and backward pointers to the next and previous chunks in the list.
+        
+        \item \textbf{Mmapped Chunks}: These chunks have the \texttt{M} bit set in their size fields and are allocated one-by-one.
+        
+        \item \textbf{Fastbins}: These are treated as allocated chunks and are consolidated only in bulk.
+        
+        \item \textbf{Top Chunk}: This is a special chunk that always exists. If it becomes less than \texttt{MINSIZE} bytes long, it is replenished.
+    \end{enumerate}
+
+    As explained directly in the code comments, an allocated chunck of 8 byte blocks can be described by the following diagram:
+
+    \begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[scale=0.99, every node/.style={scale=0.8}]
+        % image from (0,0) to (16,12)
+        
+        % Draw rectangles
+        \draw (4,1) rectangle (12,2);
+        \draw (4,2) rectangle (12,3); % chunk-> Size of previous chunk
+        \draw (4,3) rectangle (12,4); % malloc header (size of chunk)
+        \draw (4,4) rectangle (12,5); %  mem-> user data starts here
+        \draw (4,5) rectangle (12,6);
+        \draw (4,6) rectangle (12,7);
+        \draw (4,7) rectangle (12,8);
+        \draw (4,8) rectangle (12,9); % nextchunk-> (app size of chunk)
+        \draw (4,9) rectangle (12,10); % Size of next chunk
+        \draw (4,10) rectangle (12,11);
+        
+        % after the rectangle step, the coordinates of the y axis are reversed ???
+        % Dotted lines for user data
+        \draw[dotted] (0,8) -- (16,8);
+        \draw[dotted] (0,4) -- (16,4);
+
+        % Dotted lines for memory band of 8 byte blocks
+        \draw[dashed] (4,0) -- (4,12);
+        \draw[dashed] (12,0) -- (12,12);
+        
+        % Labels
+        \node[anchor=west] at (1,9.5) {--chunk----->};
+        \node[anchor=west] at (1,8.5) {--m-header-->};
+        \node[anchor=west] at (1,7.5) {--mem------->};
+        \node[anchor=west] at (1,3.5) {--nextchunk->};
+        
+        % Text inside rectangles
+        \node[text width=14cm, align=center] at (8,9.5) {Size of previous chunk, if unallocated (P clear)};
+        \node[text width=14cm, align=center] at (8,8.5) {Malloc header block: Size of chunk, in bytes |A|M|P};
+        \node[text width=14cm, align=center] at (8,7.5) {User data starts here...};
+        \node[text width=14cm, align=center] at (8,3.5) {(size of chunk, but used for application data)};
+        \node[text width=14cm, align=center] at (8,2.5) {Size of next chunk, in bytes |A|0|1};
+    \end{tikzpicture}
+    \caption{Diagram of an allocated chunk in GLIBC 2.28 \cite{MallocGLIBC2001}.}
+    \label{fig:allocated_chunk}
+    \end{figure}
+
+    In the specific case of \texttt{GLIBC 2.28}, the malloc header is defined as follows:
+
+    \begin{minipage}{\dimexpr\linewidth-20pt}
+        \begin{lstlisting}[language=c, caption={Malloc header definition in \texttt{GLIBC 2.28}}]
+            #define SIZE_BITS (PREV_INUSE | IS_MMAPPED | NON_MAIN_ARENA)
+        \end{lstlisting}
+    \end{minipage}
     
+    % TODO: this needs confirmation and potential rewrite
     Since the malloc header respects the endianness of the system, we can expect to find the malloc header in little-endian format in the heap dump file. Using vim on \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, we can use the following command to find some potential malloc headers:
 
     \begin{lstlisting}[language=bash, caption={Vim command to find potential malloc headers}]
@@ -812,6 +937,7 @@ Now that the basis of the memory graph representation has been described, let's 
 \subsubsection{Graph Construction steps}
 The graph construction process is composed of several steps:
 
+\begin{comment}
 1. graph initialization
 * loading a given heap dump file and its associated annotation file
 * perform some checks on the annotation file, like checking if the annotation file is valid, that all annotations are present
@@ -828,6 +954,7 @@ After this step, its possible to export the graph to a file, like a \texttt{.dot
 
 4. Generate embedding from graph
 different embedding are possible. We will focus on the semantic embedding which is a general way to embed the graph by addind the related graph structure and vicinity information to each node.
+\end{comment}
 
 \subsubsection{Graph Construction Algorithms}
 
