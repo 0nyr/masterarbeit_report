@@ -2,27 +2,11 @@ import numpy as np
 
 from utils import mem_utils
 from utils.heap_dump import bytes_to_ndarray, convert_block_index_to_address, get_blocks_from_heap_dump, load_heap_dump
-from utils.json_annotation import get_heap_start_addr, get_json_annotations
+from utils.json_annotation import get_heap_start_addr, get_json_annotations, get_keys_addresses
 
 HEAP_DUMP_FILE_PATH: str = "/home/onyr/code/phdtrack/phdtrack_data/Training/Training/basic/V_7_8_P1/16/5070-1643978841-heap.raw"
 BLOCK_SIZE_IN_BYTES: int = 8
 
-
-def get_keys_addresses(json_annotations: dict) -> tuple[list[int], dict[int, str]]:
-    """
-    Get the addresses of the keys.
-    NOTE: The addresses are in big-endian format in the JSON annotations.
-    """
-    key_address_to_name = {}
-    keys_addresses = []
-    for json_key in json_annotations.keys():
-        if json_key.startswith("KEY_"):
-            if json_key.endswith("_ADDR"):
-                key_name = json_key.replace("_ADDR", "")
-                key_address_to_name[mem_utils.hex_str_to_addr(json_annotations[json_key])] = key_name
-                keys_addresses.append(mem_utils.hex_str_to_addr(json_annotations[json_key]))
-    assert len(keys_addresses) == 6
-    return keys_addresses, key_address_to_name
 
 def determine_nb_keys_in_top_entropy_pairs(
         top_entropy_pairs: list[tuple[int, int, float]], 

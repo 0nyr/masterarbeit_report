@@ -95,14 +95,68 @@ Remarks:
     unless you know the previous chunk is free.
 """
 
+from enum import Enum
 import numpy as np
+from tqdm import tqdm
+import os
 
+from utils.debugging import dp, get_now_str
 from utils.file_loading import get_all_nested_files
 from utils.heap_dump import convert_block_index_to_address, convert_int_address_to_block_index, get_blocks_from_heap_dump, get_heap_size_in_bytes, is_address_in_heap_dump, is_valid_pointer
-from utils.json_annotation import get_heap_start_addr, get_json_annotations
+from utils.json_annotation import get_heap_start_addr, get_json_annotations, get_keys_addresses
 from utils.mem_utils import block_bytes_to_addr, hex_str_to_addr, int_to_little_endian_hex_string, is_8_bytes_aligned
 
 INPUT_RAW_HEAP_DUMP_FILE_PATH = "/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24/17016-1643962152-heap.raw"
+
+# -------------------- CLI arguments -------------------- #
+import sys
+import argparse
+
+# wrapped program flags
+class CLIArguments:
+    args: argparse.Namespace
+
+    def __init__(self) -> None:
+        self.__log_raw_argv()
+        self.__parse_argv()
+    
+    def __log_raw_argv(self) -> None:
+        print("Passed program params:")
+        for i in range(len(sys.argv)):
+            print("param[{0}]: {1}".format(
+                i, sys.argv[i]
+            ))
+    
+    def __parse_argv(self) -> None:
+        """
+        python main [ARGUMENTS ...]
+        """
+        parser = argparse.ArgumentParser(description='Program [ARGUMENTS]')
+        parser.add_argument(
+            '--debug', 
+            action='store_true',
+            help="debug, True or False"
+        )
+        # add file path or directory path argument
+        parser.add_argument(
+            '--input',
+            type=str,
+            help="Input as file path or directory path"
+        )
+
+        # save parsed arguments
+        self.args = parser.parse_args()
+
+        # overwrite debug flag
+        os.environ["DEBUG"] = "True" if self.args.debug else "False"
+
+        # log parsed arguments
+        print("Parsed program params:")
+        for arg in vars(self.args):
+            print("{0}: {1}".format(
+                arg, getattr(self.args, arg)
+            ))
+
 
 class MallocHeaderFlags:
     """
@@ -161,10 +215,13 @@ class Chunk:
         self.address = address # address of first block of the user data
         self.mchunkptr = address - 2 * 8 # address of the mchunkptr
 
+        # annotations and statistics
         self.is_free = False
+        self.annotations = []
 
     def __str__(self):
-        return f"Chunk(block_index={self.user_start_block_index}, size={self.size}, flags={self.flags})"
+        flags_as_str = f"[A={self.flags.a}, M={self.flags.m}, P={self.flags.p}]"
+        return f"Chunk(block_index={self.user_start_block_index}, size={self.size}, flags={flags_as_str})"
 
     def __repr__(self):
         return str(self)
@@ -201,7 +258,7 @@ def check_chunk_has_only_zeros(
     """
     for i in range(chunk.user_start_block_index, chunk.user_start_block_index + (chunk.size // 8)):
         if i >= len(blocks):
-            print(
+            dp(
                 f"WARN: Chunk [{chunk.address}] {chunk} is out of bounds. "
                 f"Last block index: {len(blocks) - 1} "
                 f"Iteration index: {i} "
@@ -217,10 +274,10 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
     """
     Print a chunk.
     """
-    print(f"Printing Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}] {chunk}")
+    dp(f"Printing Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}] {chunk}")
     for i in range(chunk.user_start_block_index, chunk.user_start_block_index + (chunk.size // 8)):
         if i >= len(blocks):
-            print(
+            dp(
                 f"WARN: Chunk [{chunk.address}] {chunk} is out of bounds. "
                 f"Last block index: {len(blocks) - 1} "
                 f"Iteration index: {i} "
@@ -228,7 +285,7 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
         else:
             block = blocks[i].tobytes()
             block_as_int = block_bytes_to_addr(block)
-            print(f"Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int}")
+            dp(f"Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int}")
 
 def is_free_chunk(
         blocks: np.ndarray,
@@ -313,15 +370,88 @@ def is_free_chunk(
 
     return True
 
-def main():
+class ChunkAnnotation(Enum):
+    ChunkContainsKey = 1
+    ChunkContainsSSHStruct = 2
+    ChunkContainsSessionState = 3
+    
+def annotate_chunks(
+        chunks: list[Chunk],
+        json_annotations: dict,
+        heap_start_addr: int,
+        heap_size_in_bytes: int,
+    ):
+    """
+    Annotate a chunk with the corresponding annotations.
+    Annotations are from JSON annotation file.
+    """
+    # get all annotation addresses
+    keys_addresses, key_address_to_name = get_keys_addresses(json_annotations)
+    ssh_struct_addr = hex_str_to_addr(json_annotations["SSH_STRUCT_ADDR"])
+    session_state_addr = hex_str_to_addr(json_annotations["SESSION_STATE_ADDR"])
+
+    # assert that all addresses of annotations are in the heap dump
+    assert is_address_in_heap_dump(
+        ssh_struct_addr,
+        heap_start_addr,
+        heap_size_in_bytes,
+    ), "SSH_STRUCT_ADDR is not in the heap dump."
+    assert is_address_in_heap_dump(
+        session_state_addr,
+        heap_start_addr,
+        heap_size_in_bytes,
+    ), "SESSION_STATE_ADDR is not in the heap dump."
+    for key_addr in keys_addresses:
+        assert is_address_in_heap_dump(
+            key_addr,
+            heap_start_addr,
+            heap_size_in_bytes,
+        ), f"KEY_ADDR {key_addr} for key {key_address_to_name[key_addr]} is not in the heap dump."
+
+    def check_chunk_is_not_free_and_annotate(chunk: Chunk, annotation: ChunkAnnotation):
+        """
+        Check that a chunk is not free.
+        Then annotate the chunk with the annotation.
+        """
+        assert not chunk.is_free, (
+            f"Chunk [{chunk.address}] {chunk} is free. "
+            f"Cannot annotate a free chunk with {annotation}. "
+        )
+        chunk.annotations.append(annotation)
+
+    # annotate chunks
+    for i in range(0, len(chunks)):
+        chunk = chunks[i]
+        if chunk.address in keys_addresses:
+            check_chunk_is_not_free_and_annotate(
+                chunk,
+                ChunkAnnotation.ChunkContainsKey
+            )
+        elif chunk.address == ssh_struct_addr:
+            check_chunk_is_not_free_and_annotate(
+                chunk,
+                ChunkAnnotation.ChunkContainsSSHStruct
+            )
+        elif chunk.address == session_state_addr:
+            check_chunk_is_not_free_and_annotate(
+                chunk,
+                ChunkAnnotation.ChunkContainsSessionState
+            )
+
+
+def pipeline(raw_file_path: str):
+
+    # print date, time and file path
+    dp(f"Processing file: {raw_file_path}")
+    dp(f"Datetime: {get_now_str()}")
 
     # get json annotations
-    json_file_path = INPUT_RAW_HEAP_DUMP_FILE_PATH.replace("-heap.raw", ".json")
+    json_file_path = raw_file_path.replace("-heap.raw", ".json")
     json_annotations = get_json_annotations(json_file_path)
 
     # load the heap dump blocks
     blocks = get_blocks_from_heap_dump(
-        INPUT_RAW_HEAP_DUMP_FILE_PATH
+        raw_file_path
     )
 
     # determine the heap start address and the heap size in bytes
@@ -367,7 +497,7 @@ def main():
             nb_previous_chunk_in_use += 1
 
         if nb_chunks < 10 or nb_chunks > 900:
-            print(f"Parsed Chunk [{nb_chunks}]: {chunk}")
+            dp(f"Parsed Chunk [{nb_chunks}]: {chunk}")
 
         # save chunk
         chunks.append(chunk)
@@ -389,26 +519,39 @@ def main():
             chunk.is_free = True
 
             if nb_free_chunks < 10:
-                print(f"Free Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}]: {chunks[i]}")
+                dp(f"Free Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}]: {chunks[i]}")
             nb_free_chunks += 1
     
     nb_zeros_chunks = 0
     for i in range(0, len(chunks)):
         if check_chunk_has_only_zeros(blocks, chunks[i]):
             chunks[i].is_free = True
-            print(f"Chunk [{chunks[i].user_start_block_index}] is only composed of zeros: {chunks[i]}")
+            dp(f"Chunk [{chunks[i].user_start_block_index}] is only composed of zeros: {chunks[i]}")
             nb_zeros_chunks += 1
+    
+    # perform annotations
+    annotate_chunks(
+        chunks,
+        json_annotations,
+        heap_start_addr,
+        heap_size_in_bytes,
+    )
+    # print chunks with annotations
+    for i in range(0, len(chunks)):
+        chunk = chunks[i]
+        if len(chunk.annotations) > 0:
+            dp(f"Chunk [{int_to_little_endian_hex_string(chunk.address)}] {chunk} has annotations: {chunk.annotations}")
 
     # print content of chunks
-    #print("Content of chunks:")
-    #print_chunk(blocks, chunks[-1])
+    #dp("Content of chunks:")
+    #dp_chunk(blocks, chunks[-1])
     for i in range(0, len(chunks)):
         if chunks[i].user_start_block_index == 80:
             print_chunk(blocks, chunks[i])
     
     # compute percentage of free chunks
     percentage_free_chunks = nb_free_chunks / nb_chunks * 100
-    print(f"Percentage of free chunks: {percentage_free_chunks}%")
+    dp(f"Percentage of free chunks: {percentage_free_chunks}%")
 
     # compute percentage of blocks in free chunks
     nb_blocks_in_free_chunks = 0
@@ -416,15 +559,105 @@ def main():
         if chunks[i].is_free:
             nb_blocks_in_free_chunks += chunks[i].size // 8
     percentage_blocks_in_free_chunks = nb_blocks_in_free_chunks / len(blocks) * 100
-    print(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
+    dp(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
 
     # print statistics
-    print(f"Total number of chunks: {nb_chunks}")
-    print(f"Total number of chunks with P=1: {nb_previous_chunk_in_use}")
-    print(f"Total number of chunks with M=1: {nb_nmap_chunks}")
-    print(f"Total number of chunks with A=1: {nb_main_arena_chunks}")
-    print(f"Total number of free chunks: {nb_free_chunks}")
-    print(f"Total number of chunks only composed of zeros: {nb_zeros_chunks}")
+    dp(f"number of chunks: {nb_chunks}")
+    dp(f"number of chunks with P=1: {nb_previous_chunk_in_use}")
+    dp(f"number of chunks with M=1: {nb_nmap_chunks}")
+    dp(f"number of chunks with A=1: {nb_main_arena_chunks}")
+    dp(f"number of free chunks: {nb_free_chunks}")
+    dp(f"number of chunks only composed of zeros: {nb_zeros_chunks}")
+
+    # save statistics
+    stats = {}
+    stats["raw_file_path"] = raw_file_path
+    stats["nb_chunks"] = nb_chunks
+    stats["nb_blocks"] = len(blocks)
+    stats["nb_previous_chunk_in_use"] = nb_previous_chunk_in_use
+    stats["nb_nmap_chunks"] = nb_nmap_chunks
+    stats["nb_main_arena_chunks"] = nb_main_arena_chunks
+    stats["nb_free_chunks"] = nb_free_chunks
+    stats["nb_zeros_chunks"] = nb_zeros_chunks
+    stats["nb_blocks_in_free_chunks"] = nb_blocks_in_free_chunks
+
+    # delete stuff to free memory
+    del blocks
+    del chunks
+
+    return stats
+
+def main():
+    """
+    Main function.
+    """
+    cli = CLIArguments()
+
+    global_stats = {}
+    global_stats["nb_parsed_files"] = 0
+    global_stats["nb_chunks"] = 0
+    global_stats["nb_blocks"] = 0
+    global_stats["nb_previous_chunk_in_use"] = 0
+    global_stats["nb_nmap_chunks"] = 0
+    global_stats["nb_main_arena_chunks"] = 0
+    global_stats["nb_free_chunks"] = 0
+    global_stats["nb_zeros_chunks"] = 0
+    global_stats["nb_blocks_in_free_chunks"] = 0
+
+    def store_global_stats(stats: dict):
+        global_stats["nb_parsed_files"] += 1
+        global_stats["nb_chunks"] += stats["nb_chunks"]
+        global_stats["nb_blocks"] += stats["nb_blocks"]
+        global_stats["nb_previous_chunk_in_use"] += stats["nb_previous_chunk_in_use"]
+        global_stats["nb_nmap_chunks"] += stats["nb_nmap_chunks"]
+        global_stats["nb_main_arena_chunks"] += stats["nb_main_arena_chunks"]
+        global_stats["nb_free_chunks"] += stats["nb_free_chunks"]
+        global_stats["nb_zeros_chunks"] += stats["nb_zeros_chunks"]
+        global_stats["nb_blocks_in_free_chunks"] += stats["nb_blocks_in_free_chunks"]
+
+    if cli.args.input is None:
+        # default input
+        store_global_stats(pipeline(INPUT_RAW_HEAP_DUMP_FILE_PATH))
+    else:
+        if cli.args.input.endswith("-heap.raw"):
+            # input is single file
+            store_global_stats(pipeline(cli.input))
+        else:
+            # input is directory
+            print(f"Input is directory: {cli.args.input}")
+            raw_file_paths = get_all_nested_files(cli.args.input, "-heap.raw")
+            if len(raw_file_paths) < 1:
+                print(f"No raw heap dump file found in directory {cli.args.input}")
+                exit(1)
+            
+            for raw_file_path in tqdm(raw_file_paths, desc="Processing files"):
+                store_global_stats(pipeline(raw_file_path))
+            
+    # print statistics
+    print("------> Statistics:")
+    print(f"Total number of parsed files: {global_stats['nb_parsed_files']}")
+    
+    if global_stats['nb_parsed_files'] == 1:
+        print(f"File path: {INPUT_RAW_HEAP_DUMP_FILE_PATH}")
+    
+    print(f"Total number of chunks: {global_stats['nb_chunks']}")
+    print(f"Total number of blocks: {global_stats['nb_blocks']}")
+    print(f"Total number of chunks with P=1: {global_stats['nb_previous_chunk_in_use']}")
+    print(f"Total number of chunks with M=1: {global_stats['nb_nmap_chunks']}")
+    print(f"Total number of chunks with A=1: {global_stats['nb_main_arena_chunks']}")
+    print(f"Total number of free chunks: {global_stats['nb_free_chunks']}")
+    print(f"Total number of chunks only composed of zeros: {global_stats['nb_zeros_chunks']}")
+    print(f"Total number of blocks in free chunks: {global_stats['nb_blocks_in_free_chunks']}")
+
+    # compute percentage of free chunks
+    percentage_free_chunks = global_stats["nb_free_chunks"] / global_stats["nb_chunks"] * 100
+    print(f"Percentage of free chunks: {percentage_free_chunks}%")
+
+    # compute percentage of blocks in free chunks
+    percentage_blocks_in_free_chunks = global_stats["nb_blocks_in_free_chunks"] / global_stats["nb_blocks"] * 100
+    print(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
+
+    
 
 if __name__ == "__main__":
     main()
