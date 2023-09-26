@@ -651,7 +651,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     The \texttt{malloc} function in GLIBC 2.28 uses a boundary tag method to manage chunks of memory. Each chunk contains metadata that helps in the allocation and deallocation of memory \cite{MallocGLIBC2001} \cite{MallocInternalsWiki2023}. Below are the key components of a chunk:
 
-    A chunck is a contiguous section of memory, in our case composed of several blocks of 8 bytes, that is handled by \texttt{malloc}. It contains the following components \cite{MallocInternalsWiki2023}:
+    A chunck is a contiguous section of memory, in our case composed of several blocks of 8 bytes, that is handled by \texttt{malloc}. It contains the following components \cite{MallocInternalsWiki2023} \cite{StackExchangeMalloc2023}:
 
     \begin{enumerate}
         \item \textbf{Size of Previous Chunk}: This field exists only if the previous chunk is unallocated and its \texttt{P} (PREV\_INUSE) bit is clear. It helps in finding the front of the previous chunk.

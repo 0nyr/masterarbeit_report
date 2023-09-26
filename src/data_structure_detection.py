@@ -161,6 +161,8 @@ class Chunk:
         self.address = address # address of first block of the user data
         self.mchunkptr = address - 2 * 8 # address of the mchunkptr
 
+        self.is_free = False
+
     def __str__(self):
         return f"Chunk(block_index={self.user_start_block_index}, size={self.size}, flags={self.flags})"
 
@@ -195,6 +197,7 @@ def check_chunk_has_only_zeros(
     ) -> bool:
     """
     Check that a chunk is only composed of zeros.
+    WARN: On a free block, there is NO footer.
     """
     for i in range(chunk.user_start_block_index, chunk.user_start_block_index + (chunk.size // 8)):
         if i >= len(blocks):
@@ -214,7 +217,7 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
     """
     Print a chunk.
     """
-    print(f"Chunk [{chunk.address}] {chunk}")
+    print(f"Printing Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}] {chunk}")
     for i in range(chunk.user_start_block_index, chunk.user_start_block_index + (chunk.size // 8)):
         if i >= len(blocks):
             print(
@@ -223,7 +226,9 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
                 f"Iteration index: {i} "
                 )
         else:
-            print(f"Block [{i}]: {blocks[i].tobytes()}")
+            block = blocks[i].tobytes()
+            block_as_int = block_bytes_to_addr(block)
+            print(f"Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int}")
 
 def is_free_chunk(
         blocks: np.ndarray,
@@ -241,45 +246,70 @@ def is_free_chunk(
     """
     chunk = chunks[current_chunk_index]
 
-    # Forward and backward pointers are the next two 8-byte
-    # fields after the header.
-    forward_pointer_block = blocks[chunk.user_start_block_index].tobytes()
-    if not is_valid_pointer(
-            forward_pointer_block,
-            heap_start_addr,
-            heap_size_in_bytes,
-        ):
-        return False
+    # # Forward and backward pointers are the next two 8-byte
+    # # fields after the header.
+    # forward_pointer_block = blocks[chunk.user_start_block_index].tobytes()
+    # if not is_valid_pointer(
+    #         forward_pointer_block,
+    #         heap_start_addr,
+    #         heap_size_in_bytes,
+    #     ):
+    #     return False
 
-    backward_pointer_block = blocks[chunk.user_start_block_index + 1].tobytes()
-    if not is_valid_pointer(
-            backward_pointer_block,
-            heap_start_addr,
-            heap_size_in_bytes,
-        ):
-        return False
+    # backward_pointer_block = blocks[chunk.user_start_block_index + 1].tobytes()
+    # if not is_valid_pointer(
+    #         backward_pointer_block,
+    #         heap_start_addr,
+    #         heap_size_in_bytes,
+    #     ):
+    #     return False
 
     # WARN: Those pointers pointing to chunks are pointing to the
     # mchunkptr !!!
 
-    # check the forward pointer points to the next chunk
-    # NOTE: don't check if last chunk
-    if current_chunk_index != len(chunks) - 1:
-        next_chunk = chunks[current_chunk_index + 1]
-        forward_pointer_addr = block_bytes_to_addr(forward_pointer_block)
-        if forward_pointer_addr != next_chunk.mchunkptr:
-            return False
+    # # check the forward pointer points to the next chunk
+    # # NOTE: don't check if last chunk
+    # if current_chunk_index != len(chunks) - 1:
+    #     next_chunk = chunks[current_chunk_index + 1]
+    #     forward_pointer_addr = block_bytes_to_addr(forward_pointer_block)
+    #     if forward_pointer_addr < next_chunk.mchunkptr or forward_pointer_addr > next_chunk.mchunkptr + next_chunk.size + 2:
+    #         return False
 
     # # check the backward pointer points to the previous chunk
     # previous_chunk = chunks[current_chunk_index - 1]
     # backward_pointer_addr = block_bytes_to_addr(backward_pointer_block)
-    # if backward_pointer_addr != previous_chunk.mchunkptr:
-    #     print(f"backward_pointer_block: {backward_pointer_block}")
-    #     print(f"backward_pointer_addr: {int_to_little_endian_hex_string(backward_pointer_addr)}")
-    #     print(f"backward_pointer_addr index: {convert_int_address_to_block_index(backward_pointer_addr, heap_start_addr)}")
-    #     print(f"previous_chunk.mchunkptr: {int_to_little_endian_hex_string(previous_chunk.mchunkptr)}")
-    #     print(f"previous_chunk.mchunkptr index: {convert_int_address_to_block_index(previous_chunk.mchunkptr, heap_start_addr)}")
+    # if backward_pointer_addr < previous_chunk.mchunkptr or backward_pointer_addr > previous_chunk.mchunkptr + previous_chunk.size + 2:
     #     return False
+
+    # check if P flag of the next chunk is false
+    # this means that this chunk is not in use (free)
+    if current_chunk_index != len(chunks) - 1:
+        next_chunk = chunks[current_chunk_index + 1]
+        if next_chunk.flags.p == True:
+            return False # current chunk is not free
+    else:
+        # last chunk, check if zero chunk
+        if not check_chunk_has_only_zeros(blocks, chunk):
+            return False
+        
+    # # check that the blocks after pointer blocks are only composed of zeros (except footer)
+    # for i in range(chunk.user_start_block_index + 2, chunk.user_start_block_index + (chunk.size // 8) - 1): # -1 since last block is footer size
+    #     if i >= len(blocks):
+    #         print(
+    #             f"WARN: Chunk [{chunk.address}] {chunk} is out of bounds. "
+    #             f"Last block index: {len(blocks) - 1} "
+    #             f"Iteration index: {i} "
+    #             )
+    #     else:
+    #         if blocks[i].sum() != 0 or (
+    #             i < chunk.user_start_block_index + 4 and 
+    #             is_valid_pointer(
+    #                 blocks[i].tobytes(),
+    #                 heap_start_addr,
+    #                 heap_size_in_bytes,
+    #             )
+    #         ):
+    #             return False
 
     return True
 
@@ -355,17 +385,38 @@ def main():
                 heap_start_addr,
                 heap_size_in_bytes,
             ):
+            chunk = chunks[i]
+            chunk.is_free = True
+
             if nb_free_chunks < 10:
                 print(f"Free Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}]: {chunks[i]}")
             nb_free_chunks += 1
     
+    nb_zeros_chunks = 0
     for i in range(0, len(chunks)):
         if check_chunk_has_only_zeros(blocks, chunks[i]):
+            chunks[i].is_free = True
             print(f"Chunk [{chunks[i].user_start_block_index}] is only composed of zeros: {chunks[i]}")
+            nb_zeros_chunks += 1
 
     # print content of chunks
     #print("Content of chunks:")
     #print_chunk(blocks, chunks[-1])
+    for i in range(0, len(chunks)):
+        if chunks[i].user_start_block_index == 80:
+            print_chunk(blocks, chunks[i])
+    
+    # compute percentage of free chunks
+    percentage_free_chunks = nb_free_chunks / nb_chunks * 100
+    print(f"Percentage of free chunks: {percentage_free_chunks}%")
+
+    # compute percentage of blocks in free chunks
+    nb_blocks_in_free_chunks = 0
+    for i in range(0, len(chunks)):
+        if chunks[i].is_free:
+            nb_blocks_in_free_chunks += chunks[i].size // 8
+    percentage_blocks_in_free_chunks = nb_blocks_in_free_chunks / len(blocks) * 100
+    print(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
 
     # print statistics
     print(f"Total number of chunks: {nb_chunks}")
@@ -373,6 +424,7 @@ def main():
     print(f"Total number of chunks with M=1: {nb_nmap_chunks}")
     print(f"Total number of chunks with A=1: {nb_main_arena_chunks}")
     print(f"Total number of free chunks: {nb_free_chunks}")
+    print(f"Total number of chunks only composed of zeros: {nb_zeros_chunks}")
 
 if __name__ == "__main__":
     main()
