@@ -479,6 +479,17 @@ def pipeline(raw_file_path: str):
         # Parse the malloc header
         malloc_header = parse_malloc_header(blocks[i])
 
+        # WARN: if chunk size is 0, it means that there is a problem
+        # with the parsing of the malloc header.
+        # This can happen if the heap dump file is corrupted.
+        # In this case, log error and skip this file entirely.
+        if malloc_header.size == 0:
+            print(
+                f"ERROR: malloc_header.size is 0. "
+                f"Skipping file: {raw_file_path}"
+            )
+            return None
+
         # Create a chunk object
         chunk = Chunk(
             i+1,
@@ -604,7 +615,13 @@ def main():
     global_stats["nb_zeros_chunks"] = 0
     global_stats["nb_blocks_in_free_chunks"] = 0
 
-    def store_global_stats(stats: dict):
+    global_stats["nb_skipped_files"] = 0
+
+    def store_global_stats(stats: dict | None):
+        if stats is None:
+            global_stats["nb_skipped_files"] += 1
+            return
+        
         global_stats["nb_parsed_files"] += 1
         global_stats["nb_chunks"] += stats["nb_chunks"]
         global_stats["nb_blocks"] += stats["nb_blocks"]
@@ -621,7 +638,7 @@ def main():
     else:
         if cli.args.input.endswith("-heap.raw"):
             # input is single file
-            store_global_stats(pipeline(cli.input))
+            store_global_stats(pipeline(cli.args.input))
         else:
             # input is directory
             print(f"Input is directory: {cli.args.input}")
@@ -630,8 +647,20 @@ def main():
                 print(f"No raw heap dump file found in directory {cli.args.input}")
                 exit(1)
             
-            for raw_file_path in tqdm(raw_file_paths, desc="Processing files"):
-                store_global_stats(pipeline(raw_file_path))
+            # Initialize the tqdm object
+            with tqdm(total=len(raw_file_paths), desc="Processing files") as pbar:
+                for raw_file_path in raw_file_paths:
+                    # Update the postfix data (this will display alongside the progress bar)
+                    pbar.set_postfix(
+                        file=raw_file_path.split('/')[-1].replace("-heap.raw", ""), 
+                        refresh=True
+                    )
+
+                    # Execute the pipeline and store statistics
+                    store_global_stats(pipeline(raw_file_path))
+
+                    # Update the progress bar
+                    pbar.update(1)
             
     # print statistics
     print("------> Statistics:")
@@ -639,6 +668,8 @@ def main():
     
     if global_stats['nb_parsed_files'] == 1:
         print(f"File path: {INPUT_RAW_HEAP_DUMP_FILE_PATH}")
+    
+    print(f"Total number of skipped files: {global_stats['nb_skipped_files']}")
     
     print(f"Total number of chunks: {global_stats['nb_chunks']}")
     print(f"Total number of blocks: {global_stats['nb_blocks']}")

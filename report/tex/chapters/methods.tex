@@ -162,12 +162,12 @@ In the preceding chapters, all the necessary background knowledge to understand 
     Before we dive in, let's make some assumptions about the dataset. We will use these assumptions to guide our exploration of the heap dump file. 
 
     \begin{itemize}
-        \item \textbf{Heap dump file size:} We will assume that the heap dump file size is a multiple of 8 bytes. This is because the heap dump file is a memory dump, and memory is allocated in chunjs that are multiples of 8 bytes. This means that we can expect the heap dump file to be composed of a sequence of 8 bytes blocks. If this assumption is not met, we will assume that padding the last block with 0s will not change the results of our exploration.
-        \item \textbf{Malloc header chaining:} We will assume that all the heap dump files have been generated using the same \lstinline[language=c]|malloc| implementation. It means that we can expect to find the same patterns in all the heap dump files. Especially, we expect all the heap dump files to start by zero or more blocks of 8 bytes of 0s, followed by the first malloc header. We can then follow the malloc header chaining to explore the heap dump file allocated memory chunks.
+        \item \textbf{Heap dump file size:} We will assume that the heap dump file size is a multiple of 8 bytes. This is because the heap dump file is a memory dump, and memory is allocated in chunks that are multiples of 8 bytes. This means that we can expect the heap dump file to be composed of a sequence of 8 bytes blocks. If this assumption is not met, we will assume that padding the last block with 0s will not change the results of our exploration.
+        \item \textbf{Malloc header chaining:} We will assume that all the heap dump files have been generated using the same \lstinline[language=c]|malloc| implementation. It means that we can expect to find the same patterns in all the heap dump files. Especially, we expect all the heap dump files to start by a first allocated in-use chunk of 8 bytes. We can then follow the malloc header chaining to explore the heap dump file allocated memory chunks \cite{MallocInternalsWiki2023}.
         \item \textbf{Dataset key annotation format:} We will assume that the JSON annotation files have been generated using the same program. This means that we can expect the same format for all the JSON annotation files. This is important, as we will use the JSON annotation files to get the key addresses for annotating memory graphs used for the embedding step. If the format is not the same, we will assume that the JSON annotation file is corrupted, and we will skip it.
     \end{itemize}
 
-    In the scripts and programmed that have been developped for the following thesis, we have implemented a number of checks and tests to ensure that these assumptions are met. If not, the programs will raise an error, log the problem and generally skip the data. This behavior is implemented to ensure that the programs are robust to unexpected data, and to ensure that the results are reliable. These assumptions, and related problems will be discussed and measured at several locations in the following sections.
+    In the scripts and programs that have been developped for the following thesis, we have implemented a number of checks and tests to ensure that these assumptions are met. If not, the programs will raise an error, log the problem and generally skip the data. This behavior is implemented to ensure that the programs are robust to unexpected data, and to ensure that the results are reliable. These assumptions, and related problems will be discussed and measured at several locations in the following sections.
 
     \subsection{Dataset production system information}\label{sec:methods:dataset:production_system_information}
     Neither the paper \citetitle{SmartKex22} nor the dataset itself provide information about the hardware and software used for its generation. This is important since we will be exploring allocated raw bytes which depend on the system and C library used. We obtained some information about the dataset generation by contacting the authors of the paper. 
@@ -212,6 +212,15 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{C library version:} \lstinline[language=bash]|Debian GLIBC 2.28-10|
     \end{itemize}
 
+    \subsection{Conventions and vocabulary}
+    It's important to define some conventions and vocabulary that will be used in the following sections, since many concepts can be ambiguous depending on the context.
+
+    \begin{itemize}
+        \item \textbf{memory graph:} A memory graph is our particular directed graph that represents the memory of a heap dump file. The memory graph is the main data structure used for the embedding step.
+        \item \item \textbf{block:} In the following, we will refer to a block as a sequence of 8 bytes. This is because the heap dump file is a memory dump, and memory is allocated in chunks that are multiples of 8 bytes. This means that we can expect the heap dump file to be composed of a sequence of 8 bytes blocks.
+        \item \textbf{chunk:} A chunk is a sequence of blocks bytes. This concepts directly comes from the \lstinline[language=c]|malloc| implementation. At its core, a chunk has a user data body composed of blocks and a malloc header block. A chunk can be in-use or free.
+    \end{itemize}
+
     \subsection{Estimating the dataset balancing for key prediction}
     First, let's quickly estimate what the dataset is composed about. This will later be used to estimate the balancing of data for our key prediction goal. Some quick linux commands can be used to get a general overview of the dataset.
     
@@ -250,7 +259,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     Theses commands indicate that the dataset contains $ 103595 $ RAW files, which represents a total of $ 18067001344 $ bytes, or around 18 Gigabytes. This shows that the vast majority of the data is contained in RAW files, with JSON files representing less than a percent of the dataset in term of byte size. As such, the average size for every RAW file is around 170 Kilobytes. 
 
-    Now, considering that a given heap dump file is expecting to have only 6 keys (see \autoref{sec:background:ssh:ssh_keys}), with keys maximal possible size being of 64 bytes, we can estimate that we have at maximum $ 39780480 $ or around 40 Megabytes of positively labeled samples. This, considering the total useful size of around 18 Gigabytes, means that our dataset is very imbalanced, with an expected upper-bounded ratio of $ 0.0022\% $ of positively labeled samples or around $ 2:1000 $.
+    Now, considering that a given heap dump file is expecting to have only 6 keys (see \ref{sec:background:ssh:ssh_keys}), with keys maximal possible size being of 64 bytes, we can estimate that we have at maximum $ 39780480 $ or around 40 Megabytes of positively labeled samples. This, considering the total useful size of around 18 Gigabytes, means that our dataset is very imbalanced, with an expected upper-bounded ratio of $ 0.0022\% $ of positively labeled samples or around $ 2:1000 $.
 
     Considering that, a frontal \acrshort{ml} binary classification approach will not work. This is why the present report will discuss feature engineering and graph-based memory representation. The idea is to embed more information to our keys so as to be able to fight effectively the imbalanceness of the raw data.
 
@@ -389,7 +398,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \subsection{Exploring patterns in RAW heap dump files}
     Before diving into programming, we need to gain a better understanding of how to retreive useful information from heap dump raw file. For that matter, we will continue to experiment with simple commands in RAW heap dump files. Note that in the following, number bases are indicated, since endianness and conversions can get confusing.
 
-    Let's start by looking back at the RAW file we already presented in \autoref{lst:hexdump-8bytes}.
+    Let's start by looking back at the RAW file we already presented in \ref{lst:hexdump-8bytes}.
 
     \subsubsection{Detecting potential pointers}
     The paper \citetitle{SmartKex22} indicates that the keys are 8-bytes aligned. In fact, this is the case for the whole heap dump file. This is why we have choosen to split the study of heap dump files in chunks or blocks of 8 bytes. The term \textit{block} in code is always refering to this, unless specified otherwise. The precision is important, since these blocks should not be confused with \textit{memory blocks} like the ones that are allocated by the \lstinline[language=c]|malloc()| function in C.
@@ -602,7 +611,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     The \textit{Entropy Based Detection of Potential Key blocks} algorithm takes a raw heap dump, represented by the variable \texttt{heapData}, as input. The data is first padded with zeros to align it to 8-byte blocks and then reshaped into an $N \times 8$ matrix $X$. The Shannon entropy is computed for each 8-byte block in parallel, resulting in an array \texttt{entropy}. Subsequently, the entropy values of adjacent blocks are summed to form pairs, which are stored in \texttt{entropy\_pairs} along with their block indexes. These pairs are then sorted by their entropy sums to produce \texttt{sorted\_pairs}. The idea of using pairs of blocks instead of a single block or more that two blocks is related to the minimim key size, which is 16 bytes. This means that we need at least 2 blocks to be able to detect a potential key. The algorithm returns sorted pairs, so that we can easily extract the ones with the highest entropy sums. Given the index of a block, its actual memory address can be recomputed using the \texttt{HEAP\_START} address available in annotations.
     
-    Using this algorithm, let's continue to explore our example heap dump file from \autoref{lst:hexdump-8bytes}. We will use the following python function to compute the Shannon entropy of a given block of 8 bytes:
+    Using this algorithm, let's continue to explore our example heap dump file from \ref{lst:hexdump-8bytes}. We will use the following python function to compute the Shannon entropy of a given block of 8 bytes:
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
     \begin{lstlisting}[language=python, caption={Python function to compute the Shannon entropy of a given block of 8 bytes}]
@@ -668,7 +677,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \begin{itemize}
             \item \texttt{A} (NON\_MAIN\_ARENA): Indicates if the chunk is in the main arena or a thread-specific arena.
             \item \texttt{M} (IS\_MMAPPED): Indicates if the chunk is allocated via \texttt{mmap}.
-            \item \texttt{P} (PREV\_INUSE): Indicates if the previous chunk is in use.
+            \item \texttt{P} (PREV\_INUSE): Indicates if the previous chunk is in use. If false, it means the previous chunk is free.
         \end{itemize}
     \end{enumerate}
 
@@ -686,7 +695,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{Top Chunk}: This is a special chunk that always exists. If it becomes less than \texttt{MINSIZE} bytes long, it is replenished.
     \end{enumerate}
 
-    As explained directly in the code comments, an allocated chunck of 8 byte blocks can be described by the following diagram:
+    As explained directly in the code comments, an allocated chunck of 8 byte blocks can be described by the diagram below \cite{MallocGLIBC2001}. Note that is representation is personal to better suit the needs of our forensic annalysis. The slight difference resides in the fact that the \texttt{footer} with the size of the considered chunk is represented as being part of the next chunk and not the current chunk. The footer of the previous chunk is actually the \texttt{mchunkptr} address. As stated in the GlicC wiki: \say{within the malloc library, a "chunk pointer" or \texttt{mchunkptr} does not point to the beginning of the chunk, but to the last word in the previous chunk - i.e. the first field in mchunkptr is not valid unless you know the previous chunk is free} \cite{MallocInternalsWiki2023}. Due to consideration of free/allocated chunks, it's actually easier to just consider the footer as being part of the next chunk, and not the current chunk. This is why the diagram below is slightly different from the one in the GLIBC wiki. This is just a difference in schematical representation, and does not change the actual data structure.
 
     \begin{figure}[H]
     \centering
@@ -704,6 +713,8 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \draw (4,8) rectangle (12,9); % nextchunk-> (app size of chunk)
         \draw (4,9) rectangle (12,10); % Size of next chunk
         \draw (4,10) rectangle (12,11);
+
+        \draw[dashed] (3,3) rectangle (13,9);
         
         % after the rectangle step, the coordinates of the y axis are reversed ???
         % Dotted lines for user data
@@ -715,13 +726,16 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \draw[dashed] (12,0) -- (12,12);
         
         % Labels
-        \node[anchor=west] at (1,9.5) {--last-footer----->};
-        \node[anchor=west] at (1,8.5) {--malloc-header--->};
-        \node[anchor=west] at (1,7.5) {--mem------------->};
-        \node[anchor=west] at (1,3.5) {--nextchunk------->};
+        \node[anchor=west] at (0,9.5) {-last-footer-};
+        \node[anchor=west] at (0,8.5) {-malloc-header-};
+        \node[anchor=west] at (0,7.5) {-chunk-user-data-};
+        \node[anchor=west] at (0,3.5) {-chunk-footer-};
+        \node[anchor=west] at (0,2.5) {-next-malloc-header-};
+
+        \node[anchor=west] at (14,8.5) {in-use chunk};
         
         % Text inside rectangles
-        \node[text width=14cm, align=center] at (8,9.5) {Size of previous chunk, if unallocated (P clear)};
+        \node[text width=14cm, align=center] at (8,9.5) {Size of previous chunk. If unallocated, next P=0};
         \node[text width=14cm, align=center] at (8,8.5) {Malloc header block: Size of chunk, in bytes |A|M|P};
         \node[text width=14cm, align=center] at (8,7.5) {User data starts here...};
         \node[text width=14cm, align=center] at (8,3.5) {(size of chunk, but used for application data)};
@@ -729,6 +743,70 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \end{tikzpicture}
     \caption{Diagram of an allocated chunk in GLIBC 2.28 \cite{MallocGLIBC2001}.}
     \label{fig:allocated_chunk}
+    \end{figure}
+
+    The \texttt{malloc} function in GLIBC 2.28 uses a boundary tag method to manage chunks of memory. Each chunk contains metadata that helps in the allocation and deallocation of memory \cite{MallocGLIBC2001} \cite{MallocInternalsWiki2023}. The library stores available free chunks in circular doubly-linked lists called \say{bins}. This allows to quickly find a free chunk of memory of a given size. The problem is that we don't have access to those bins in the heap dump file. So to detect if a given chunk is in-use or free, we can rely on several methods. The first one is to look at the \texttt{P} bit of the malloc header. If it is set to 1, it means that the chunk is in use. If it is set to 0, it means that the chunk is free. 
+
+    I also remarked that sometimes, the given heap dump file is cropped and the last block is only composed of zeros and not complete. This is for instance the case with the last chunk of \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}.
+
+\begin{lstlisting}[language=bash, caption={Logs from chunk exploration script, related to the last chunk of the file \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. }]
+WARN: Chunk [94022266975200] Chunk(block_index=10876, size=48176, flags=[A=False, M=False, P=True]) is out of bounds. Last block index: 16895 Iteration index: 16896 
+WARN: Chunk [94022266975200] Chunk(block_index=10876, size=48176, flags=[A=False, M=False, P=True]) is out of bounds. Last block index: 16895 Iteration index: 16897
+Chunk(block_index=10876, size=48176) is only composed of zeros.
+\end{lstlisting}
+
+    A free chunk contains the pointers of the next and previous free chunks in the heap, for its given bin. A representation of a free chunk, based directly on the code documentation \cite{MallocGLIBC2001}, is given below:
+
+    \begin{figure}[H]
+        \centering
+        \begin{tikzpicture}[scale=0.99, every node/.style={scale=0.8}]
+            % image from (0,0) to (16,12)
+            
+            % Draw rectangles
+            \draw (4,1) rectangle (12,2);
+            \draw (4,2) rectangle (12,3); % chunk-> Size of previous chunk
+            \draw (4,3) rectangle (12,4); % malloc header (size of chunk)
+            \draw (4,4) rectangle (12,5); %  mem-> user data starts here
+            \draw (4,5) rectangle (12,6);
+            \draw (4,6) rectangle (12,7);
+            \draw (4,7) rectangle (12,8);
+            \draw (4,8) rectangle (12,9); % nextchunk-> (app size of chunk)
+            \draw (4,9) rectangle (12,10); % Size of next chunk
+            \draw (4,10) rectangle (12,11);
+    
+            \draw[dashed] (3,3) rectangle (13,9);
+            
+            % after the rectangle step, the coordinates of the y axis are reversed ???
+            % Dotted lines for user data
+            \draw[dotted] (0,8) -- (16,8);
+            \draw[dotted] (0,4) -- (16,4);
+    
+            % Dotted lines for memory band of 8 byte blocks
+            \draw[dashed] (4,0) -- (4,12);
+            \draw[dashed] (12,0) -- (12,12);
+            
+            % Labels
+            \node[anchor=west] at (0,9.5) {-last-footer-};
+            \node[anchor=west] at (0,8.5) {-malloc-header-};
+            \node[anchor=west] at (0,3.5) {-chunk-footer-};
+            \node[anchor=west] at (0,2.5) {-next-malloc-header-};
+
+            \node[anchor=west] at (0,7.5) {-forward-bin-pointer-};
+            \node[anchor=west] at (0,6.5) {-backward-bin-pointer-};
+    
+            \node[anchor=west] at (14,8.5) {free chunk};
+            
+            % Text inside rectangles
+            \node[text width=14cm, align=center] at (8,9.5) {Size of previous chunk. If unallocated, next P=0};
+            \node[text width=14cm, align=center] at (8,8.5) {Malloc header block: Size of chunk, in bytes |A|0|P};
+            \node[text width=14cm, align=center] at (8,7.5) {Forward pointer to next chunk in list};
+            \node[text width=14cm, align=center] at (8,6.5) {Back pointer to previous chunk in list};
+            \node[text width=14cm, align=center] at (8,5.5) {Unused space (may be 0 bytes long)};
+            \node[text width=14cm, align=center] at (8,3.5) {(size of chunk, but used for application data)};
+            \node[text width=14cm, align=center] at (8,2.5) {Size of next chunk, in bytes |A|0|0};
+        \end{tikzpicture}
+        \caption{Diagram of a free chunk in GLIBC 2.28 \cite{MallocGLIBC2001}.}
+        \label{fig:free_chunk}
     \end{figure}
 
     In the specific case of \texttt{GLIBC 2.28}, the malloc header is defined as follows:

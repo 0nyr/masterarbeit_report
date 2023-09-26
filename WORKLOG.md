@@ -25,6 +25,17 @@ Generating graph examples.
 
 `sfdp -Gsize=30! -Goverlap=ortho -Tpng test.gv > test.png`
 
+Testing chunk detection and annotation algorithms on cleaned dataset:
+
+`python src/data_structure_detection.py --input /home/onyr/code/phdtrack/phdtrack_data_clean`
+
+##### error with file `14814-1644921072-heap.raw`
+
+I have a weird error with file `/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/14814-1644921072-heap.raw`. Memory increases until processed get killed, just for this file.
+
+Actually, this was because of a block with size=0. I had an infinite loop. In this situation, the heap chunk flow is broken. Skip file.
+
+
 ### Tue 8 Aug 2023
 
 Started to create the report template.
