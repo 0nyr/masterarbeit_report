@@ -990,11 +990,59 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
 
     The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the data structure and the header. The process is repeated until reaching the end of the heap dump file.
 
-    Note that in case of a problem, like when the size obtained from malloc header parsing is equal to 0, this means that the heap dump chaining is broken. This has been handled in the dataset cleaning section \ref{sec:methods:dataset:cleaning}.
+    Note that in case of a problem, like when the size obtained from malloc header parsing is equal to 0, this means that the heap dump chaining is broken. This has been handled in the dataset cleaning section \ref{sec:methods:dataset:cleaning}. 
 
+    \subsubsection{Chunk chaining example}
     % TODO: add example of parsing
+    The program \texttt{data\_structure\_detection.py} has been developped specifically to test the chunk parsing and refine the associated algorithms.
+
+    We can test our chunk parsing algorithm on a test file in the cleaned dataset.
+
+    \begin{lstlisting}[language=bash, caption={Testing chunk parsing on \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. Partial log output. }]
+$ python src/data_structure_detection.py --input /home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24/17016-1643962152-heap.raw --debug
+    Datetime: 2023_09_27_17_08_23_157209
+    Chunk [1]: Chunk(block_index=2, size=592, flags=[A=False, M=False, P=True])
+    Chunk [2]: Chunk(block_index=76, size=32, flags=[A=False, M=False, P=True])
+    Chunk [3]: Chunk(block_index=80, size=32, flags=[A=False, M=False, P=True])
+    Chunk [4]: Chunk(block_index=84, size=32, flags=[A=False, M=False, P=True])
+    Chunk [5]: Chunk(block_index=88, size=32, flags=[A=False, M=False, P=True])
+    Chunk [6]: Chunk(block_index=92, size=192, flags=[A=False, M=False, P=True])
+    Chunk [7]: Chunk(block_index=116, size=32, flags=[A=False, M=False, P=True])
+    Chunk [8]: Chunk(block_index=120, size=32, flags=[A=False, M=False, P=True])
+    Chunk [...]: ...
+    Chunk [911]: Chunk(block_index=10194, size=128, flags=[A=False, M=False, P=True])
+    Chunk [912]: Chunk(block_index=10210, size=256, flags=[A=False, M=False, P=True])
+    Chunk [913]: Chunk(block_index=10242, size=160, flags=[A=False, M=False, P=True])
+    Chunk [914]: Chunk(block_index=10262, size=512, flags=[A=False, M=False, P=True])
+    Chunk [915]: Chunk(block_index=10326, size=1296, flags=[A=False, M=False, P=True])
+    Chunk [916]: Chunk(block_index=10488, size=1552, flags=[A=False, M=False, P=True])
+    Chunk [917]: Chunk(block_index=10682, size=1552, flags=[A=False, M=False, P=True])
+    Chunk [918]: Chunk(block_index=10876, size=48176, flags=[A=False, M=False, P=True])
+    -----------> Statistics:
+    Total number of files: 1
+    Total number of chunks: 918
+    Total number of blocks: 16896
+    Total number of chunks with P=1: 903
+    Total number of chunks with M=1: 0
+    Total number of chunks with A=1: 0
+    Total number of chunks only composed of zeros: 1
+    \end{lstlisting}
+
+    Looking at the first allocated chunks, we recognize what we had seen manually with vim for the file \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}. The first chunk is of size 592, and the next one is of size 32. This is exactly what we had seen manually. It is a good sign that our algorithm is working as expected. We can also see that the last chunk is of size 48176, which is significantly bigger than the other chunks. This chunk is only composed of zeros, and is truncated, meaning that its size if bigger than the actual size of the heap dump file. 
+    
+    \subsubsection{Distinguishing between free and allocated chunks}
+    The malloc header chaining algorithm allows to detect potential data structures in the heap dump file. However, it does not allow to distinguish between free and allocated chunks. This is a problem, since we want to be able to distinguish between free and allocated chunks, to be able to detect potential data structures. Indeed, we can expect to find some free chunks in the heap dump file, and we don't want to consider them as potential data structures. As such, we need to be able to distinguish between free and allocated chunks.
+
+    % TODO: complete
+    Speak about the tests I did with detecting pointers, and how it was not conclusive. I think that the best way to do it is to rely on the P flag of the malloc header. If it is set to 1, it means that the previous chunk is allocated. If it is set to 0, it means that the chunk is free. This is the best way to do it, since we don't have access to the bins in the heap dump file, and since pointers can be anywhere in the heap dump file. 
+
+    
+
+    To do so,
 
     % TODO: add subsubsection about stats on chunk parsing
+
+    % TODO: About footer, I discovered that footers are actually the size WITH flags
 
 \section{Converting memory dumps to graphs}\label{chap:mem_2_graph}
 Now that we have a decent understanding of the dataset as well as the low level memory dump format, we can start to think about how to convert the memory dumps into graphs. As a recall, we want to be able to convert a memory dump into a graph representation that can be used for machine learning, since we want to be able to create a memory modelization as a basis for efficient embedding and feature engineering later. This is inherently due to the imbalanceness of the dataset, as we want to add more information to each memory block that just its raw bytes. The goal is to have a graph representation of the memory dump that can be used for efficient machine learning.

@@ -249,12 +249,23 @@ def check_first_block_is_only_zeros(blocks: np.ndarray) -> bool:
         return True
     return False
 
+def parse_size(block: np.ndarray) -> int:
+    """
+    Parse the size of a block.
+    """
+    size_and_flags = int.from_bytes(block, byteorder='little')
+    size = size_and_flags & ~0x07  # Clear the last 3 bits to get the size
+    return size
+
 def parse_malloc_header(block: np.ndarray) -> MallocHeader:
     """
     Parse the malloc header from a block.
     """
+    # parse size
+    size = parse_size(block)
+    
+    # parse flags
     size_and_flags = int.from_bytes(block, byteorder='little')
-    size = size_and_flags & ~0x07  # Clear the last 3 bits to get the size
     flags = MallocHeaderFlags(
         a=bool(size_and_flags & 0x04),
         m=bool(size_and_flags & 0x02),
@@ -465,7 +476,7 @@ def annotate_chunk(
             ChunkAnnotation.ChunkContainsSessionState
         )
 
-def check_chunk_footer_value(
+def is_chunk_footer_value_correct(
         blocks: np.ndarray,
         chunk: Chunk,
     ) -> bool:
@@ -475,13 +486,13 @@ def check_chunk_footer_value(
     footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 1
     # check that footer block is in bounds
     if footer_block_index >= len(blocks):
-        dp("Footer block is out of bounds for chunk: {chunk}")
+        dp(f"Footer block is out of bounds for chunk: {chunk}")
         return False
 
     footer_block = blocks[footer_block_index]
-    footer_block_as_int = block_bytes_to_addr(footer_block.tobytes())
+    footer_size = parse_size(footer_block)
 
-    if footer_block_as_int != chunk.size:
+    if footer_size != chunk.size:
         return False
     
     return True
@@ -690,7 +701,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
             nb_zeros_chunks += 1
         
         # check if chunk footer value is correct
-        if check_chunk_footer_value(blocks, chunks[i]):
+        if is_chunk_footer_value_correct(blocks, chunks[i]):
             nb_correct_footer_chunks += 1
 
             # count free and correct footer chunks
@@ -798,11 +809,11 @@ def main():
 
     if cli.args.input is None:
         # default input
-        store_global_stats(pipeline(INPUT_RAW_HEAP_DUMP_FILE_PATH))
+        store_global_stats(pipeline(INPUT_RAW_HEAP_DUMP_FILE_PATH, cli))
     else:
         if cli.args.input.endswith("-heap.raw"):
             # input is single file
-            store_global_stats(pipeline(cli.args.input))
+            store_global_stats(pipeline(cli.args.input, cli))
         else:
             # input is directory
             print(f"Input is directory: {cli.args.input}")
@@ -863,6 +874,9 @@ def main():
     percentage_free_chunks_with_correct_footer = global_stats["nb_chunk_both_free_and_correct_footer"] / global_stats["nb_free_chunks"] * 100
     print(f"Percentage of free chunks with correct footer value: {percentage_free_chunks_with_correct_footer}%")
     
+    # computer percentage of in-use chunks with correct footer value
+    percentage_in_use_chunks_with_correct_footer = (global_stats["nb_correct_footer_chunks"] - global_stats["nb_chunk_both_free_and_correct_footer"]) / (global_stats["nb_chunks"] - global_stats["nb_free_chunks"]) * 100
+    print(f"Percentage of in-use chunks with correct footer value: {percentage_in_use_chunks_with_correct_footer}%")
 
 if __name__ == "__main__":
     main()
