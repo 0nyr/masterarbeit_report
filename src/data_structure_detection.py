@@ -13,6 +13,15 @@ The following is a snippet of the documentation of the malloc function,
 directly from the source code of the malloc function:
 
 ```c
+    Chunks of memory are maintained using a `boundary tag' method as
+    described in e.g., Knuth or Standish.  (See the paper by Paul
+    Wilson ftp://ftp.cs.utexas.edu/pub/garbage/allocsrv.ps for a
+    survey of such techniques.)  Sizes of free chunks are stored both
+    in the front of each chunk and at the end.  This makes
+    consolidating fragmented chunks into bigger chunks very fast.  The
+    size fields also hold bits representing whether chunks are free or
+    in use.
+
     An allocated chunk looks like this:
 
     chunk-> +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -101,7 +110,7 @@ from tqdm import tqdm
 import os
 
 from utils.debugging import dp, get_now_str
-from utils.file_loading import get_all_nested_files
+from utils.file_handling import delete_json_and_raw_file, get_all_nested_files
 from utils.heap_dump import convert_block_index_to_address, convert_int_address_to_block_index, get_blocks_from_heap_dump, get_heap_size_in_bytes, is_address_in_heap_dump, is_valid_pointer
 from utils.json_annotation import get_heap_start_addr, get_json_annotations, get_keys_addresses
 from utils.mem_utils import block_bytes_to_addr, hex_str_to_addr, int_to_little_endian_hex_string, is_8_bytes_aligned
@@ -132,6 +141,11 @@ class CLIArguments:
         python main [ARGUMENTS ...]
         """
         parser = argparse.ArgumentParser(description='Program [ARGUMENTS]')
+        parser.add_argument(
+            "--delete",
+            action='store_true',
+            help="Delete all annotation files and their corresponding heap dump files, when the chunk parsing is broken."
+        )
         parser.add_argument(
             '--debug', 
             action='store_true',
@@ -254,9 +268,14 @@ def check_chunk_has_only_zeros(
     ) -> bool:
     """
     Check that a chunk is only composed of zeros.
-    WARN: On a free block, there is NO footer.
+    WARN: On a free block, there can (should?) be a footer.
     """
-    for i in range(chunk.user_start_block_index, chunk.user_start_block_index + (chunk.size // 8)):
+    if chunk.is_free:
+        range_end = chunk.user_start_block_index + (chunk.size // 8) - 1
+    else:
+        range_end = chunk.user_start_block_index + (chunk.size // 8)
+    
+    for i in range(chunk.user_start_block_index, range_end):
         if i >= len(blocks):
             dp(
                 f"WARN: Chunk [{chunk.address}] {chunk} is out of bounds. "
@@ -291,15 +310,9 @@ def is_free_chunk(
         blocks: np.ndarray,
         chunks: list[Chunk],
         current_chunk_index: int,
-        heap_start_addr: int,
-        heap_size_in_bytes: int,
     ) -> bool:
     """
-    Determine if a chunk is free by looking for forward
-    and backward pointers.
-
-    Forward pointer must point to the address of the next chunk.
-    Backward pointer must point to the address of the previous chunk.
+    Determine if a chunk is free.
     """
     chunk = chunks[current_chunk_index]
 
@@ -374,16 +387,17 @@ class ChunkAnnotation(Enum):
     ChunkContainsKey = 1
     ChunkContainsSSHStruct = 2
     ChunkContainsSessionState = 3
-    
-def annotate_chunks(
-        chunks: list[Chunk],
+
+def get_addresses_of_annotations(
         json_annotations: dict,
         heap_start_addr: int,
         heap_size_in_bytes: int,
     ):
     """
-    Annotate a chunk with the corresponding annotations.
-    Annotations are from JSON annotation file.
+    Get the addresses of the annotations. 
+        + Keys addresses
+        + SSH_STRUCT_ADDR
+        + SESSION_STATE_ADDR
     """
     # get all annotation addresses
     keys_addresses, key_address_to_name = get_keys_addresses(json_annotations)
@@ -408,7 +422,22 @@ def annotate_chunks(
             heap_size_in_bytes,
         ), f"KEY_ADDR {key_addr} for key {key_address_to_name[key_addr]} is not in the heap dump."
 
-    def check_chunk_is_not_free_and_annotate(chunk: Chunk, annotation: ChunkAnnotation):
+    return keys_addresses, ssh_struct_addr, session_state_addr
+    
+def annotate_chunk(
+        chunk: Chunk,
+        keys_addresses: list[int],
+        ssh_struct_addr: int,
+        session_state_addr: int,
+    ):
+    """
+    Annotate a chunk with the corresponding annotations.
+    Annotations are from JSON annotation file.
+
+    NOTE: Annotations should be done after free chunk detection.
+    """
+    
+    def check_chunk_is_not_free_then_annotate(chunk: Chunk, annotation: ChunkAnnotation):
         """
         Check that a chunk is not free.
         Then annotate the chunk with the annotation.
@@ -419,59 +448,89 @@ def annotate_chunks(
         )
         chunk.annotations.append(annotation)
 
-    # annotate chunks
-    for i in range(0, len(chunks)):
-        chunk = chunks[i]
-        if chunk.address in keys_addresses:
-            check_chunk_is_not_free_and_annotate(
-                chunk,
-                ChunkAnnotation.ChunkContainsKey
-            )
-        elif chunk.address == ssh_struct_addr:
-            check_chunk_is_not_free_and_annotate(
-                chunk,
-                ChunkAnnotation.ChunkContainsSSHStruct
-            )
-        elif chunk.address == session_state_addr:
-            check_chunk_is_not_free_and_annotate(
-                chunk,
-                ChunkAnnotation.ChunkContainsSessionState
-            )
+    # annotate chunk
+    if chunk.address in keys_addresses:
+        check_chunk_is_not_free_then_annotate(
+            chunk,
+            ChunkAnnotation.ChunkContainsKey
+        )
+    elif chunk.address == ssh_struct_addr:
+        check_chunk_is_not_free_then_annotate(
+            chunk,
+            ChunkAnnotation.ChunkContainsSSHStruct
+        )
+    elif chunk.address == session_state_addr:
+        check_chunk_is_not_free_then_annotate(
+            chunk,
+            ChunkAnnotation.ChunkContainsSessionState
+        )
+
+def check_chunk_footer_value(
+        blocks: np.ndarray,
+        chunk: Chunk,
+    ) -> bool:
+    """
+    The footer of the chunk contains the size of the chunk.
+    """
+    footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 1
+    # check that footer block is in bounds
+    if footer_block_index >= len(blocks):
+        dp("Footer block is out of bounds for chunk: {chunk}")
+        return False
+
+    footer_block = blocks[footer_block_index]
+    footer_block_as_int = block_bytes_to_addr(footer_block.tobytes())
+
+    if footer_block_as_int != chunk.size:
+        return False
+    
+    return True
+
+def is_chunk_footer_an_annotation_address(
+        blocks: np.ndarray,
+        chunk: Chunk,
+        keys_addresses: list[int],
+        ssh_struct_addr: int,
+        session_state_addr: int,
+    ) -> bool:
+    """
+    Check that the footer of a chunk is not an annotation address.
+    """
+    footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 1
+
+    # check that footer block is in bounds
+    if footer_block_index >= len(blocks):
+        dp("Footer block is out of bounds for chunk: {chunk}")
+        return False
+    
+    if footer_block_index in keys_addresses:
+        return True
+    elif footer_block_index == ssh_struct_addr:
+        return True
+    elif footer_block_index == session_state_addr:
+        return True
+    
+    return False
 
 
-def pipeline(raw_file_path: str):
-
-    # print date, time and file path
-    dp(f"Processing file: {raw_file_path}")
-    dp(f"Datetime: {get_now_str()}")
-
-    # get json annotations
-    json_file_path = raw_file_path.replace("-heap.raw", ".json")
-    json_annotations = get_json_annotations(json_file_path)
-
-    # load the heap dump blocks
-    blocks = get_blocks_from_heap_dump(
-        raw_file_path
-    )
-
-    # determine the heap start address and the heap size in bytes
-    heap_start_addr = get_heap_start_addr(json_annotations)
-    heap_size_in_bytes = get_heap_size_in_bytes(blocks)
-
-    # the heap dump starts with an allocated block
-    # the first block is only composed of zeros
-    # the second block is the malloc header (m-header)
-    # which contains size and flags of the first allocated block
-    assert check_first_block_is_only_zeros(blocks), (
-        "The first block is not composed of only zeros."
-    )
+def parsing_blocks_to_chunks_with_stats(
+        blocks: np.ndarray,
+        heap_start_addr: int,
+        heap_size_in_bytes: int,
+        json_annotations: dict,
+        raw_file_path: str,
+    ):
+    """
+    Parse the blocks of the heap dump to chunks.
+    """
+    chunks = []
 
     # Initialize counters
-    chunks = []
     nb_chunks = 0
     nb_previous_chunk_in_use = 0
     nb_nmap_chunks = 0
     nb_main_arena_chunks = 0
+    nb_potential_footers_with_annotations = 0
 
     # Start parsing from the second block
     i = 1
@@ -516,52 +575,145 @@ def pipeline(raw_file_path: str):
         # Move to the next chunk
         i += (malloc_header.size // 8)
 
-    # count the number of free chunks
-    nb_free_chunks = 0
-    for i in range(1, len(chunks)): # skip first chunk which is in use
-        if is_free_chunk(
-                blocks,
-                chunks,
-                i,
-                heap_start_addr,
-                heap_size_in_bytes,
-            ):
-            chunk = chunks[i]
-            chunk.is_free = True
-
-            if nb_free_chunks < 10:
-                dp(f"Free Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}]: {chunks[i]}")
-            nb_free_chunks += 1
-    
-    nb_zeros_chunks = 0
-    for i in range(0, len(chunks)):
-        if check_chunk_has_only_zeros(blocks, chunks[i]):
-            chunks[i].is_free = True
-            dp(f"Chunk [{chunks[i].user_start_block_index}] is only composed of zeros: {chunks[i]}")
-            nb_zeros_chunks += 1
-    
-    # perform annotations
-    annotate_chunks(
-        chunks,
+    # load annotations
+    keys_addresses, ssh_struct_addr, session_state_addr = get_addresses_of_annotations(
         json_annotations,
         heap_start_addr,
         heap_size_in_bytes,
     )
-    # print chunks with annotations
+    
+    # chunk post processing
     for i in range(0, len(chunks)):
         chunk = chunks[i]
-        if len(chunk.annotations) > 0:
-            dp(f"Chunk [{int_to_little_endian_hex_string(chunk.address)}] {chunk} has annotations: {chunk.annotations}")
 
-    # print content of chunks
-    #dp("Content of chunks:")
-    #dp_chunk(blocks, chunks[-1])
+        # free chunk detection
+        if is_free_chunk(blocks, chunks, i):
+            chunk.is_free = True
+
+        # add annotations AFTER free chunk detection
+        annotate_chunk(
+            chunk,
+            keys_addresses,
+            ssh_struct_addr,
+            session_state_addr,
+        )
+
+        # check if chunk footer is an annotation address
+        if is_chunk_footer_an_annotation_address(
+                blocks,
+                chunk,
+                keys_addresses,
+                ssh_struct_addr,
+                session_state_addr,
+            ):
+            dp(f"WARN: Chunk [{chunks[i].user_start_block_index}] footer is an annotation address: {chunks[i]}")
+            nb_potential_footers_with_annotations += 1
+
+    # statistics
+    stats = {}
+    stats["raw_file_path"] = raw_file_path
+    stats["nb_chunks"] = nb_chunks
+    stats["nb_blocks"] = len(blocks)
+    stats["nb_previous_chunk_in_use"] = nb_previous_chunk_in_use
+    stats["nb_nmap_chunks"] = nb_nmap_chunks
+    stats["nb_main_arena_chunks"] = nb_main_arena_chunks
+    stats["nb_potential_footers_with_annotations"] = nb_potential_footers_with_annotations
+
+    return chunks, stats
+
+def pipeline(raw_file_path: str, cli: CLIArguments):
+
+    # print date, time and file path
+    dp(f"Processing file: {raw_file_path}")
+    dp(f"Datetime: {get_now_str()}")
+
+    # get json annotations
+    json_file_path = raw_file_path.replace("-heap.raw", ".json")
+    json_annotations = get_json_annotations(json_file_path)
+
+    # load the heap dump blocks
+    blocks = get_blocks_from_heap_dump(
+        raw_file_path
+    )
+
+    # determine the heap start address and the heap size in bytes
+    heap_start_addr = get_heap_start_addr(json_annotations)
+    heap_size_in_bytes = get_heap_size_in_bytes(blocks)
+
+    # the heap dump starts with an allocated block
+    # the first block is only composed of zeros
+    # the second block is the malloc header (m-header)
+    # which contains size and flags of the first allocated block
+    assert check_first_block_is_only_zeros(blocks), (
+        "The first block is not composed of only zeros."
+    )
+
+    # parse the blocks to chunks
+    parsing_res = parsing_blocks_to_chunks_with_stats(
+        blocks,
+        heap_start_addr,
+        heap_size_in_bytes,
+        json_annotations,
+        raw_file_path,
+    )
+    if parsing_res is None:
+        if cli.args.delete:
+            delete_json_and_raw_file(raw_file_path)
+        return None
+    chunks, stats = parsing_res # unpack parsing results
+
+    # counters
+    nb_free_chunks = 0
+    nb_zeros_chunks = 0
+    nb_correct_footer_chunks = 0
+    nb_chunk_both_free_and_correct_footer = 0
+    nb_chunks_free_and_annotated = 0
+
     for i in range(0, len(chunks)):
-        if chunks[i].user_start_block_index == 80:
-            print_chunk(blocks, chunks[i])
+        chunk = chunks[i]
+
+        # count free chunks
+        if chunk.is_free:
+            nb_free_chunks += 1
+            
+            if nb_free_chunks < 10:
+                dp(f"Free Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}]: {chunks[i]}")
+
+            # check that a free chunk is not annotated
+            if len(chunks[i].annotations) > 0:
+                nb_chunks_free_and_annotated += 1
+                print(f"WARN: Chunk [{chunks[i].user_start_block_index}] is free but also annotated: {chunks[i]}")
+
+        # check if chunk is only composed of zeros            
+        if check_chunk_has_only_zeros(blocks, chunks[i]):
+            dp(f"Chunk [{chunks[i].user_start_block_index}] is only composed of zeros: {chunks[i]}")
+            nb_zeros_chunks += 1
+        
+        # check if chunk footer value is correct
+        if check_chunk_footer_value(blocks, chunks[i]):
+            nb_correct_footer_chunks += 1
+
+            # count free and correct footer chunks
+            if chunks[i].is_free:
+                nb_chunk_both_free_and_correct_footer += 1
+        
+        
+    if os.environ["DEBUG"] == "True":
+        # print chunks with annotations
+        for i in range(0, len(chunks)):
+            chunk = chunks[i]
+            if len(chunk.annotations) > 0:
+                dp(f"Chunk [{int_to_little_endian_hex_string(chunk.address)}] {chunk} has annotations: {chunk.annotations}")
+
+        # print content of chunks
+        #dp("Content of chunks:")
+        #dp_chunk(blocks, chunks[-1])
+        for i in range(0, len(chunks)):
+            if chunks[i].user_start_block_index == 80:
+                print_chunk(blocks, chunks[i])
     
     # compute percentage of free chunks
-    percentage_free_chunks = nb_free_chunks / nb_chunks * 100
+    percentage_free_chunks = nb_free_chunks / len(chunks) * 100
     dp(f"Percentage of free chunks: {percentage_free_chunks}%")
 
     # compute percentage of blocks in free chunks
@@ -573,24 +725,25 @@ def pipeline(raw_file_path: str):
     dp(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
 
     # print statistics
-    dp(f"number of chunks: {nb_chunks}")
-    dp(f"number of chunks with P=1: {nb_previous_chunk_in_use}")
-    dp(f"number of chunks with M=1: {nb_nmap_chunks}")
-    dp(f"number of chunks with A=1: {nb_main_arena_chunks}")
+    dp(f"number of chunks: {stats['nb_chunks']}")
+    dp(f"number of chunks with P=1: {stats['nb_previous_chunk_in_use']}")
+    dp(f"number of chunks with M=1: {stats['nb_nmap_chunks']}")
+    dp(f"number of chunks with A=1: {stats['nb_main_arena_chunks']}")
     dp(f"number of free chunks: {nb_free_chunks}")
     dp(f"number of chunks only composed of zeros: {nb_zeros_chunks}")
+    dp(f"number of blocks in free chunks: {nb_blocks_in_free_chunks}")
+    dp(f"number of chunks with correct footer: {nb_correct_footer_chunks}")
+    dp(f"number of chunks both free and with correct footer: {nb_chunk_both_free_and_correct_footer}")
+    dp(f"number of chunks free and annotated: {nb_chunks_free_and_annotated}")
+    dp(f"number of potential footers with annotations: {stats['nb_potential_footers_with_annotations']}")
 
     # save statistics
-    stats = {}
-    stats["raw_file_path"] = raw_file_path
-    stats["nb_chunks"] = nb_chunks
-    stats["nb_blocks"] = len(blocks)
-    stats["nb_previous_chunk_in_use"] = nb_previous_chunk_in_use
-    stats["nb_nmap_chunks"] = nb_nmap_chunks
-    stats["nb_main_arena_chunks"] = nb_main_arena_chunks
     stats["nb_free_chunks"] = nb_free_chunks
     stats["nb_zeros_chunks"] = nb_zeros_chunks
     stats["nb_blocks_in_free_chunks"] = nb_blocks_in_free_chunks
+    stats["correct_footer_chunks"] = nb_correct_footer_chunks
+    stats["nb_chunk_both_free_and_correct_footer"] = nb_chunk_both_free_and_correct_footer
+    stats["nb_chunks_free_and_annotated"] = nb_chunks_free_and_annotated
 
     # delete stuff to free memory
     del blocks
@@ -614,12 +767,19 @@ def main():
     global_stats["nb_free_chunks"] = 0
     global_stats["nb_zeros_chunks"] = 0
     global_stats["nb_blocks_in_free_chunks"] = 0
+    global_stats["nb_correct_footer_chunks"] = 0
+    global_stats["nb_chunk_both_free_and_correct_footer"] = 0
+    global_stats["nb_chunks_free_and_annotated"] = 0
+    global_stats["nb_potential_footers_with_annotations"] = 0
+    global_stats["nb_deleted_raw_files"] = 0
 
     global_stats["nb_skipped_files"] = 0
 
     def store_global_stats(stats: dict | None):
         if stats is None:
             global_stats["nb_skipped_files"] += 1
+            if cli.args.delete:
+                global_stats["nb_deleted_raw_files"] += 1
             return
         
         global_stats["nb_parsed_files"] += 1
@@ -631,6 +791,10 @@ def main():
         global_stats["nb_free_chunks"] += stats["nb_free_chunks"]
         global_stats["nb_zeros_chunks"] += stats["nb_zeros_chunks"]
         global_stats["nb_blocks_in_free_chunks"] += stats["nb_blocks_in_free_chunks"]
+        global_stats["nb_correct_footer_chunks"] += stats["correct_footer_chunks"]
+        global_stats["nb_chunk_both_free_and_correct_footer"] += stats["nb_chunk_both_free_and_correct_footer"]
+        global_stats["nb_chunks_free_and_annotated"] += stats["nb_chunks_free_and_annotated"]
+        global_stats["nb_potential_footers_with_annotations"] += stats["nb_potential_footers_with_annotations"]
 
     if cli.args.input is None:
         # default input
@@ -657,7 +821,7 @@ def main():
                     )
 
                     # Execute the pipeline and store statistics
-                    store_global_stats(pipeline(raw_file_path))
+                    store_global_stats(pipeline(raw_file_path, cli))
 
                     # Update the progress bar
                     pbar.update(1)
@@ -679,6 +843,13 @@ def main():
     print(f"Total number of free chunks: {global_stats['nb_free_chunks']}")
     print(f"Total number of chunks only composed of zeros: {global_stats['nb_zeros_chunks']}")
     print(f"Total number of blocks in free chunks: {global_stats['nb_blocks_in_free_chunks']}")
+    print(f"Total number of chunks with correct footer value: {global_stats['nb_correct_footer_chunks']}")
+    print(f"Total number of chunks both free and with correct footer value: {global_stats['nb_chunk_both_free_and_correct_footer']}")
+    print(f"Total number of chunks free and annotated: {global_stats['nb_chunks_free_and_annotated']}")
+    print(f"Total number of potential footers with annotations (should be 0): {global_stats['nb_potential_footers_with_annotations']}")
+    
+    if cli.args.delete:
+        print(f"Total number of deleted raw files: {global_stats['nb_deleted_raw_files']}")
 
     # compute percentage of free chunks
     percentage_free_chunks = global_stats["nb_free_chunks"] / global_stats["nb_chunks"] * 100
@@ -688,6 +859,9 @@ def main():
     percentage_blocks_in_free_chunks = global_stats["nb_blocks_in_free_chunks"] / global_stats["nb_blocks"] * 100
     print(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
 
+    # compute percentage of free chunks with correct footer value
+    percentage_free_chunks_with_correct_footer = global_stats["nb_chunk_both_free_and_correct_footer"] / global_stats["nb_free_chunks"] * 100
+    print(f"Percentage of free chunks with correct footer value: {percentage_free_chunks_with_correct_footer}%")
     
 
 if __name__ == "__main__":

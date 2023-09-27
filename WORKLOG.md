@@ -1,5 +1,13 @@
 # Logs
 
+### Wed 27 Sep 2023
+
+Continued to work on Chunk exploration script in Python.
+
+```shell
+find ~/code/phdtrack/phdtrack_data_clean/ -type f -name "*-heap.raw" | wc -l
+```
+
 ### Mon 25 Sep 2023
 
 * [ ] write script to check GLIBC allocation processes. Count nb of allocated and unallocated data structures
@@ -34,7 +42,6 @@ Testing chunk detection and annotation algorithms on cleaned dataset:
 I have a weird error with file `/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24/14814-1644921072-heap.raw`. Memory increases until processed get killed, just for this file.
 
 Actually, this was because of a block with size=0. I had an infinite loop. In this situation, the heap chunk flow is broken. Skip file.
-
 
 ### Tue 8 Aug 2023
 

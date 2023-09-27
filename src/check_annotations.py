@@ -22,7 +22,7 @@ from utils.heap_dump import is_address_in_heap_dump
 from utils.json_annotation import get_heap_start_addr
 
 from utils.mem_utils import hex_str_to_addr
-from utils.file_loading import get_all_nested_files
+from utils.file_handling import delete_json_and_raw_file, get_all_nested_files
 
 
 DEBUG = False
@@ -86,15 +86,6 @@ class CLIArguments:
             print("{0}: {1}".format(
                 arg, getattr(self.args, arg)
             ))
-
-def delete_json_and_raw_file(json_file_path: str) -> None:
-    """
-    Delete the JSON annotation file and its corresponding heap dump file.
-    """
-    raw_file_path = json_file_path.replace(".json", "-heap.raw")
-    print(f"Deleting {json_file_path} and {raw_file_path}")
-    os.remove(json_file_path)
-    os.remove(raw_file_path)
 
 def determine_heap_size_in_bytes(json_file_path: str) -> int:
     """

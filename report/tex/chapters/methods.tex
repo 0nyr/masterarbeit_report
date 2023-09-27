@@ -10,6 +10,83 @@ In the preceding chapters, all the necessary background knowledge to understand 
 % * the architecture for computations, personal machine, remote server
 % * packaging and deployment with Nix
 
+\section{Hardware and software architecture}
+    Throughtout this thesis, we have used a variety of hardware and software architectures. 
+    
+    \subsection{Hardware development and testing environment}
+    In this section, as a reference for the reader, we will describe shortly the hardware development environment. All environments are running some Linux \texttt{x86\_64} distribution.
+
+    At the start of the project, around the end of 2022, the project started on a old laptop \textit{HP EliteBook Folio 1040 G2}, running \texttt{Ubuntu 22.04 LTS (Jammy Jellyfish)} with the following specifications:
+
+    \begin{itemize}
+        \item \textbf{CPU:} 5th Generation Intel Core i7-5600U 2.6 GHz (max turbo frequency 3.2-GHz), 4 MB L3 Cache, 15W
+        \item \textbf{GPU:} Intel HD Graphics 5500
+        \item \textbf{RAM:} 8GB DDR3L SDRAM (1600 MHz, 1.3v)
+    \end{itemize}
+
+    This device was used for the first experiments, and for the development of the first programs. However, it was not powerful enough to run the experiments on the whole dataset, and especially working on \acrshort{ml} part. As such, we have moved to a more powerful machine, a \textit{TUXEDO InfinityBook Pro 16 - Gen7} with the following specifications:
+
+    \begin{itemize}
+        \item \textbf{CPU:} 12th Gen Intel i7-12700H (20) @ 4.600GHz
+        \item \textbf{GPU:} NVIDIA Geforce RTX 3070 Ti Laptop GPU
+        \item \textbf{RAM:} 64GB DDR5 4800MHz Samsung
+    \end{itemize}
+
+    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system \cite{NixOS08}. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
+    
+    Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset, and even reprogrammed and better optimized programs in Rust that we have tested would take more that 10 hours to process the dataset. Small bash and python scripts have been run on this laptop, but all the main experiments have been run on the server.
+    
+    In that context, we were provided a development server towards the end of the thesis, around august 2023. This server is a \textit{AS-4124GS-TNR} with the following specifications:
+
+    \begin{itemize}
+        \item \textbf{CPU:} 2x AMD EPYC 7662 (256) @ 2.000GHz
+        \item \textbf{GPU:} NVIDIA Geforce RTX 3090 Ti
+        \item \textbf{RAM:} 512GB DDR4 3200MHz
+    \end{itemize}
+
+    This server is running \texttt{Ubuntu 20.04.6 LTS} and is used to run the \acrshort{ml} experiments on the dataset, as it is much more powerful than the laptop. This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
+
+    \subsection{Software, languages and tools}
+    In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used.
+
+    In this section, as a reference for the reader, we will describe the software architectures, languages and tools that have been used throughout this thesis.
+
+    Throughtout the project, we have come to use a range of programming languages. Initial tests have been done using shell and bash command and simple scripts. However, as the project grew, we quickly moved to more powerful programming languages. 
+
+    Python version 3.11 has been the main language for high level data science and \acrshort{ml} development. This new version of python features many improvements over the previous version, and especially in terms of performance. Better error messages, exception groups, improved support for f-strings, support for TOML configuration files, variadic generics, improved support for asyncio, and new modules for working with cryptography and machine learning are just some of the new features of this new version of python. While relatively new, this is why we have decided to use this version of python for the development of the \acrshort{ml} part of the project.
+
+    Although Python is a popular and powerful language, it is not the most efficient language. As such, we have used Rust for some parts of the project, especially when no high level library is needed and when performances are critical to be able to parse efficiently the dataset. Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety. It is a very powerful language, and is especially useful for low-level programming. We have used it for the development of the algorithms that are used to extract the data from the dataset.
+
+    \subsubsection{Packaging and deployment}
+    We made an extensive use of git repositories for version control, with GitHub as a main platform for hosting the repositories. An ever growing number of script and programs have been developed for this thesis. As such, we have needed a way to easily deploy those programs on different machines.
+
+    Rust comes with a handful of tools for managing packages and dependencies. Cargo is Rust's build system and package manager. Cargo downloads your Rust project's dependencies, compiles your project, makes executables, and runs the tests. It is a powerful tool that allows to easily manage Rust projects. However, it is not the best tool for deploying programs on different machines. 
+
+    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one linux distribution to the other. This was especially a problem when development was done on a Fedora system but the server was running Ubuntu. 
+
+    An example is the library \texttt{pygraphviz}. This library relies on third parties system libraries, that have different names depending on the linux distribution:
+    
+    \begin{itemize}
+        \item \textbf{Ubuntu:} \lstinline[language=bash]|sudo apt-get install graphviz graphviz-dev| is needed before a correct install of the Python \texttt{pygraphviz} library. 
+        \item \textbf{Fedora:} \lstinline[language=bash]|sudo dnf install graphviz graphviz-devel| is needed before installing \texttt{pygraphviz}
+    \end{itemize}
+
+    Although it can be seen as a minor issue, this is just one example among dozens of libraries. This is real problem with \texttt{conda}. This is why we have decided to use Nix for managing python packages and dependencies. Nix is a purely functional package manager \cite{NixOriginalThesis06}. It allows to easily manage packages and dependencies, and to easily deploy programs on different machines as it guarantees reproducible builds. It is also very useful for development, as it allows to easily create isolated environments for development. This is why we have used Nix for managing the python packages and dependencies. Gradually, Nix has become a superset of other package managers like pip, conda, or cargo. 
+    
+    Any Nix project comes with either a \textit{shell.nix} or a more modern \textit{flake.nix}. Those files are used to describe the project, and to list all necessary dependencies. Since we are developping on NixOS, the integration of Nix with the operating system is very good, and can be easily setup.
+    
+    Nix is however really straightforward to install on any other distribution through the use of a single script available online. It can be install in as little as one command.
+
+
+%\section{Programs development}
+% describe the programs developped for the Masterarbeit
+% * mem2graph
+
+% In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used. In this section, we will do a general overview of the programs we have developed for this thesis. More details about the programs will be discussed further in their respective chapters.
+
+
+% In this section, we will describe the programs we have developed for this thesis. We will first describe the program we have developed to explore the dataset. Then, we will describe the program we have developed to extract the data from the dataset. Finally, we will describe the program we have developed to analyze the data.
+
 \section{OpenSSH memory dumps dataset}\label{sec:background:kex:dataset}
 
     SmartKex has contributed to the research community by generating a comprehensive annotated dataset of OpenSSH heap memory dumps \cite{SmartKex22}. The dataset is publicly available on Zenodo \footnote{\url{https://zenodo.org/record/6537904}}. 
@@ -158,14 +235,16 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications, including but not limited to machine learning models for key extraction and malware detection. 
 
-    \subsection{Assumptions}
+    \subsection{Assumptions}\label{sec:methods:dataset:assumptions}
     Before we dive in, let's make some assumptions about the dataset. We will use these assumptions to guide our exploration of the heap dump file. 
 
     \begin{itemize}
         \item \textbf{Heap dump file size:} We will assume that the heap dump file size is a multiple of 8 bytes. This is because the heap dump file is a memory dump, and memory is allocated in chunks that are multiples of 8 bytes. This means that we can expect the heap dump file to be composed of a sequence of 8 bytes blocks. If this assumption is not met, we will assume that padding the last block with 0s will not change the results of our exploration.
-        \item \textbf{Malloc header chaining:} We will assume that all the heap dump files have been generated using the same \lstinline[language=c]|malloc| implementation. It means that we can expect to find the same patterns in all the heap dump files. Especially, we expect all the heap dump files to start by a first allocated in-use chunk of 8 bytes. We can then follow the malloc header chaining to explore the heap dump file allocated memory chunks \cite{MallocInternalsWiki2023}.
+        \item \textbf{Chunk chaining:} We will assume that all the heap dump files have been generated using the same \lstinline[language=c]|malloc| implementation from GlibC. It means that we can expect to find the same patterns in all the heap dump files. Especially, we expect all the heap dump files to start by a first allocated in-use chunk. We can then follow the malloc header chaining to explore the heap dump file allocated memory chunks \cite{MallocInternalsWiki2023}.
         \item \textbf{Dataset key annotation format:} We will assume that the JSON annotation files have been generated using the same program. This means that we can expect the same format for all the JSON annotation files. This is important, as we will use the JSON annotation files to get the key addresses for annotating memory graphs used for the embedding step. If the format is not the same, we will assume that the JSON annotation file is corrupted, and we will skip it.
     \end{itemize}
+
+    The \textbf{chunk chaining assumption} is absolutely crucial for the exploration of the heap dump file. It allows us to follow the malloc header chaining to explore the heap dump file allocated memory chunks. This assumption is supported by the code where we can find a comment stating that: \say{since chunks are adjacent to each other in memory, if you know the address of the first chunk (lowest address) in a heap, you can iterate through all the chunks in the heap by using the size information, but only by increasing address, although it may be difficult to detect when you've hit the last chunk in the heap} \cite{MallocGLIBC2001}.
 
     In the scripts and programs that have been developped for the following thesis, we have implemented a number of checks and tests to ensure that these assumptions are met. If not, the programs will raise an error, log the problem and generally skip the data. This behavior is implemented to ensure that the programs are robust to unexpected data, and to ensure that the results are reliable. These assumptions, and related problems will be discussed and measured at several locations in the following sections.
 
@@ -266,7 +345,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \subsection{Dataset validation}
     The dataset is mearly a collection of heap dump RAW files for different use cases and versions of OpenSSH. Each heap dump file goes along a JSON annotation file that has been generated by the creators of the dataset to provide additional information about the heap dump, and especially encryption keys.
     
-    However, it is worth noting that the dataset is not perfect, as some of the annotations are sometimes missing. This is probably due to the fact that the annotations were generated automatically, and some of the keys are missing. For instance, in \textit{Training/basic/V\_7\_8\_P1/16/}, literally the first file of the dataset contains an incomplete annotation file, as some of the keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
+    However, it is worth noting that the dataset is not perfect. The use of the dataset for machine learning has revealed some issues. For instance, some of the JSON annotation files are not valid JSON files, and cannot be loaded as such. Some of the JSON annotation files are also not complete, with some crucial information missing. This is a problem, as we will use the JSON annotation files to get the key addresses for annotating memory graphs used for the embedding step. If the format is not the same, we will assume that the JSON annotation file is corrupted, and we will skip it.
+    
+    This is probably due to the fact that the annotations were generated automatically. For instance, in \textit{Training/basic/V\_7\_8\_P1/16/}, literally the first file of the dataset contains an incomplete annotation file, as some of the keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         Here is an example of content of a JSON annotation file with missing keys, and with missing annotations (like address or lenght) for the keys that are present:
@@ -391,7 +472,21 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{Number of incorrectly annotated SSH keys:} $0$ keys
     \end{itemize}
 
-    In total, this means that only $25.3\% $ of the JSON files are actually usable (correct and complete), and can be used for machine learning. This is because we don't have access to the packets that have been used to generate the dataset, and thus we cannot regenerate the annotations. Since the machine learning relies entirely on those annotation, we cannot afford to use partially annotated files. 
+    \subsection{Dataset cleaning}\label{sec:methods:dataset:cleaning}
+    We need to ensure that the subset of the original dataset that will be used for machine learning is correct and consistent. This means that we need to remove the broken files, and the files that have missing or incomplete keys. 
+
+    In the new cleaned subset of the dataset, we kept only the files identified as correct and complete. This way, we are left with $26196$ RAW files.
+
+    From this, we need to remove the raw files that do not respect the \textbf{Chunk chaining assumption} \ref{sec:methods:dataset:assumptions}. This cleaning process involves the chunk chaining algorithm that will be introduced later. During this process, out of the $26196$ RAW files, $ 5 $ of them have been detected to have 0 sized chunks. Those files have been removed from the cleaned dataset. This leaves us with $26191$ RAW files.
+
+    \begin{lstlisting}[language=bash, caption={Command and logs of counting the number of RAW files in the cleaned dataset.}]
+    $ find ~/code/phdtrack/phdtrack_data_clean/ -type f -name "*-heap.raw" | wc -l
+    26191
+    $ find ~/code/phdtrack/phdtrack_data_clean/ -type f -name "*.json" | wc -l
+    26191
+    \end{lstlisting}
+
+    In total, this means that only $25.3\% $ of the RAW files with their JSON files are actually usable (correct, complete, with valid chunk chaining), and can be used for machine learning. This is because we don't have access to the packets that have been used to generate the dataset, and thus we cannot regenerate the annotations. Since the machine learning relies entirely on those annotation, we cannot afford to use partially annotated files. 
     
     This is a limitation of the dataset that should be kept in mind when using it for research purposes, and especially for supervised machine learning.
 
@@ -656,7 +751,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{Flags}: Various flags that indicate the status of the block, such as whether it is free or allocated, or whether the previous block is free or allocated. These flags are often stored in the least significant bits of the size field, taking advantage of the fact that the size is usually aligned, leaving the least significant bits zeroed.
     \end{itemize}
 
-    \subsubsection{How \texttt{malloc} from GLIBC 2.28 Handles Heap Allocation}
+    \subsubsection{How \texttt{malloc} handles Heap Allocation}
 
     The \texttt{malloc} function in GLIBC 2.28 uses a boundary tag method to manage chunks of memory. Each chunk contains metadata that helps in the allocation and deallocation of memory \cite{MallocGLIBC2001} \cite{MallocInternalsWiki2023}. Below are the key components of a chunk:
 
@@ -809,7 +904,10 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
         \label{fig:free_chunk}
     \end{figure}
 
-    In the specific case of \texttt{GLIBC 2.28}, the malloc header is defined as follows:
+    \subsubsection{Chunk chaining}
+    The chunk chaining algorithm relies on the \textbf{chunck chaining assumption} \ref{sec:methods:dataset:assumptions}. This assumption states that the allocator allocates chunks after chunks, and that the chunks are contiguous in memory. This means that we can expect to find the malloc header of the next chunk at the address $ \text{current\_malloc\_header\_chunk\_address} + \text{current\_chunk\_size} + 8 $, where 8 is the size of the malloc header block, or $ \text{current\_chunk\_user\_data\_address} + \text{current\_chunk\_size} $. This is the case for both free and allocated chunks. This is why we can use this assumption to detect potential data structures in the heap dump file. 
+    
+    This necessitates to understand malloc header blocks, and how they are represented in the heap dump file. In the specific case of \texttt{GLIBC 2.28}, the malloc header is defined as follows:
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         \begin{lstlisting}[language=c, caption={Malloc header definition in \texttt{GLIBC 2.28}}]
@@ -817,7 +915,6 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
         \end{lstlisting}
     \end{minipage}
     
-    % TODO: this needs confirmation and potential rewrite
     Since the malloc header respects the endianness of the system, we can expect to find the malloc header in little-endian format in the heap dump file. Using vim on \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, we can use the following command to find some potential malloc headers:
 
     \begin{lstlisting}[language=bash, caption={Vim command to find potential malloc headers}]
@@ -832,7 +929,7 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
         \caption{Attempt at malloc header detection in \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, at heap start.}
     \end{figure}
 
-    Indeed, after a first zero block of 8 bytes, we expect a first data structure to be allocated at the start of the heap. Here this data structure is of size $ 5102000000000000_{16LE} $ (little-endian hex format) or $ 593_{10} $ bytes. The fact that it is an odd number is due to the \acrshort{lsb} being set to 1, to indicate that the block is allocated (flag). This means that the real size of the structure is actually $ 593_{10} - 1_{10} = 592_{10} $. This value is 8-byte aligned.
+    Indeed, after a first zero block of 8 bytes (potential previous chunk footer), we expect a first data structure to be allocated at the start of the heap. Here this data structure is of size $ 5102000000000000_{16LE} $ (little-endian hex format) or $ 593_{10} $ bytes. The fact that it is an odd number is due to the \acrshort{lsb} being set to 1, to indicate that the preceding chunk is allocated (P flag). This means that the real size of the structure is actually $ 593_{10} - 1_{10} = 592_{10} $. This value is 8-byte aligned.
 
     Since we know that the allocator allocates chunks after chunks, we can expect the next chunk to be allocated at the address $ 5102000000000000_{16LE} + 592_{10} + 8_{10} = 5882193a34560000_{16LE} =  $. Note that we need to add 8 to the size to account for the malloc header block.
     
@@ -846,103 +943,58 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
 
     There, we can see a zero block, followed by what we can expect to be another malloc header at address $ 258_{16} $. By doing the same process, we can thus propose an algorithm to detect the malloc headers, and thus the structures in the heap dump file.
 
+    First, here is a simple algorithm to extract all the necessary information from a malloc header block:
+
     \begin{algorithm}[H]
-        \caption{Malloc Header Detection Algorithm}
+        \caption{Malloc Header Parsing Algorithm}
         \begin{algorithmic}[1]
-        \Procedure{MallocHeaderDetection}{$\text{heapDumpFile}$}
-            \State $\text{position} \gets 0$
-            \While{$\text{position} < \text{FileSize}(\text{heapDumpFile})$}
-                \State $\text{block} \gets \text{Read8Bytes}(\text{heapDumpFile, position})$
+            \Procedure{MallocHeaderParsing}{$block$}
+            \Require $block$ is a block of 8 bytes
+            \Ensure $MallocHeader$ object
+            \Ensure $flags$ object
+            \State \textbf{Note:} In this algorithm, $\&$ represents bitwise AND, and $\sim$ represents bitwise negation.
+            \State $size\_and\_flags \leftarrow \text{ConvertBytesToInteger}(block, \text{'little-endian'})$
+            \State $size \leftarrow size\_and\_flags \; \& \; (\sim 0x07)$ \Comment{Clear the last 3 bits to get the size}
+            \State $flags.a \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x04)$
+            \State $flags.m \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x02)$
+            \State $flags.p \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x01)$
+            \State \Return $MallocHeader(size, flags)$
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    Base on this algorithm, and in a similar fashion as what we have done manually by exploring the heap dump file with vim, we can propose the following algorithm to detect the malloc headers in a heap dump file:
+
+    \begin{algorithm}[H]
+        \caption{Malloc Header Chaining Algorithm}
+        \begin{algorithmic}[1]
+        \Procedure{MallocHeaderDetection}{$heapDumpFile$}
+            \State \textbf{Note:} ConvertToSize is equivalent to MallocHeaderParsing($block$).size
+            \State \textbf{Initialize} malloc\_header\_list to empty list
+            \State $position \gets 0$
+            \While{$position < \text{FileSize}(heapDumpFile)$}
+                \State $block \gets \text{Read8Bytes}(heapDumpFile, position)$
                 \If{$\text{block} \neq 0$}
-                    \State $\text{size} \gets \text{ConvertToSize}(\text{block}) - 1$ \Comment{$-1$ due to the flag}
-                    \State \textbf{Assert} $ \text{size} \mod 8 = 0$ \Comment{Check if the size is 8-bytes aligned}
-                    \State $\text{position} \gets \text{position} + 8 + \text{size}$ \Comment{Leap over data structure. + 8 for the header.}
+                    \State $size \gets \text{ConvertToSize}(block)$ \Comment{Be careful with flags}
+                    \State \textbf{Assert} $size != 0$
+                    \State \textbf{Assert} $size \mod 8 = 0$ \Comment{Check if the size is 8-bytes aligned}
+                    \State $position \gets position + 8 + size$ \Comment{Leap over data structure. + 8 for the header.}
                 \Else
-                    \State $\text{position} \gets \text{position} + 8$
+                    \State $position \gets position + 8$
                 \EndIf
             \EndWhile
+            \State \Return $malloc\_header\_list$
         \EndProcedure
         \end{algorithmic}
     \end{algorithm}
 
     The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the data structure and the header. The process is repeated until reaching the end of the heap dump file.
 
-    \section{Hardware and software architecture}
-    Throughtout this thesis, we have used a variety of hardware and software architectures. 
-    
-    \subsection{Hardware development and testing environment}
-    In this section, as a reference for the reader, we will describe shortly the hardware development environment. All environments are running some Linux \texttt{x86\_64} distribution.
+    Note that in case of a problem, like when the size obtained from malloc header parsing is equal to 0, this means that the heap dump chaining is broken. This has been handled in the dataset cleaning section \ref{sec:methods:dataset:cleaning}.
 
-    At the start of the project, around the end of 2022, the project started on a old laptop \textit{HP EliteBook Folio 1040 G2}, running \texttt{Ubuntu 22.04 LTS (Jammy Jellyfish)} with the following specifications:
+    % TODO: add example of parsing
 
-    \begin{itemize}
-        \item \textbf{CPU:} 5th Generation Intel Core i7-5600U 2.6 GHz (max turbo frequency 3.2-GHz), 4 MB L3 Cache, 15W
-        \item \textbf{GPU:} Intel HD Graphics 5500
-        \item \textbf{RAM:} 8GB DDR3L SDRAM (1600 MHz, 1.3v)
-    \end{itemize}
-
-    This device was used for the first experiments, and for the development of the first programs. However, it was not powerful enough to run the experiments on the whole dataset, and especially working on \acrshort{ml} part. As such, we have moved to a more powerful machine, a \textit{TUXEDO InfinityBook Pro 16 - Gen7} with the following specifications:
-
-    \begin{itemize}
-        \item \textbf{CPU:} 12th Gen Intel i7-12700H (20) @ 4.600GHz
-        \item \textbf{GPU:} NVIDIA Geforce RTX 3070 Ti Laptop GPU
-        \item \textbf{RAM:} 64GB DDR5 4800MHz Samsung
-    \end{itemize}
-
-    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system \cite{NixOS08}. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
-    
-    Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset, and even reprogrammed and better optimized programs in Rust that we have tested would take more that 10 hours to process the dataset. Small bash and python scripts have been run on this laptop, but all the main experiments have been run on the server.
-    
-    In that context, we were provided a development server towards the end of the thesis, around august 2023. This server is a \textit{AS-4124GS-TNR} with the following specifications:
-
-    \begin{itemize}
-        \item \textbf{CPU:} 2x AMD EPYC 7662 (256) @ 2.000GHz
-        \item \textbf{GPU:} NVIDIA Geforce RTX 3090 Ti
-        \item \textbf{RAM:} 512GB DDR4 3200MHz
-    \end{itemize}
-
-    This server is running \texttt{Ubuntu 20.04.6 LTS} and is used to run the \acrshort{ml} experiments on the dataset, as it is much more powerful than the laptop. This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
-
-    \subsection{Software, languages and tools}
-    In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used.
-
-    In this section, as a reference for the reader, we will describe the software architectures, languages and tools that have been used throughout this thesis.
-
-    Throughtout the project, we have come to use a range of programming languages. Initial tests have been done using shell and bash command and simple scripts. However, as the project grew, we quickly moved to more powerful programming languages. 
-
-    Python version 3.11 has been the main language for high level data science and \acrshort{ml} development. This new version of python features many improvements over the previous version, and especially in terms of performance. Better error messages, exception groups, improved support for f-strings, support for TOML configuration files, variadic generics, improved support for asyncio, and new modules for working with cryptography and machine learning are just some of the new features of this new version of python. While relatively new, this is why we have decided to use this version of python for the development of the \acrshort{ml} part of the project.
-
-    Although Python is a popular and powerful language, it is not the most efficient language. As such, we have used Rust for some parts of the project, especially when no high level library is needed and when performances are critical to be able to parse efficiently the dataset. Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety. It is a very powerful language, and is especially useful for low-level programming. We have used it for the development of the algorithms that are used to extract the data from the dataset.
-
-    \subsubsection{Packaging and deployment}
-    We made an extensive use of git repositories for version control, with GitHub as a main platform for hosting the repositories. An ever growing number of script and programs have been developed for this thesis. As such, we have needed a way to easily deploy those programs on different machines.
-
-    Rust comes with a handful of tools for managing packages and dependencies. Cargo is Rust's build system and package manager. Cargo downloads your Rust project's dependencies, compiles your project, makes executables, and runs the tests. It is a powerful tool that allows to easily manage Rust projects. However, it is not the best tool for deploying programs on different machines. 
-
-    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one linux distribution to the other. This was especially a problem when development was done on a Fedora system but the server was running Ubuntu. 
-
-    An example is the library \texttt{pygraphviz}. This library relies on third parties system libraries, that have different names depending on the linux distribution:
-    
-    \begin{itemize}
-        \item \textbf{Ubuntu:} \lstinline[language=bash]|sudo apt-get install graphviz graphviz-dev| is needed before a correct install of the Python \texttt{pygraphviz} library. 
-        \item \textbf{Fedora:} \lstinline[language=bash]|sudo dnf install graphviz graphviz-devel| is needed before installing \texttt{pygraphviz}
-    \end{itemize}
-
-    Although it can be seen as a minor issue, this is just one example among dozens of libraries. This is real problem with \texttt{conda}. This is why we have decided to use Nix for managing python packages and dependencies. Nix is a purely functional package manager \cite{NixOriginalThesis06}. It allows to easily manage packages and dependencies, and to easily deploy programs on different machines as it guarantees reproducible builds. It is also very useful for development, as it allows to easily create isolated environments for development. This is why we have used Nix for managing the python packages and dependencies. Gradually, Nix has become a superset of other package managers like pip, conda, or cargo. 
-    
-    Any Nix project comes with either a \textit{shell.nix} or a more modern \textit{flake.nix}. Those files are used to describe the project, and to list all necessary dependencies. Since we are developping on NixOS, the integration of Nix with the operating system is very good, and can be easily setup.
-    
-    Nix is however really straightforward to install on any other distribution through the use of a single script available online. It can be install in as little as one command.
-
-
-%\section{Programs development}
-% describe the programs developped for the Masterarbeit
-% * mem2graph
-
-% In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used. In this section, we will do a general overview of the programs we have developed for this thesis. More details about the programs will be discussed further in their respective chapters.
-
-
-% In this section, we will describe the programs we have developed for this thesis. We will first describe the program we have developed to explore the dataset. Then, we will describe the program we have developed to extract the data from the dataset. Finally, we will describe the program we have developed to analyze the data.
+    % TODO: add subsubsection about stats on chunk parsing
 
 \section{Converting memory dumps to graphs}\label{chap:mem_2_graph}
 Now that we have a decent understanding of the dataset as well as the low level memory dump format, we can start to think about how to convert the memory dumps into graphs. As a recall, we want to be able to convert a memory dump into a graph representation that can be used for machine learning, since we want to be able to create a memory modelization as a basis for efficient embedding and feature engineering later. This is inherently due to the imbalanceness of the dataset, as we want to add more information to each memory block that just its raw bytes. The goal is to have a graph representation of the memory dump that can be used for efficient machine learning.

@@ -5,7 +5,7 @@ the corresponding block is not composed of only zeros.
 """
 from tqdm import tqdm
 
-from utils.file_loading import get_all_nested_files
+from utils.file_handling import get_all_nested_files
 from utils.heap_dump import convert_int_address_to_block_index, get_blocks_from_heap_dump
 from utils.json_annotation import get_json_annotations
 from utils.mem_utils import hex_str_to_addr
