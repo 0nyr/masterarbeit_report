@@ -14,7 +14,7 @@ def pointer_str_to_addr(hex_str: str) -> int:
     byte_addr = bytes.fromhex(hex_str)
     return int.from_bytes(byte_addr, byteorder='little', signed=False)
 
-def block_bytes_to_addr(block: bytes) -> int:
+def block_bytes_to_int(block: bytes) -> int:
     """
     Convert a block of bytes to an address.
     """

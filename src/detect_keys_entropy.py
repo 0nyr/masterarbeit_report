@@ -1,11 +1,11 @@
 import numpy as np
 
 from utils import mem_utils
+from utils.entropy import get_entropy
 from utils.heap_dump import bytes_to_ndarray, convert_block_index_to_address, get_blocks_from_heap_dump, load_heap_dump
 from utils.json_annotation import get_heap_start_addr, get_json_annotations, get_keys_addresses
 
 HEAP_DUMP_FILE_PATH: str = "/home/onyr/code/phdtrack/phdtrack_data/Training/Training/basic/V_7_8_P1/16/5070-1643978841-heap.raw"
-BLOCK_SIZE_IN_BYTES: int = 8
 
 
 def determine_nb_keys_in_top_entropy_pairs(
@@ -46,25 +46,6 @@ def determine_nb_keys_in_top_entropy_pairs(
     print("found_keys:", found_keys)
 
     return nb_keys_in_top_entropy_pairs
-
-def get_entropy(data: bytes):
-    """
-    Computes the entropy of a byte array, using Shannon's formula.
-    """
-
-    if len(data) == 0:
-        return 0.0
-    
-    # Count the occurrences of each byte value
-    _, counts = np.unique(data, return_counts=True)
-    
-    # Calculate the probabilities
-    prob = counts / len(data)
-    
-    # Calculate the entropy using Shannon's formula
-    entropy = -np.sum(prob * np.log2(prob))
-    
-    return entropy
 
 def get_entropy_pairs(heap_dump_file_path: str) -> list[tuple[int, int, float]]:
     """

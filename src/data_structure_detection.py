@@ -105,17 +105,20 @@ Remarks:
 """
 
 from enum import Enum
+import math
 import numpy as np
 from tqdm import tqdm
 import os
 
 from utils.debugging import dp, get_now_str
+from utils.entropy import get_entropy
 from utils.file_handling import delete_json_and_raw_file, get_all_nested_files
 from utils.heap_dump import convert_block_index_to_address, convert_int_address_to_block_index, get_blocks_from_heap_dump, get_heap_size_in_bytes, is_address_in_heap_dump, is_valid_pointer
 from utils.json_annotation import get_heap_start_addr, get_json_annotations, get_keys_addresses
-from utils.mem_utils import block_bytes_to_addr, hex_str_to_addr, int_to_little_endian_hex_string, is_8_bytes_aligned
+from utils.mem_utils import block_bytes_to_int, hex_str_to_addr, int_to_little_endian_hex_string, is_8_bytes_aligned
 
 INPUT_RAW_HEAP_DUMP_FILE_PATH = "/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24/17016-1643962152-heap.raw"
+KEY_MIN_BYTE_SIZE = 24
 
 # -------------------- CLI arguments -------------------- #
 import sys
@@ -232,6 +235,7 @@ class Chunk:
         # annotations and statistics
         self.is_free = False
         self.annotations = []
+        self.first_bytes_entropy = -math.inf
 
     def __str__(self):
         flags_as_str = f"[A={self.flags.a}, M={self.flags.m}, P={self.flags.p}]"
@@ -314,7 +318,7 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
                 )
         else:
             block = blocks[i].tobytes()
-            block_as_int = block_bytes_to_addr(block)
+            block_as_int = block_bytes_to_int(block)
             dp(f"Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int}")
 
 def is_free_chunk(
@@ -401,6 +405,7 @@ class ChunkAnnotation(Enum):
 
 def get_addresses_of_annotations(
         json_annotations: dict,
+        blocks: np.ndarray,
         heap_start_addr: int,
         heap_size_in_bytes: int,
     ):
@@ -432,6 +437,48 @@ def get_addresses_of_annotations(
             heap_start_addr,
             heap_size_in_bytes,
         ), f"KEY_ADDR {key_addr} for key {key_address_to_name[key_addr]} is not in the heap dump."
+
+    # Key checkings
+    # assert that the block at a given key address is the first block of the key value
+    for key_addr, key_name in key_address_to_name.items():
+        key_hex_string = json_annotations[key_name]
+        key_bytes = bytes.fromhex(key_hex_string) # big endian in JSON
+
+        #### first check on the first block
+        # get the 8 first bytes
+        key_8_first_bytes = key_bytes[:8]
+
+        block_bytes_at_key_addr = blocks[convert_int_address_to_block_index(key_addr, heap_start_addr)].tobytes()
+        
+        # perform check for first block
+        assert key_8_first_bytes == block_bytes_at_key_addr, (
+            f"Key [{key_name}] at address [{key_addr}] does not start at the first block of the key value. "
+            f"Expected (JSON): {key_8_first_bytes} "
+            f"Actual (Heap): {block_bytes_at_key_addr}"
+        )
+
+        ### do another full key value check
+        key_byte_size = int(json_annotations[f"{key_name}_LEN"])
+        # round to upper 8 bytes
+        nb_blocks_for_key = (key_byte_size + 7) // 8
+        # append bytes of the blocks
+        accumulated_key_bytes = b""
+        for i in range(0,  nb_blocks_for_key):
+            block_bytes = blocks[convert_int_address_to_block_index(key_addr + i * 8, heap_start_addr)].tobytes()
+            accumulated_key_bytes += block_bytes
+        
+        # cut the key bytes to the actual key size
+        key_bytes = key_bytes[:key_byte_size]
+
+        # check that the key bytes are the same
+        assert key_bytes == accumulated_key_bytes, (
+            f"Key [{key_name}] at address [{key_addr}] does not have the same bytes as the key value. "
+            f"Expected (JSON): {key_bytes} "
+            f"Actual (Heap): {accumulated_key_bytes}"
+        )
+
+
+
 
     return keys_addresses, ssh_struct_addr, session_state_addr
     
@@ -496,6 +543,33 @@ def is_chunk_footer_value_correct(
         return False
     
     return True
+
+def compute_entropy_of_chunk_user_data(
+        blocks: np.ndarray,
+        chunk: Chunk,
+        heap_start_addr: int,
+    ):
+    """
+    Compute the entropy of the first bytes of the user data of a chunk.
+    """
+    # round to upper 8 bytes
+    nb_blocks_for_key = (KEY_MIN_BYTE_SIZE + 7) // 8
+    # append bytes of the blocks
+    accumulated_bytes = b""
+    for i in range(0,  nb_blocks_for_key):
+        block_bytes = blocks[
+            convert_int_address_to_block_index(
+                chunk.address + i * 8, 
+                heap_start_addr)
+            ].tobytes()
+        accumulated_bytes += block_bytes
+    
+    # cut the key bytes to the actual key size
+    cropped_first_bytes = accumulated_bytes[:KEY_MIN_BYTE_SIZE]
+
+    # compute entropy
+    entropy = get_entropy(cropped_first_bytes)
+    return entropy
 
 def is_chunk_footer_an_annotation_address(
         blocks: np.ndarray,
@@ -589,6 +663,7 @@ def parsing_blocks_to_chunks_with_stats(
     # load annotations
     keys_addresses, ssh_struct_addr, session_state_addr = get_addresses_of_annotations(
         json_annotations,
+        blocks,
         heap_start_addr,
         heap_size_in_bytes,
     )
@@ -619,6 +694,14 @@ def parsing_blocks_to_chunks_with_stats(
             ):
             dp(f"WARN: Chunk [{chunks[i].user_start_block_index}] footer is an annotation address: {chunks[i]}")
             nb_potential_footers_with_annotations += 1
+        
+        # compute entropy of first 12 bytes of chunk user data
+        # if chunk is not free
+        if not chunk.is_free:
+            chunk.first_bytes_entropy = compute_entropy_of_chunk_user_data(
+                blocks, chunk, heap_start_addr
+            )
+
 
     # statistics
     stats = {}
@@ -680,6 +763,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     nb_chunk_both_free_and_correct_footer = 0
     nb_chunks_free_and_annotated = 0
 
+    nb_annotated_chunks = 0
     for i in range(0, len(chunks)):
         chunk = chunks[i]
 
@@ -708,6 +792,10 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
             if chunks[i].is_free:
                 nb_chunk_both_free_and_correct_footer += 1
         
+        # count annotated chunks
+        if len(chunks[i].annotations) > 0:
+            nb_annotated_chunks += 1
+        
         
     if os.environ["DEBUG"] == "True":
         # print chunks with annotations
@@ -735,6 +823,49 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     percentage_blocks_in_free_chunks = nb_blocks_in_free_chunks / len(blocks) * 100
     dp(f"Percentage of blocks in free chunks: {percentage_blocks_in_free_chunks}%")
 
+    # check that the number of annotated chunks is 8
+    # 6 keys + 1 SSH_STRUCT_ADDR + 1 SESSION_STATE_ADDR
+    if nb_annotated_chunks != 8:
+        raise Exception(f"nb_annotated_chunks != 8: {nb_annotated_chunks} for file {raw_file_path}")
+
+    # sort chunks by first bytes entropy
+    chunks.sort(key=lambda x: x.first_bytes_entropy, reverse=True)
+
+    # count number of chunks with max entropy
+    max_entropy = chunks[0].first_bytes_entropy
+    nb_chunks_with_max_entropy = 0
+    for i in range(0, len(chunks)):
+        if chunks[i].first_bytes_entropy == max_entropy:
+            nb_chunks_with_max_entropy += 1
+        else:
+            break
+    
+    # print chunks with max entropy, with their entropy value and annotations
+    dp(f"Chunks with max entropy ({max_entropy}):")
+    nb_chunks_with_max_entropy_and_annotated = 0
+    nb_chunks_with_max_entropy_and_key_annotation = 0
+    for i in range(0, nb_chunks_with_max_entropy):
+        chunk: Chunk = chunks[i]
+        dp(f"-> [e:{chunks[i].first_bytes_entropy}] [first_block:{blocks[chunk.user_start_block_index]}] Chunk [{int_to_little_endian_hex_string(chunk.address)}] size: {chunk.size}, annotations: {chunk.annotations}")
+
+        if len(chunk.annotations) > 0:
+            nb_chunks_with_max_entropy_and_annotated += 1
+            if ChunkAnnotation.ChunkContainsKey in chunk.annotations:
+                nb_chunks_with_max_entropy_and_key_annotation += 1
+            
+
+    dp(f"number of chunks with max entropy: {nb_chunks_with_max_entropy}")
+    dp(f"number of chunks with max entropy and annotations: {nb_chunks_with_max_entropy_and_annotated}")
+    dp(f"number of chunks with max entropy and key annotation: {nb_chunks_with_max_entropy_and_key_annotation}")
+
+    # print the entropy of all the chunks with key annotation
+    if cli.args.debug:
+        dp("Entropy of chunks with key annotation:")
+        for i in range(0, len(chunks)):
+            chunk: Chunk = chunks[i]
+            if ChunkAnnotation.ChunkContainsKey in chunk.annotations:
+                dp(f"-> [e:{chunks[i].first_bytes_entropy}] [first_block:{blocks[chunk.user_start_block_index]}] Chunk [{int_to_little_endian_hex_string(chunk.address)}] size: {chunk.size}, annotations: {chunk.annotations}")
+
     # print statistics
     dp(f"number of chunks: {stats['nb_chunks']}")
     dp(f"number of chunks with P=1: {stats['nb_previous_chunk_in_use']}")
@@ -747,6 +878,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     dp(f"number of chunks both free and with correct footer: {nb_chunk_both_free_and_correct_footer}")
     dp(f"number of chunks free and annotated: {nb_chunks_free_and_annotated}")
     dp(f"number of potential footers with annotations: {stats['nb_potential_footers_with_annotations']}")
+    dp(f"number of annotated chunks: {nb_annotated_chunks}")
 
     # save statistics
     stats["nb_free_chunks"] = nb_free_chunks
@@ -755,7 +887,8 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     stats["correct_footer_chunks"] = nb_correct_footer_chunks
     stats["nb_chunk_both_free_and_correct_footer"] = nb_chunk_both_free_and_correct_footer
     stats["nb_chunks_free_and_annotated"] = nb_chunks_free_and_annotated
-
+    stats["nb_annotated_chunks"] = nb_annotated_chunks
+    
     # delete stuff to free memory
     del blocks
     del chunks
@@ -783,6 +916,7 @@ def main():
     global_stats["nb_chunks_free_and_annotated"] = 0
     global_stats["nb_potential_footers_with_annotations"] = 0
     global_stats["nb_deleted_raw_files"] = 0
+    global_stats["nb_annoted_chunks"] = 0
 
     global_stats["nb_skipped_files"] = 0
 
@@ -806,6 +940,7 @@ def main():
         global_stats["nb_chunk_both_free_and_correct_footer"] += stats["nb_chunk_both_free_and_correct_footer"]
         global_stats["nb_chunks_free_and_annotated"] += stats["nb_chunks_free_and_annotated"]
         global_stats["nb_potential_footers_with_annotations"] += stats["nb_potential_footers_with_annotations"]
+        global_stats["nb_annoted_chunks"] += stats["nb_annotated_chunks"]
 
     if cli.args.input is None:
         # default input
@@ -858,7 +993,8 @@ def main():
     print(f"Total number of chunks both free and with correct footer value: {global_stats['nb_chunk_both_free_and_correct_footer']}")
     print(f"Total number of chunks free and annotated: {global_stats['nb_chunks_free_and_annotated']}")
     print(f"Total number of potential footers with annotations (should be 0): {global_stats['nb_potential_footers_with_annotations']}")
-    
+    print(f"Total number of annotated chunks: {global_stats['nb_annoted_chunks']}")
+
     if cli.args.delete:
         print(f"Total number of deleted raw files: {global_stats['nb_deleted_raw_files']}")
 
@@ -877,6 +1013,10 @@ def main():
     # computer percentage of in-use chunks with correct footer value
     percentage_in_use_chunks_with_correct_footer = (global_stats["nb_correct_footer_chunks"] - global_stats["nb_chunk_both_free_and_correct_footer"]) / (global_stats["nb_chunks"] - global_stats["nb_free_chunks"]) * 100
     print(f"Percentage of in-use chunks with correct footer value: {percentage_in_use_chunks_with_correct_footer}%")
+
+    # compute the average number of annoted chunks per file
+    average_nb_annoted_chunks_per_file = global_stats["nb_annoted_chunks"] / global_stats["nb_parsed_files"]
+    print(f"Average number of annoted chunks per file: {average_nb_annoted_chunks_per_file}")
 
 if __name__ == "__main__":
     main()

@@ -30,8 +30,12 @@ def get_keys_addresses(json_annotations: dict) -> tuple[list[int], dict[int, str
     for json_key in json_annotations.keys():
         if json_key.startswith("KEY_"):
             if json_key.endswith("_ADDR"):
+                # Get the key name.
                 key_name = json_key.replace("_ADDR", "")
+
+                # Add the key name and address to the dictionary.
                 key_address_to_name[mem_utils.hex_str_to_addr(json_annotations[json_key])] = key_name
                 keys_addresses.append(mem_utils.hex_str_to_addr(json_annotations[json_key]))
+
     assert len(keys_addresses) == 6
     return keys_addresses, key_address_to_name

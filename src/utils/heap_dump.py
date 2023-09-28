@@ -1,5 +1,5 @@
 import numpy as np
-from utils.mem_utils import block_bytes_to_addr, is_8_bytes_aligned
+from utils.mem_utils import block_bytes_to_int, is_8_bytes_aligned
 
 BLOCK_SIZE_IN_BYTES = 8
 
@@ -96,7 +96,7 @@ def is_valid_pointer(
         return False
     
     # Convert the block to an address
-    block_addr = block_bytes_to_addr(block)
+    block_addr = block_bytes_to_int(block)
     
     # Check that the address is in the heap dump
     if not is_address_in_heap_dump(
