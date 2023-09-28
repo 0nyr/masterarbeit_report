@@ -1,5 +1,13 @@
 # Logs
 
+### Thu 28 Sep 2023
+
+Lot of work.
+
+> **NOTE**: WE DISCOVERED THAT KEYS ARE ALWAYS AT THE START OF THE USER DATA OF A CHUNK! THIS HOLDS TRUE FOR ALL ANNOTATIONS (KEYS, SSH_STRUCT, SESSION_STATE).
+
+`/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24/17016-1643962152-heap.raw`
+
 ### Wed 27 Sep 2023
 
 Continued to work on Chunk exploration script in Python.

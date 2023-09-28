@@ -762,6 +762,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     nb_correct_footer_chunks = 0
     nb_chunk_both_free_and_correct_footer = 0
     nb_chunks_free_and_annotated = 0
+    nb_chunks_in_use_correct_footer_annotated = 0
 
     nb_annotated_chunks = 0
     for i in range(0, len(chunks)):
@@ -777,11 +778,11 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
             # check that a free chunk is not annotated
             if len(chunks[i].annotations) > 0:
                 nb_chunks_free_and_annotated += 1
-                print(f"WARN: Chunk [{chunks[i].user_start_block_index}] is free but also annotated: {chunks[i]}")
+                print(f"WARN: Chunk [{chunk.user_start_block_index}] is free but also annotated: {chunks[i]}")
 
         # check if chunk is only composed of zeros            
         if check_chunk_has_only_zeros(blocks, chunks[i]):
-            dp(f"Chunk [{chunks[i].user_start_block_index}] is only composed of zeros: {chunks[i]}")
+            dp(f"Chunk [{chunk.user_start_block_index}] is only composed of zeros: {chunks[i]}")
             nb_zeros_chunks += 1
         
         # check if chunk footer value is correct
@@ -789,11 +790,14 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
             nb_correct_footer_chunks += 1
 
             # count free and correct footer chunks
-            if chunks[i].is_free:
+            if chunk.is_free:
                 nb_chunk_both_free_and_correct_footer += 1
+            else:
+                if len(chunk.annotations) > 0:
+                    nb_chunks_in_use_correct_footer_annotated += 1
         
         # count annotated chunks
-        if len(chunks[i].annotations) > 0:
+        if len(chunk.annotations) > 0:
             nb_annotated_chunks += 1
         
         
@@ -879,6 +883,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     dp(f"number of chunks free and annotated: {nb_chunks_free_and_annotated}")
     dp(f"number of potential footers with annotations: {stats['nb_potential_footers_with_annotations']}")
     dp(f"number of annotated chunks: {nb_annotated_chunks}")
+    dp(f"number of chunks in used, with correct footer, and annotated: {nb_chunks_in_use_correct_footer_annotated}")
 
     # save statistics
     stats["nb_free_chunks"] = nb_free_chunks
@@ -888,6 +893,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     stats["nb_chunk_both_free_and_correct_footer"] = nb_chunk_both_free_and_correct_footer
     stats["nb_chunks_free_and_annotated"] = nb_chunks_free_and_annotated
     stats["nb_annotated_chunks"] = nb_annotated_chunks
+    stats["nb_chunks_in_use_correct_footer_annotated"] = nb_chunks_in_use_correct_footer_annotated
     
     # delete stuff to free memory
     del blocks
@@ -917,6 +923,7 @@ def main():
     global_stats["nb_potential_footers_with_annotations"] = 0
     global_stats["nb_deleted_raw_files"] = 0
     global_stats["nb_annoted_chunks"] = 0
+    global_stats["nb_chunks_in_use_correct_footer_annotated"] = 0
 
     global_stats["nb_skipped_files"] = 0
 
@@ -941,6 +948,7 @@ def main():
         global_stats["nb_chunks_free_and_annotated"] += stats["nb_chunks_free_and_annotated"]
         global_stats["nb_potential_footers_with_annotations"] += stats["nb_potential_footers_with_annotations"]
         global_stats["nb_annoted_chunks"] += stats["nb_annotated_chunks"]
+        global_stats["nb_chunks_in_use_correct_footer_annotated"] += stats["nb_chunks_in_use_correct_footer_annotated"]
 
     if cli.args.input is None:
         # default input
@@ -994,6 +1002,7 @@ def main():
     print(f"Total number of chunks free and annotated: {global_stats['nb_chunks_free_and_annotated']}")
     print(f"Total number of potential footers with annotations (should be 0): {global_stats['nb_potential_footers_with_annotations']}")
     print(f"Total number of annotated chunks: {global_stats['nb_annoted_chunks']}")
+    print(f"Total number of chunks in used, with correct footer, and annotated: {global_stats['nb_chunks_in_use_correct_footer_annotated']}")
 
     if cli.args.delete:
         print(f"Total number of deleted raw files: {global_stats['nb_deleted_raw_files']}")
@@ -1017,6 +1026,10 @@ def main():
     # compute the average number of annoted chunks per file
     average_nb_annoted_chunks_per_file = global_stats["nb_annoted_chunks"] / global_stats["nb_parsed_files"]
     print(f"Average number of annoted chunks per file: {average_nb_annoted_chunks_per_file}")
+
+    # compute the average number of chunks in use with correct footer and annotated per file
+    average_nb_chunks_in_use_correct_footer_annotated_per_file = global_stats["nb_chunks_in_use_correct_footer_annotated"] / global_stats["nb_parsed_files"]
+    print(f"Average number of chunks in use with correct footer and annotated per file: {average_nb_chunks_in_use_correct_footer_annotated_per_file}")
 
 if __name__ == "__main__":
     main()
