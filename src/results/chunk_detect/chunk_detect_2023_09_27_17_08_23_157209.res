@@ -19,6 +19,7 @@ Parsed Chunk [6]: Chunk(block_index=92, size=192, flags=[A=False, M=False, P=Tru
 Parsed Chunk [7]: Chunk(block_index=116, size=32, flags=[A=False, M=False, P=True])
 Parsed Chunk [8]: Chunk(block_index=120, size=32, flags=[A=False, M=False, P=True])
 Parsed Chunk [9]: Chunk(block_index=124, size=32, flags=[A=False, M=False, P=True])
+[...]
 Parsed Chunk [901]: Chunk(block_index=9734, size=272, flags=[A=False, M=False, P=True])
 Parsed Chunk [902]: Chunk(block_index=9768, size=80, flags=[A=False, M=False, P=True])
 Parsed Chunk [903]: Chunk(block_index=9778, size=272, flags=[A=False, M=False, P=False])

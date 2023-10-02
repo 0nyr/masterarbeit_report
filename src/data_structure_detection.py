@@ -178,6 +178,10 @@ class CLIArguments:
 class MallocHeaderFlags:
     """
     The flags of the malloc header (m-header).
+
+    P: Previous chunk is in use (allocated by application)
+    M: This chunk was allocated using mmap
+    A: The main arena uses the application's heap
     """
     def __init__(
             self,
