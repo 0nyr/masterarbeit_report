@@ -312,9 +312,17 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
     """
     Print a chunk.
     """
-    dp(f"Printing Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}] {chunk}")
-    for i in range(chunk.user_start_block_index, chunk.user_start_block_index + (chunk.size // 8)):
-        if i >= len(blocks):
+    if chunk.is_free:
+        chunk_status = "free"
+    else:
+        chunk_status = "in-use"
+    if is_chunk_footer_value_correct(blocks, chunk):
+        footer_status = "correct"
+    else:
+        footer_status = "incorrect"
+    dp(f"Printing Chunk [addr:{int_to_little_endian_hex_string(chunk.address)}] [status:{chunk_status}] [footer:{footer_status}] {chunk}")
+    for i in range(chunk.user_start_block_index - 1, chunk.user_start_block_index + (chunk.size // 8) - 1):
+        if i >= len(blocks) or i < 0:
             dp(
                 f"WARN: Chunk [{chunk.address}] {chunk} is out of bounds. "
                 f"Last block index: {len(blocks) - 1} "
@@ -323,7 +331,12 @@ def print_chunk(blocks: np.ndarray, chunk: Chunk):
         else:
             block = blocks[i].tobytes()
             block_as_int = block_bytes_to_int(block)
-            dp(f"Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int}")
+            tail_info = ""
+            if i == chunk.user_start_block_index - 1:
+                tail_info = "-malloc-header-"
+            elif i == chunk.user_start_block_index + (chunk.size // 8) - 2:
+                tail_info = "-footer-"
+            dp(f"Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int} \t\t {tail_info}")
 
 def is_free_chunk(
         blocks: np.ndarray,
@@ -534,7 +547,7 @@ def is_chunk_footer_value_correct(
     """
     The footer of the chunk contains the size of the chunk.
     """
-    footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 1
+    footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 2
     # check that footer block is in bounds
     if footer_block_index >= len(blocks):
         dp(f"Footer block is out of bounds for chunk: {chunk}")
@@ -547,6 +560,35 @@ def is_chunk_footer_value_correct(
         return False
     
     return True
+
+def is_chunk_footer_an_annotation_address(
+        blocks: np.ndarray,
+        chunk: Chunk,
+        heap_start_addr: int,
+        keys_addresses: list[int],
+        ssh_struct_addr: int,
+        session_state_addr: int,
+    ) -> bool:
+    """
+    Check that the footer of a chunk is not an annotation address.
+    """
+    footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 2
+
+    # check that footer block is in bounds
+    if footer_block_index >= len(blocks):
+        dp("Footer block is out of bounds for chunk: {chunk}")
+        return False
+    
+    footer_addr = convert_block_index_to_address(footer_block_index, heap_start_addr)
+    
+    if footer_addr in keys_addresses:
+        return True
+    elif footer_addr == ssh_struct_addr:
+        return True
+    elif footer_addr == session_state_addr:
+        return True
+    
+    return False
 
 def compute_entropy_of_chunk_user_data(
         blocks: np.ndarray,
@@ -575,33 +617,6 @@ def compute_entropy_of_chunk_user_data(
     entropy = get_entropy(cropped_first_bytes)
     return entropy
 
-def is_chunk_footer_an_annotation_address(
-        blocks: np.ndarray,
-        chunk: Chunk,
-        keys_addresses: list[int],
-        ssh_struct_addr: int,
-        session_state_addr: int,
-    ) -> bool:
-    """
-    Check that the footer of a chunk is not an annotation address.
-    """
-    footer_block_index = chunk.user_start_block_index + (chunk.size // 8) - 1
-
-    # check that footer block is in bounds
-    if footer_block_index >= len(blocks):
-        dp("Footer block is out of bounds for chunk: {chunk}")
-        return False
-    
-    if footer_block_index in keys_addresses:
-        return True
-    elif footer_block_index == ssh_struct_addr:
-        return True
-    elif footer_block_index == session_state_addr:
-        return True
-    
-    return False
-
-
 def parsing_blocks_to_chunks_with_stats(
         blocks: np.ndarray,
         heap_start_addr: int,
@@ -624,6 +639,12 @@ def parsing_blocks_to_chunks_with_stats(
     # Start parsing from the second block
     i = 1
     while i < len(blocks):
+
+        # DEBUG
+        if os.environ["DEBUG"] == "True" and i < 130:
+            block_as_int = block_bytes_to_int(blocks[i].tobytes())
+            dp(f"i: {i}  Block [{i}]: \t {blocks[i].tobytes()} \t\t {block_as_int}")
+
         # Parse the malloc header
         malloc_header = parse_malloc_header(blocks[i])
 
@@ -664,6 +685,7 @@ def parsing_blocks_to_chunks_with_stats(
         # Move to the next chunk
         i += (malloc_header.size // 8)
 
+
     # load annotations
     keys_addresses, ssh_struct_addr, session_state_addr = get_addresses_of_annotations(
         json_annotations,
@@ -692,6 +714,7 @@ def parsing_blocks_to_chunks_with_stats(
         if is_chunk_footer_an_annotation_address(
                 blocks,
                 chunk,
+                heap_start_addr,
                 keys_addresses,
                 ssh_struct_addr,
                 session_state_addr,
@@ -767,6 +790,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     nb_chunk_both_free_and_correct_footer = 0
     nb_chunks_free_and_annotated = 0
     nb_chunks_in_use_correct_footer_annotated = 0
+    nb_chunks_in_use_correct_footer_annotated_and_key = 0
 
     nb_annotated_chunks = 0
     for i in range(0, len(chunks)):
@@ -799,6 +823,8 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
             else:
                 if len(chunk.annotations) > 0:
                     nb_chunks_in_use_correct_footer_annotated += 1
+                    if ChunkAnnotation.ChunkContainsKey in chunk.annotations:
+                        nb_chunks_in_use_correct_footer_annotated_and_key += 1
         
         # count annotated chunks
         if len(chunk.annotations) > 0:
@@ -816,7 +842,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
         #dp("Content of chunks:")
         #dp_chunk(blocks, chunks[-1])
         for i in range(0, len(chunks)):
-            if chunks[i].user_start_block_index == 80:
+            if chunks[i].user_start_block_index == 80 or chunks[i].user_start_block_index == 8180:
                 print_chunk(blocks, chunks[i])
     
     # compute percentage of free chunks
@@ -834,6 +860,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     # check that the number of annotated chunks is 8
     # 6 keys + 1 SSH_STRUCT_ADDR + 1 SESSION_STATE_ADDR
     if nb_annotated_chunks != 8:
+        dp(f"ERROR: nb_annotated_chunks != 8: {nb_annotated_chunks} for file {raw_file_path}")
         raise Exception(f"nb_annotated_chunks != 8: {nb_annotated_chunks} for file {raw_file_path}")
 
     # sort chunks by first bytes entropy
@@ -898,7 +925,8 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     stats["nb_chunks_free_and_annotated"] = nb_chunks_free_and_annotated
     stats["nb_annotated_chunks"] = nb_annotated_chunks
     stats["nb_chunks_in_use_correct_footer_annotated"] = nb_chunks_in_use_correct_footer_annotated
-    
+    stats["nb_chunks_in_use_correct_footer_annotated_and_key"] = nb_chunks_in_use_correct_footer_annotated_and_key
+
     # delete stuff to free memory
     del blocks
     del chunks
@@ -928,6 +956,7 @@ def main():
     global_stats["nb_deleted_raw_files"] = 0
     global_stats["nb_annoted_chunks"] = 0
     global_stats["nb_chunks_in_use_correct_footer_annotated"] = 0
+    global_stats["nb_chunks_in_use_correct_footer_annotated_and_key"] = 0
 
     global_stats["nb_skipped_files"] = 0
 
@@ -953,6 +982,7 @@ def main():
         global_stats["nb_potential_footers_with_annotations"] += stats["nb_potential_footers_with_annotations"]
         global_stats["nb_annoted_chunks"] += stats["nb_annotated_chunks"]
         global_stats["nb_chunks_in_use_correct_footer_annotated"] += stats["nb_chunks_in_use_correct_footer_annotated"]
+        global_stats["nb_chunks_in_use_correct_footer_annotated_and_key"] += stats["nb_chunks_in_use_correct_footer_annotated_and_key"]
 
     if cli.args.input is None:
         # default input
@@ -1007,6 +1037,7 @@ def main():
     print(f"Total number of potential footers with annotations (should be 0): {global_stats['nb_potential_footers_with_annotations']}")
     print(f"Total number of annotated chunks: {global_stats['nb_annoted_chunks']}")
     print(f"Total number of chunks in used, with correct footer, and annotated: {global_stats['nb_chunks_in_use_correct_footer_annotated']}")
+    print(f"Total number of chunks in used, with correct footer, and key annotated: {global_stats['nb_chunks_in_use_correct_footer_annotated_and_key']}")
 
     if cli.args.delete:
         print(f"Total number of deleted raw files: {global_stats['nb_deleted_raw_files']}")

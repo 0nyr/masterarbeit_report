@@ -740,9 +740,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
     Indeed, it is important to mention that we can rely on the JSON annotation files for providing labelling for key address prediction. Using this, we do not need to decrypt the network packets to be able to train our \acrshort{ml} models. This is a huge advantage, and is also required since we don't have the encrypted network packets in the dataset. Since we don't have those, and since the keys are already given, that is why we will focus on key address prediction, and not on key prediction.
 
     \subsection{Data structure exploration}
-    Since the dataset contain whole heap dump file, we can also try to detect potential data structures in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers. However for data structure, we can rely on our knowledge of the C library used to know exactly what to look for.
+    Since the dataset contain whole heap dump file, we can also try to detect allocated chunks in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers. However for data structure, we can rely on our knowledge of the C library used to know exactly what to look for.
     
-    Since OpenSSH is written in C, we can expect to find some C data structures in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. It takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. We know that the dataset has been produced using \texttt{GLIBC 2.28} \ref{sec:methods:dataset:production_system_information}. Looking directly at the code for \lstinline[language=c]|malloc| in \texttt{GLIBC 2.28}, we can read in the comments that \say{Minimum overhead per allocated chunk: 4 or 8 bytes. Each malloced chunk has a hidden word of overhead holding size and status information} \cite{MallocGLIBC2001}. This is what we refer to as the \textit{malloc header}. This means that we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will also try to detect potential data structures in heap dump files.
+    Since OpenSSH is written in C, we can expect to find some C memory chunks in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. It takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. We know that the dataset has been produced using \texttt{GLIBC 2.28} \ref{sec:methods:dataset:production_system_information}. Looking directly at the code for \lstinline[language=c]|malloc| in \texttt{GLIBC 2.28}, we can read in the comments that \say{Minimum overhead per allocated chunk: 4 or 8 bytes. Each malloced chunk has a hidden word of overhead holding size and status information} \cite{MallocGLIBC2001}. This is what we refer to as the \textit{malloc header}. This means that we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will try to detect memory chunks in heap dump files.
 
     In Linux on a \texttt{x86\_64} architecture, the malloc function typically uses a block (chunk) header to store metadata about each allocated block. This header is placed immediately before the block of memory returned to the user. The exact layout can vary depending on the implementation of the C library (e.g., glibc, musl), but generally, it contains the following:
 
@@ -760,13 +760,11 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \begin{enumerate}
         \item \textbf{Size of Previous Chunk}: This field exists only if the previous chunk is unallocated and its \texttt{P} (PREV\_INUSE) bit is clear. It helps in finding the front of the previous chunk.
         
-        \item \textbf{Size of Chunk}: This field contains the size of the chunk in bytes along with three flags: \texttt{A} (NON\_MAIN\_ARENA), \texttt{M} (IS\_MMAPPED), and \texttt{P} (PREV\_INUSE). These flags are in the last 3 \acrshort{lsb}s of the size field. This precise block is considered in the following report as the \textit{malloc header} block.
+        \item \textbf{Size of Chunk}: This field contains the size of the chunk in bytes along with three flags: \texttt{A} (NON\_MAIN\_ARENA), \texttt{M} (IS\_MMAPPED), and \texttt{P} (PREV\_INUSE). These flags are in the last 3 \acrshort{lsb}s of the size field. This precise block is considered in the following report as the \textit{malloc header} block. Note that the size of the chunk include the size of the \textit{malloc header}, chunk user data and \textit{footer} blocks.
         
         \item \textbf{User Data}: This is the actual memory space that is returned to the user.
         
-        \item \textbf{Size of Next Chunk}: This is the size of the next contiguous chunk.
-        
-        \item \textbf{Foot}: This is the same as the size of the chunk but is used for application data.
+        \item \textbf{Footer}: This is the same as the size of the chunk but is used for application data. Depending on how the chunk is represented, this is exactly the same as the \textbf{Size of Chunk} field. This is a more intuitive representation and is the one choosen in the schematical representation below.
         
         \item \textbf{Flags}:
         \begin{itemize}
@@ -785,7 +783,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         
         \item \textbf{Mmapped Chunks}: These chunks have the \texttt{M} bit set in their size fields and are allocated one-by-one.
         
-        \item \textbf{Fastbins}: These are treated as allocated chunks and are consolidated only in bulk.
+        \item \textbf{Fastbins}: These are treated as allocated chunks and are consolidated only in bulk. These \textit{bins} are used to speed up the allocation process.
         
         \item \textbf{Top Chunk}: This is a special chunk that always exists. If it becomes less than \texttt{MINSIZE} bytes long, it is replenished.
     \end{enumerate}
@@ -905,7 +903,7 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
     \end{figure}
 
     \subsubsection{Chunk chaining}
-    The chunk chaining algorithm relies on the \textbf{chunck chaining assumption} \ref{sec:methods:dataset:assumptions}. This assumption states that the allocator allocates chunks after chunks, and that the chunks are contiguous in memory. This means that we can expect to find the malloc header of the next chunk at the address $ \text{current\_malloc\_header\_chunk\_address} + \text{current\_chunk\_size} + 8 $, where 8 is the size of the malloc header block, or $ \text{current\_chunk\_user\_data\_address} + \text{current\_chunk\_size} $. This is the case for both free and allocated chunks. This is why we can use this assumption to detect potential data structures in the heap dump file. 
+    The chunk chaining algorithm relies on the \textbf{chunck chaining assumption} \ref{sec:methods:dataset:assumptions}. This assumption states that the allocator allocates chunks after chunks, and that the chunks are contiguous in memory. This means that we can expect to find the malloc header of the next chunk at the address $ \text{current\_malloc\_header\_chunk\_address} + \text{current\_chunk\_size} + 8 $, where 8 is the size of the malloc header block, or $ \text{current\_chunk\_user\_data\_address} + \text{current\_chunk\_size} $. This is the case for both free and allocated chunks. This is why we can use this assumption to detect chunks in the heap dump file. 
     
     This necessitates to understand malloc header blocks, and how they are represented in the heap dump file. In the specific case of \texttt{GLIBC 2.28}, the malloc header is defined as follows:
 
@@ -945,31 +943,46 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
 
     First, here is a simple algorithm to extract all the necessary information from a malloc header block:
 
-    \begin{algorithm}[H]
+    \begin{algorithm}[H]\label{alg:malloc_header_parsing}
         \caption{Malloc Header Parsing Algorithm}
         \begin{algorithmic}[1]
             \Procedure{MallocHeaderParsing}{$block$}
             \Require $block$ is a block of 8 bytes
             \Ensure $MallocHeader$ object
-            \Ensure $flags$ object
+            \Ensure $Flags$ object
             \State \textbf{Note:} In this algorithm, $\&$ represents bitwise AND, and $\sim$ represents bitwise negation.
             \State $size\_and\_flags \leftarrow \text{ConvertBytesToInteger}(block, \text{'little-endian'})$
             \State $size \leftarrow size\_and\_flags \; \& \; (\sim 0x07)$ \Comment{Clear the last 3 bits to get the size}
-            \State $flags.a \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x04)$
-            \State $flags.m \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x02)$
-            \State $flags.p \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x01)$
-            \State \Return $MallocHeader(size, flags)$
+            \State $Flags.a \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x04)$
+            \State $Flags.m \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x02)$
+            \State $Flags.p \leftarrow \text{bool}(size\_and\_flags \; \& \; 0x01)$
+            \State \Return $MallocHeader\{size, Flags\}$
         \EndProcedure
         \end{algorithmic}
     \end{algorithm}
 
-    Base on this algorithm, and in a similar fashion as what we have done manually by exploring the heap dump file with vim, we can propose the following algorithm to detect the malloc headers in a heap dump file:
+    We can also isolate the size parsing algorithm into a handy function:
 
-    \begin{algorithm}[H]
+    \begin{algorithm}[H]\label{alg:convert_to_size}
+        \caption{Malloc Header block to size conversion Algorithm}
+        \begin{algorithmic}[1]
+            \Procedure{ConvertToSize}{$block$}
+            \Require $block$ is a block of 8 bytes
+            \State \textbf{Note:} In this algorithm, $\&$ represents bitwise AND, and $\sim$ represents bitwise negation.
+            \State $size\_and\_flags \leftarrow \text{ConvertBytesToInteger}(block, \text{'little-endian'})$
+            \State $size \leftarrow size\_and\_flags \; \& \; (\sim 0x07)$ \Comment{Clear the last 3 bits to get the size}
+            \State \Return $size$
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+
+    Based on those algorithms, and in a similar fashion as what we have done manually by exploring the heap dump file with vim, we can propose the following algorithm to detect the malloc headers in a heap dump file:
+
+    \begin{algorithm}[H]\label{alg:malloc_header_chaining}
         \caption{Malloc Header Chaining Algorithm}
         \begin{algorithmic}[1]
         \Procedure{MallocHeaderDetection}{$heapDumpFile$}
-            \State \textbf{Note:} ConvertToSize is equivalent to MallocHeaderParsing($block$).size
+            \State \textbf{Note:} ConvertToSize is equivalent to MallocHeaderParsing($block$).size \Comment{See \ref{alg:convert_to_size}}
             \State \textbf{Initialize} malloc\_header\_list to empty list
             \State $position \gets 0$
             \While{$position < \text{FileSize}(heapDumpFile)$}
@@ -978,7 +991,7 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
                     \State $size \gets \text{ConvertToSize}(block)$ \Comment{Be careful with flags}
                     \State \textbf{Assert} $size != 0$
                     \State \textbf{Assert} $size \mod 8 = 0$ \Comment{Check if the size is 8-bytes aligned}
-                    \State $position \gets position + 8 + size$ \Comment{Leap over data structure. + 8 for the header.}
+                    \State $position \gets position + size$ \Comment{Leap over data structure.}
                 \Else
                     \State $position \gets position + 8$
                 \EndIf
@@ -988,7 +1001,7 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
         \end{algorithmic}
     \end{algorithm}
 
-    The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the data structure and the header. The process is repeated until reaching the end of the heap dump file.
+    The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the user data and the footer up to the next chunk malloc header block index. The process is repeated until reaching the end of the heap dump file.
 
     Note that in case of a problem, like when the size obtained from malloc header parsing is equal to 0, this means that the heap dump chaining is broken. This has been handled in the dataset cleaning section \ref{sec:methods:dataset:cleaning}. 
 
@@ -1031,49 +1044,186 @@ $ python src/data_structure_detection.py --input /home/onyr/code/phdtrack/phdtra
     Looking at the first allocated chunks, we recognize what we had seen manually with vim for the file \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}. The first chunk is of size 592, and the next one is of size 32. This is exactly what we had seen manually. It is a good sign that our algorithm is working as expected. We can also see that the last chunk is of size 48176, which is significantly bigger than the other chunks. This chunk is only composed of zeros, and is truncated, meaning that its size if bigger than the actual size of the heap dump file. 
     
     \subsubsection{Distinguishing between free and allocated chunks}
-    The malloc header chaining algorithm allows to detect potential data structures in the heap dump file. However, it does not allow to distinguish between free and allocated chunks. This is a problem, since we want to be able to distinguish between free and allocated chunks, to be able to detect potential data structures. Indeed, we can expect to find some free chunks in the heap dump file, and we don't want to consider them as potential data structures. As such, we need to be able to distinguish between free and allocated chunks.
-
-    % TODO: complete
-    Speak about the tests I did with detecting pointers, and how it was not conclusive. I think that the best way to do it is to rely on the P flag of the malloc header. If it is set to 1, it means that the previous chunk is allocated. If it is set to 0, it means that the chunk is free. This is the best way to do it, since we don't have access to the bins in the heap dump file, and since pointers can be anywhere in the heap dump file. 
-
+    The malloc header chaining algorithm allows to detect memory chunks in the heap dump file. However, it does not allow to distinguish between free and allocated chunks. This is a problem, since we want to be able to distinguish between free and allocated chunks, to be able to detect potential data structures and filter out useless blocks.
     
+    Considering the structural differences between a free and in-use block, it's possible to try distinguishing free blocks by their \textit{forward} and \textit{backward} pointers. The issue is that the head dump raw file are not provided with any \textit{bins} information. As such, distinguishing between two normal pointers and the ones expected inside a free block is a non-trivial task. Hence, the tests performed on this idea are inconclusive. A more straightforward technique is to rely on the \texttt{P} malloc header flags. For a given chunk, the follow-up chunk in ascending address number, contains such a flag in its header block. If the flag value is 0, then the current chunk is free. If the flag value is 1, then the current chunk is in use by the program. This is the technique that has been used in the final implementation of the chunk chaining algorithm. 
 
-    To do so,
+    \begin{algorithm}[H]
+        \caption{Chunk Parsing Algorithm}
+        \begin{algorithmic}[1]
+        \Procedure{ChunkParsing}{$heapDumpFile, HEAP\_START$}
+            \State \textbf{Note:} ConvertToSize is equivalent to MallocHeaderParsing($block$).size
+            \State \textbf{Note:} Get8BytesBlocks returns a list of 8 bytes blocks from the heap dump file.
+            \Ensure $MallocHeader$ object
+            \Ensure $Flags$ object
+            \Ensure $Chunk$ object
+            \Ensure $HEAP\_START$ provided from annotation file is a correct address.
+            \State \textbf{Note:} In this algorithm, $\&$ represents bitwise AND, and $\sim$ represents bitwise negation.
+            \State \textbf{Initialize} $chunk\_list$ to empty list
+            \State $blocks \gets \text{Get8BytesBlocks}(heapDumpFile)$
+            \State \textbf{Initialize} $index \gets 0$
+            \While{$index < lenght(blocks)$}
+                \State $block \gets blocks[index]$
+                \State \textbf{Initialize} $Chunk$ to empty object
+                \If{$\text{block} \neq 0$}
+                    \State $Chunk.header : \{size, Flags\} \gets \text{MallocHeaderParsing}(block)$ \Comment{See \ref{alg:malloc_header_parsing}}
+                    \State \textbf{Assert} $Chunk.header.size \geq 2 $ \Comment{Must contains at least header and footer}
+                    \State \textbf{Assert} $Chunk.header.size \mod 8 = 0$ \Comment{Check if the size is 8-bytes aligned}
+                    \State $Chunk.block\_index \gets index$ \Comment{Index of the first block of the chunk after header}
+                    \State $Chunk.address \gets HEAP\_START + (index * 8)$ \Comment{Address of $block\_index$}
+                    \State $footer\_index \gets index + Chunk.header.size - 1$ \Comment{Index of the footer block}
+                    \If{$footer\_index < lenght(blocks)$}
+                        \State $footer \gets blocks[footer\_index]$
+                        \If{$\text{ConvertToSize}(footer) = Chunk.footer.size$}
+                            \State $Chunk.correct_footer \gets True$
+                        \Else
+                            \State $Chunk.correct_footer \gets False$
+                        \EndIf
+                    \Else
+                        \State $Chunk.correct_footer \gets False$
+                    \EndIf
+                    \State $next\_chunk\_header\_index \gets index + Chunk.header.size$ \Comment{Index of the next chunk header block}
+                    \If{$next\_chunk\_header\_index < lenght(blocks)$}
+                        \State $next\_chunk\_header \gets blocks[next\_chunk\_header\_index]$
+                        \State $Chunk.is\_in\_use \gets \text{MallocHeaderParsing}(next\_chunk\_header).flags.p$
+                    \Else
+                        \State $Chunk.is\_in\_use \gets False$ \Comment{See \footnote{Experiments shows that last chunk can be cropped and in that case, is only composed of zeros. We can thus consider it as free.}}
+                    \EndIf
+                    \State $index \gets index + Chunk.header.size$ \Comment{Leap over chunk.}
+                \Else
+                    \State $index \gets index + 8$ \Comment{Leap over zero block.}
+                \EndIf
+            \EndWhile
+            \State \Return $malloc\_header\_list$
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
 
-    % TODO: add subsubsection about stats on chunk parsing
+    Note that this algorithm is based on the malloc header chaining algorithm \ref{alg:malloc_header_chaining}. The main difference is that we now have access to the malloc header flags from the following chunk, and that we can thus distinguish between free and allocated chunks. The algorithm also includes the footer parsing technique discussed briefly in the following section.
 
-    % TODO: About footer, I discovered that footers are actually the size WITH flags
+    \subsubsection{Chunk footer}
+    The documentation of the \texttt{malloc} function of GLIBC  states that the footer of a chunk is the same as the size of the chunk considered. In the current report, we represent the footer as being part of the chunk itself.
 
-\section{Converting memory dumps to graphs}\label{chap:mem_2_graph}
+    Below are two chunks content of similar size:
+
+    \begin{lstlisting}[language=bash, caption={Printing some free and in-use chunks from \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}.}]
+Printing Chunk [addr:0x80a2d1438355] [status:in-use] [footer:incorrect] Chunk(block_index=80, size=32, flags=[A=False, M=False, P=True])
+        Block [79]: 	b'!\x00\x00\x00\x00\x00\x00\x00' 		33 		-malloc-header-
+        Block [80]: 	b'\xa0\xa2\xd1C\x83U\x00\x00' 		94022266888864 		
+        Block [81]: 	b'\xc0\xa2\xd1C\x83U\x00\x00' 		94022266888896 		
+        Block [82]: 	b'\x00\x00\x00\x00\x00\x00\x00\x00' 		0 		-footer-
+Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_index=8180, size=32, flags=[A=False, M=False, P=True])
+        Block [8179]: 	b'!\x00\x00\x00\x00\x00\x00\x00' 		33 		-malloc-header-
+        Block [8180]: 	b'\xb0\xbc\xe1\xeeS\x7f\x00\x00' 		139998466784432 		
+        Block [8181]: 	b'\xb0\xbc\xe1\xeeS\x7f\x00\x00' 		139998466784432 		
+        Block [8182]: 	b' \x00\x00\x00\x00\x00\x00\x00' 		32 		-footer-
+    \end{lstlisting}
+
+    Here, the status of the chunk has been detected using the \texttt{P} flag technique. At first sight, those two blocks seems similar. The first 2 blocks in the user data space of the chunks both seems to contain what look like pointers. As one can see, the first chunk in this example, with a \texttt{block\_index=80} has clearly a malloc header and footer as expected. Note that here, the value $33$ represents the size of the block ($32$ bytes which correspond to 4 blocks) with the \acrshort{lsb} being set to 1 meaning the preceding chunk is in use. However, the in-use block footer doesn't correspond to the value we expect. This difference of behavior is observed throughout the cleaned dataset. 
+
+    \subsection{Discussing chunk parsing for problem scale reduction}
+    Now that we have presented all the necessary knowledge and algorithms used to be able to parse the dataset, we can discuss the results of those algorithms and their uses and limitations. Many tests have been needed in order to develop the final algorithms. This testing process has also unveiled some interesting properties of the dataset that will be used as basis for the semantic embedding of the memory graph representation and subsequent machine learning steps.
+
+    The program \texttt{chunk\_algorithms.py} has been developped specifically to test the chunk parsing and refine the associated algorithms on the cleaned dataset. Below are presented the global statistics produced by the final version of the program:
+
+    \begin{lstlisting}[language=bash, caption={Printing cleaned dataset chunk parsing global statistics.}]
+        Input is directory: /home/onyr/code/phdtrack/phdtrack_data_clean/
+        Found 26191 files in /home/onyr/code/phdtrack/phdtrack_data_clean/.
+        Processing files: 100%|\blacksquare \blacksquare \blacksquare \blacksquare \blacksquare | 26191/26191 [12:11<00:00, 35.81it/s, file=7091-1650972335]
+        ------> Statistics:
+        Total number of parsed files: 26191
+        Total number of skipped files: 0
+        Total number of chunks: 37682063
+        Total number of blocks: 674232832
+        Total number of chunks with P=1: 37346373
+        Total number of chunks with M=1: 0
+        Total number of chunks with A=1: 0
+        Total number of free chunks: 354410
+        Total number of chunks only composed of zeros: 18720
+        Total number of blocks in free chunks: 183331224
+        Total number of chunks with correct footer value: 1009522
+        Total number of chunks both free and with correct footer value: 335690
+        Total number of chunks free and annotated: 0
+        Total number of potential footers with annotations (should be 0): 0
+        Total number of annotated chunks: 209528
+        Total number of chunks in used, with correct footer, and annotated: 7668
+        Total number of chunks in used, with correct footer, and key annotated: 7668
+        Percentage of free chunks: 0.9405270619074121%
+        Percentage of blocks in free chunks: 27.19108523033183%
+        Percentage of free chunks with correct footer value: 94.71798199825061%
+        Percentage of in-use chunks with correct footer value: 1.8051818044922352%
+        Average number of annoted chunks per file: 8.0
+        Average number of chunks in use with correct footer and annotated per file: 0.2927723263716544
+    \end{lstlisting}
+
+    The cleaned dataset contains 26191 RAW files and their corresponding annotation files. The program has been able to parse all those files, and has been able to detect 37682063 chunks, which represents 674232832 blocks. This is a huge number of blocks. The goal being to be able to predict which of those blocks are first key blocks, we need to be able to filter out the useless blocks as much as possible to both optimize computations and scale down the problem. 
+
+    Using the \texttt{P} flag technique, we can see that 37346373 chunks are in use, and 354410 chunks are free. Although the proportion of free chunks is only 0.94\%, there are 27.19\% of the blocks that are in free chunks. More importantly, we can see that no free chunk is annotated. This means we can filter out all free chunks and their blocks. This allows a huge reduction of the scale of the problem. 
+    
+    The average number of annotated chunks per file being a perfect 8 value, this means that all the parsed files indeed contains the 6 key annotations with the additional \texttt{SSH\_STRUCT} and \texttt{SSH\_KEY} annotations. The dataset is very imbalanced since we have only 6 keys times the number of RAW files as positive labels and the rest as negative, thus the need for advanced reduction techniques. 
+    
+    The exact code to annotate the chunks can be as simple as the following:
+
+    \begin{algorithm}[H]
+        \caption{Annotate Chunk Algorithm}
+        \begin{algorithmic}[1]
+        \Procedure{AnnotateChunk}{$chunk, keys\_addresses, ssh\_struct\_addr, session\_state\_addr$}
+            \Ensure $chunk$ object
+            \Ensure $keys\_addresses$ list of integers
+            \Ensure $ssh\_struct\_addr$ integer
+            \Ensure $session\_state\_addr$ integer
+            \State \textbf{Note:} Annotations should be done after free chunk detection.
+            
+            \Procedure{AssertChunkUsedThenAnnotate}{$chunk, annotation$}
+                \State \textbf{Assert} $chunk.is\_in\_use$ \Comment{Make sure we don't annotate free chunks}
+                \State $chunk.annotations.append(annotation)$
+            \EndProcedure
+            
+            \If{$chunk.address \in keys\_addresses$}
+                \State \textsc{AssertChunkUsedThenAnnotate}($chunk, ChunkAnnotation.ChunkContainsKey$)
+            \ElsIf{$chunk.address = ssh\_struct\_addr$}
+                \State \textsc{AssertChunkUsedThenAnnotate}($chunk, ChunkAnnotation.ChunkContainsSSHStruct$)
+            \ElsIf{$chunk.address = session\_state\_addr$}
+                \State \textsc{AssertChunkUsedThenAnnotate}($chunk, ChunkAnnotation.ChunkContainsSessionState$)
+            \EndIf
+        \EndProcedure
+        \end{algorithmic}
+    \end{algorithm}
+    
+    This algorithm in itself and the results observed is an important discovery. The annotations are actually always given for the \texttt{chunk.address} which corresponds to the address of the first block after the malloc header block. This means that the annotations are actually given for the beginning of the user data space of a chunk. This is crucial discovery, since it means that we can filter out the malloc header and footer blocks, and only keep the first block of the user data space of the chunks we want to embed. There are $674232832 - 183331224 = 490901608$ blocks in use. But there is only $37346373$ chunks in use. This means that we can reduce the number of blocks to embed from $490901608$ to $37346373$ which is an additional reduction applied after the previous filtering that reduces the scale of the problem by a factor of 13. 
+    
+    Now let's look at the footer parsing. We can see in the logs that 94.72\% of free chunks are said to have a correct footer value. But this value is misleading. Since the last chunk of a heap dump is often cropped, it means it has no footer. But we consider those special last chunks as free chunks. In fact, in the $354410$ free chunks, we have $18720$ or around 5.28\% of them that are those special last cropped chunks only composed of zeros. With this perspective, we understand that 100\% of the free chunks should be considered with correct footer value. In contrast, only 1.81\% of in-use chunks have a correct footer value. It's tempting to think that maybe, those few chunks could maybe be actually empty too and removed. But this is not the case since a few chunks are actually both in-use, with a key annotation and a correct footer value. This means that we need to keep those chunks. 
+
+    After all those extensive analysis and tests, we have gained invaluable knowledge about how we can reduce the scale of the problem and parse the files. Now, we need a way to create meaninglful embeddings for the blocks we want to perform machine learning on. This is the goal of the next section.
+
+\section{Graph-based memory dumps embedding}\label{chap:mem_2_graph}
 Now that we have a decent understanding of the dataset as well as the low level memory dump format, we can start to think about how to convert the memory dumps into graphs. As a recall, we want to be able to convert a memory dump into a graph representation that can be used for machine learning, since we want to be able to create a memory modelization as a basis for efficient embedding and feature engineering later. This is inherently due to the imbalanceness of the dataset, as we want to add more information to each memory block that just its raw bytes. The goal is to have a graph representation of the memory dump that can be used for efficient machine learning.
 
-This section will be dedicated to describe the methods developped around this problem. We will first discuss the design of the graph representation, then we will discuss the implementation of the graph construction process. Finally, we will discuss the semantic embedding built from this graph representation.
+This section will be dedicated to describe the methods developped around this problem. We will first describe the design of the graph representation, then the implementation of the graph construction process. Finally, we will discuss the semantic embedding built from this graph representation.
 
 \subsection{Initial work from Python to Rust}
 
 Initially, we have been working and manipulating the code provided by SmartKex\footnote{SmartKex GitHub repository: \url{https://github.com/smartvmi/Smart-and-Naive-SSH-Key-Extraction}} for key detection. Our first explorations of the dataset quickly gave birth to some Jupyter Notebooks, which were used to explore the dataset and to understand the code, like \texttt{search\_in\_heap\_mem.ipynb}. Rapidly, we decided to rebuild a complete Python 3.11 version of the code. This was done for several reasons:
 
 \begin{itemize}
-    \item The original code has no type hinting, which makes it hard to read and understand.
+    \item The provided code had no type hinting, which makes it hard to read and understand.
     \item We wanted to explore the dataset and learn by doing.
     \item The original code was not designed to be used as a library, but rather as a standalone script.
     \item The original code was just a few hundred lines of code and was not designed to be easily extensible, nor to be able to handle a large number of memory dumps.
-    \item We wanted to modernize code by using the latest stable stversion of Python.
+    \item We wanted to modernize code by using the latest stable version of Python.
 \end{itemize}
 
-We decided to build a memory graph representation at that moment because we wanted to be able to add more information to the memory blocks than just their raw bytes. This new program was called \texttt{ssh\_key\_discover}, and relied on a number of Python libraries to work, like \texttt{graphviz}. This was a all-in-one library, composed of 2 sections, \texttt{mem\_graph} and \texttt{ml\_discovery}. The first one is dedicated to building the memory graph, while the second one is dedicated to the data science and machine learning part.
+We decided to build a memory graph representation at that moment because we wanted to be able to add more information to the memory blocks than just their raw bytes. This new program was called \texttt{ssh\_key\_discover}, and relied on a number of Python libraries to work, like \texttt{graphviz}. This was a all-in-one library, composed of 2 sections, \texttt{mem\_graph} and \texttt{ml\_discovery}. The first one was devoted to build memory graphs, while the second one was dedicated to the data science and machine learning part.
 
-This initial program was already capable of handling several data processing pipelines, including machine learning pipelines with models like Random Forest, a grid search for hyperparameter optimization, and a cross validation pipeline, several balancing strategies and of course, a memory graph representation and semantic embedding. As an early development version, this program was not optimized for performance, and just loading a given heap dump file and its annotation, and then building the memory graph representation, could take from 30 seconds to a minute (on the TUXEDO machine), depending on the size of the heap dump file. As we are dealing with more that $ 10^{6} $ files, a rapid estimation of the time needed just for the semantic embedding of the memory graph representation was above a month. In this regard, this initial program was just used on a bunch of files as a way to develop the semantic embedding model, algorithm and start working on feature engineering and machine learning.
+This initial program was already capable of handling several data processing pipelines, including machine learning pipelines with models like Random Forest, a grid search for hyperparameter optimization, and a cross validation pipeline, several balancing strategies and of course, a memory graph representation and semantic embedding. As an early development version, this program was not optimized for performance, and just loading a given heap dump file and its annotation, and then building the memory graph representation, could take from 30 seconds to a minute (on the TUXEDO machine), depending on the size of the heap dump file. As the original dataset comprises more than $ 10^{6} $ files, a rapid estimation of the time needed just for the semantic embedding of the memory graph representation was above a month. In this regard, this initial program was just used on a bunch of files as a way to develop the semantic embedding model, algorithm and start working on feature engineering and machine learning. But it could not be used to produce final results on the whole dataset due to the performance issues described above.
 
-This optimization issue was clearly not acceptable, and we decided to rewrite the graph part in Rust, which is a compiled language, and thus, several order of magnitude faster than Python. This was also a good opportunity to learn Rust, which is a language that is gaining more and more popularity, especially in the security community. This new program was called \texttt{mem2graph}. Switching from Rust to Python and doing a proper use of multithreading allowed us to reduce the time needed to build the memory graph representation from 30 seconds to less than 1 second. In out case, and comparing using only the TUXEDO laptop, this represent an estimated minimum of a 130x speedup. But this is even much better on the server, where the multithreading can really be leverage. This was a huge improvement, and allowed us to build the memory graph representation for the whole dataset in a just a few hours.
+This optimization issue was clearly not acceptable, and we decided to rewrite the graph part in Rust. This is a compiled language that leverages zero-cost abstractions, and thus, is several order of magnitude faster than Python. This was also a good opportunity to learn Rust, which is a language that is gaining more and more popularity, especially in the security community. This new program was called \texttt{mem2graph}. Switching from Rust to Python and doing a proper use of multithreading allowed us to reduce the time needed to build the memory graph representation from 30 seconds to less than 1 second. In out case, and comparing using only the TUXEDO laptop, this represent an estimated minimum of a 130x speedup. But this is even much better on the server, where the multithreading can really be leverage. This was a significant improvement which allowed us to build the memory graph representation for the whole original dataset in a just a few hours.
 
 \subsection{Memory Graph Representation}
-Now, let's describe the memory graph representation. The goal is to be able to represent a memory dump as a graph. This modelization makes sense since the heap dump can be considered as having data structures as nodes, being connected by pointers acting as arrows. This is a very natural way to represent a memory dump. However in our cases, and since the goal is to make predictions on raw bytes, we will not use the data structures as nodes, but rather the memory blocks directly. This is because we want to be able to make predictions on raw bytes, and not on data structures. 
+Now, let's describe the memory graph representation. The goal is to be able to represent a memory dump as a graph. This modelization makes sense since the heap dump can be considered as having memory chunks as nodes, being connected by pointers acting as arrows. This is a very natural way to represent a memory dump. However in our cases, and since the goal is to make predictions on raw bytes, we will not use the chunks as nodes, but rather the memory blocks directly. This is because we want to be able to make predictions on raw blocks of bytes, and not on chunks. 
 
 % introduce the type of the graph, the nodes and edge
-The main idea behind the following memory graph representation is to be able to represent the whole content of a heap dump file as a directed graph that contains the address as well as the byte block of every element. This last point is especially important since we want to be able to make predictions on raw bytes, and not on data structures. This is why we will not use the data structures as nodes, but rather the memory blocks directly. 
-
-Our memory graph representation is composed of a directed graph, where each node is a memory block, and each edge is either indicative of a pointer link or a structure membership relationship. This second representation is directly inspired by collection representation in \acrlong{kg} ontologies. In the case of \acrshort{rdf}, this could be equivalent to a \textbf{rdf:Bag}, which is an unordered container \cite{OrderedDataInRDF20} (see \ref{sec:background:ontology}). The graph is directed because the pointers are directed. We will also consider the relationship of belonging to a data structure as oriented from the data structure header block to the data structure member blocks.
+Our memory graph representation is composed of a directed graph, where each node is a memory block of bytes, and each edge is either indicative of a pointer link or a chunk membership relationship. This second representation is directly inspired by collection representation in \acrlong{kg} ontologies. In the case of \acrshort{rdf}, this could be equivalent to a \textbf{rdf:Bag}, which is an unordered container \cite{OrderedDataInRDF20} (see \ref{sec:background:ontology}). The graph is directed because the pointers are directed. We will also consider the relationship of belonging to a chunk as oriented from the data structure header block to the data structure member blocks.
 
 Our memory graph representation is inherently a property graph. Each node and edge can have properties. The properties of an edge are the type of the edge, which can be either a pointer or a structure membership relationship.
 
