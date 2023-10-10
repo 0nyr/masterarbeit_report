@@ -1,5 +1,9 @@
 # Logs
 
+NOTE: Since we are only predicting first block of chunks, this is equivalent to predict the chunk itself.
+
+`cargo run -- -d /home/onyr/code/phdtrack/phdtrack_data_clean/ -o /home/onyr/code/phdtrack/mem2graph/data/chunk_semantic_no_vn -p chunk-semantic-embedding -e only-max-entropy -a chunk-header-node -v`
+
 ### Thu 28 Sep 2023
 
 Lot of work.
