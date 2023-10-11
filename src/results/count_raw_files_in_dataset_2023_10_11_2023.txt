@@ -1,0 +1,74 @@
+ ❮onyr ★ nixos❯ ❮predicting_ssh_key_masterarbeit_report❯❯ python src/count_files_in_dataset.py 
+INPUT DIR: /home/onyr/code/phdtrack/phdtrack_data_clean/Training/
+Number of empty subdirectories: 63
+[1043.0, 1061.0, 1072.75]
+Median number of RAW files: 1061.0
+
+Subdirectories in the first quartile:
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/port-forwarding/V_8_0_P1/16 with 923 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/port-forwarding/V_8_0_P1/24 with 941 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_6_8_P1/24 with 1043 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24 with 1043 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_9_P1/24 with 1041 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/client/V_7_8_P1/24 with 1039 RAW files
+
+Subdirectories in the fourth quartile:
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/scp/V_8_0_P1/24 with 1075 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_8_7_P1/24 with 1075 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_8_8_P1/24 with 1079 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_2_P1/24 with 1073 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_8_0_P1/24 with 1074 RAW files
+INPUT DIR: /home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/
+Number of empty subdirectories: 0
+[100.0, 100.0, 100.0]
+Median number of RAW files: 100
+
+Subdirectories in the first quartile:
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_1_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_1_P1/32 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_0_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_0_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_1_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_1_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_1_P1/32 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_9_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_9_P1/32 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_8_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_8_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_8_P1/32 with 100 RAW files
+
+Subdirectories in the fourth quartile:
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_1_P1/16 with 101 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_1_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_1_P1/32 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_0_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_0_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_8_0_P1/32 with 101 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_1_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_1_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_1_P1/32 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_9_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_9_P1/24 with 101 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_9_P1/32 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_8_P1/16 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_8_P1/24 with 100 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/Performance_Test/V_7_8_P1/32 with 100 RAW files
+INPUT DIR: /home/onyr/code/phdtrack/phdtrack_data_clean/Validation/
+Number of empty subdirectories: 62
+[177.0, 186.5, 199.5]
+Median number of RAW files: 186.5
+
+Subdirectories in the first quartile:
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/port-forwarding/V_8_0_P1/24 with 151 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/port-forwarding/V_7_8_P1/24 with 170 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/scp/V_8_0_P1/24 with 174 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/scp/V_7_8_P1/24 with 177 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/basic/V_8_8_P1/24 with 171 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/basic/V_7_2_P1/24 with 177 RAW files
+
+Subdirectories in the fourth quartile:
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/basic/V_6_8_P1/24 with 208 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/basic/V_6_9_P1/24 with 202 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/basic/V_7_1_P1/24 with 208 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/basic/V_7_9_P1/24 with 209 RAW files
+/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/Validation/client/V_7_8_P1/24 with 200 RAW files
