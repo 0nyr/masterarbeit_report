@@ -1,3 +1,16 @@
+# TODO
+
+Write a paragraph on repartition of training and testing files.
+
+```
+ ❮onyr ★ nixos❯ ❮phdtrack_data_clean❯❯ find ./Performance_Test/ -type f -name '*-heap.raw' | wc -l
+1503
+ ❮onyr ★ nixos❯ ❮phdtrack_data_clean❯❯ find ./Training/ -type f -name '*-heap.raw' | wc -l
+20953
+ ❮onyr ★ nixos❯ ❮phdtrack_data_clean❯❯ find ./Validation/ -type f -name '*-heap.raw' | wc -l
+3735
+```
+
 # Logs
 
 NOTE: Since we are only predicting first block of chunks, this is equivalent to predict the chunk itself.
