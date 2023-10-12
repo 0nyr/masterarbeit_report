@@ -32,6 +32,7 @@ def main(dataset_dir):
         return
 
     print(f"Number of empty subdirectories: {len(empty_subdirs)}")
+    print(empty_subdirs)
 
     raw_counts = list(subdirs_raw_count.values())
 
@@ -43,6 +44,8 @@ def main(dataset_dir):
     fourth_quartile = quartiles[2]
 
     print(f"Median number of RAW files: {median}")
+    print(f"min number of RAW files: {min(raw_counts)}")
+    print(f"max number of RAW files: {max(raw_counts)}")
 
     # Identify subdirs in first and fourth quartiles
     first_quartile_subdirs = [subdir for subdir, count in subdirs_raw_count.items() if count <= first_quartile]
@@ -57,11 +60,11 @@ def main(dataset_dir):
         print(subdir, "with", subdirs_raw_count[subdir], "RAW files")
 
 if __name__ == "__main__":
-    dataset_dir = "/home/onyr/code/phdtrack/phdtrack_data_clean/Training/"  # Replace with your dataset directory path
+    dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Training/"  # Replace with your dataset directory path
     main(dataset_dir)
 
-    dataset_dir = "/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/"  # Replace with your dataset directory path
+    dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Performance_Test/"  # Replace with your dataset directory path
     main(dataset_dir)
 
-    dataset_dir = "/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/"  # Replace with your dataset directory path
+    dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Validation/"  # Replace with your dataset directory path
     main(dataset_dir)
