@@ -34,6 +34,8 @@ def main(dataset_dir):
     print(f"Number of empty subdirectories: {len(empty_subdirs)}")
     print(empty_subdirs)
 
+    print(f"Number of subdirectories with RAW files: {len(subdirs_raw_count)}")
+
     raw_counts = list(subdirs_raw_count.values())
 
     # Compute statistics
