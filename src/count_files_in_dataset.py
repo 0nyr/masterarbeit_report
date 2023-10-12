@@ -5,6 +5,37 @@ in every subdirectories of the given dataset
 import os
 import statistics
 
+def generate_latex_list_from_paths(paths : list[str]) -> str:
+    def format_path_for_latex(path):
+        # Split the path into its components
+        parts = path.split('/')
+        
+        # Get the last four folders
+        last_four = parts[-4:]
+        
+        # Format for LaTeX item
+        latex_item = "\\item Use case: {use_case}, OpenSSH version: {openssh_version}, Key size: {key_size}".format(
+            use_case=last_four[1], 
+            openssh_version=last_four[2], 
+            key_size=last_four[3]
+        )
+        
+        return latex_item
+    
+    if len(paths) == 0:
+        return ""
+
+    # Extract the subset from the first path (assuming all paths have the same subset)
+    subset = paths[0].split('/')[-4]
+
+    latex_list : str = "\\textbf{" + subset + "}\n"
+    latex_list += "\\begin{itemize}\n"
+    for path in paths:
+        latex_list += "    " + format_path_for_latex(path) + "\n"
+    latex_list += "\\end{itemize}"
+
+    return latex_list
+
 def count_raw_files_in_subdir(subdir):
     count = 0
     for _, _, filenames in os.walk(subdir):
@@ -32,7 +63,7 @@ def main(dataset_dir):
         return
 
     print(f"Number of empty subdirectories: {len(empty_subdirs)}")
-    print(empty_subdirs)
+    print(generate_latex_list_from_paths(empty_subdirs))
 
     print(f"Number of subdirectories with RAW files: {len(subdirs_raw_count)}")
 
@@ -57,9 +88,15 @@ def main(dataset_dir):
     for subdir in first_quartile_subdirs:
         print(subdir, "with", subdirs_raw_count[subdir], "RAW files")
 
+    print(generate_latex_list_from_paths(first_quartile_subdirs))
+
     print("\nSubdirectories in the fourth quartile:")
     for subdir in fourth_quartile_subdirs:
         print(subdir, "with", subdirs_raw_count[subdir], "RAW files")
+
+    print(generate_latex_list_from_paths(fourth_quartile_subdirs))
+
+    print(f"END OF DIRECTORY {dataset_dir}\n\n")
 
 if __name__ == "__main__":
     dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Training/"  # Replace with your dataset directory path
