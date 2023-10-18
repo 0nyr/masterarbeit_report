@@ -99,11 +99,11 @@ def main(dataset_dir):
     print(f"END OF DIRECTORY {dataset_dir}\n\n")
 
 if __name__ == "__main__":
-    dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Training/"  # Replace with your dataset directory path
+    dataset_dir = "/home/onyr/code/phdtrack/phdtrack_data_clean/Training/"  # Replace with your dataset directory path
     main(dataset_dir)
 
-    dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Performance_Test/"  # Replace with your dataset directory path
+    dataset_dir = "/home/onyr/code/phdtrack/phdtrack_data_clean/Performance_Test/"  # Replace with your dataset directory path
     main(dataset_dir)
 
-    dataset_dir = "/home/clement/Documents/phdtrack_data/dataset/Validation/"  # Replace with your dataset directory path
+    dataset_dir = "/home/onyr/code/phdtrack/phdtrack_data_clean/Validation/"  # Replace with your dataset directory path
     main(dataset_dir)
