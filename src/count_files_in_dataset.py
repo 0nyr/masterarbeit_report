@@ -46,7 +46,7 @@ def count_raw_files_in_subdir(subdir):
 
 def main(dataset_dir):
     print("INPUT DIR:", dataset_dir)
-    subdirs_raw_count = {}
+    subdirs_raw_count : dict[str, int] = {}
     empty_subdirs = []
 
     for subdir, _, _ in os.walk(dataset_dir):
@@ -95,6 +95,10 @@ def main(dataset_dir):
         print(subdir, "with", subdirs_raw_count[subdir], "RAW files")
 
     print(generate_latex_list_from_paths(fourth_quartile_subdirs))
+
+    print("\nAll keeping subdirectories :")
+
+    print(generate_latex_list_from_paths(list(subdirs_raw_count.keys())))
 
     print(f"END OF DIRECTORY {dataset_dir}\n\n")
 
