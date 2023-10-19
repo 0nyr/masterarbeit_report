@@ -238,7 +238,7 @@ class Chunk:
 
         # annotations and statistics
         self.is_free = False
-        self.annotations = []
+        self.annotations: list[ChunkAnnotation] = []
         self.first_bytes_entropy = -math.inf
 
     def __str__(self):
@@ -792,6 +792,8 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     nb_chunks_in_use_correct_footer_annotated = 0
     nb_chunks_in_use_correct_footer_annotated_and_key = 0
 
+    sizes_key_chunks: list[int] = []
+
     nb_annotated_chunks = 0
     for i in range(0, len(chunks)):
         chunk = chunks[i]
@@ -830,6 +832,9 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
         if len(chunk.annotations) > 0:
             nb_annotated_chunks += 1
         
+        # count key chunks
+        if ChunkAnnotation.ChunkContainsKey in chunk.annotations:
+            sizes_key_chunks.append(chunk.size)
         
     if os.environ["DEBUG"] == "True":
         # print chunks with annotations
@@ -926,6 +931,9 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     stats["nb_annotated_chunks"] = nb_annotated_chunks
     stats["nb_chunks_in_use_correct_footer_annotated"] = nb_chunks_in_use_correct_footer_annotated
     stats["nb_chunks_in_use_correct_footer_annotated_and_key"] = nb_chunks_in_use_correct_footer_annotated_and_key
+    
+    # save lists
+    stats["sizes_key_chunks"] = sizes_key_chunks
 
     # delete stuff to free memory
     del blocks
@@ -938,6 +946,8 @@ def main():
     Main function.
     """
     cli = CLIArguments()
+
+    all_sizes_key_chunks: list[int] = []
 
     global_stats = {}
     global_stats["nb_parsed_files"] = 0
@@ -983,6 +993,8 @@ def main():
         global_stats["nb_annoted_chunks"] += stats["nb_annotated_chunks"]
         global_stats["nb_chunks_in_use_correct_footer_annotated"] += stats["nb_chunks_in_use_correct_footer_annotated"]
         global_stats["nb_chunks_in_use_correct_footer_annotated_and_key"] += stats["nb_chunks_in_use_correct_footer_annotated_and_key"]
+
+        all_sizes_key_chunks.extend(stats["sizes_key_chunks"])
 
     if cli.args.input is None:
         # default input
@@ -1065,6 +1077,27 @@ def main():
     # compute the average number of chunks in use with correct footer and annotated per file
     average_nb_chunks_in_use_correct_footer_annotated_per_file = global_stats["nb_chunks_in_use_correct_footer_annotated"] / global_stats["nb_parsed_files"]
     print(f"Average number of chunks in use with correct footer and annotated per file: {average_nb_chunks_in_use_correct_footer_annotated_per_file}")
+
+    # compute and print the quartiles of the sizes of the key chunks
+    sizes_key_chunks = np.array(all_sizes_key_chunks)
+    sizes_key_chunks.sort()
+
+    Q1_sizes_key_chunks = np.percentile(sizes_key_chunks, 25)
+    Q2_sizes_key_chunks = np.percentile(sizes_key_chunks, 50)
+    Q3_sizes_key_chunks = np.percentile(sizes_key_chunks, 75)
+
+    print("Q1 size of key chunks:", Q1_sizes_key_chunks)
+    print("Q2 size of key chunks:", Q2_sizes_key_chunks)
+    print("Q3 size of key chunks:", Q3_sizes_key_chunks)
+
+    # print set of sizes of key chunks
+    set_sizes_key_chunks = set(sizes_key_chunks)
+    print("Set of sizes of key chunks:", set_sizes_key_chunks)
+    
+    # print number of sizes
+    print("Number of sizes:", len(sizes_key_chunks))
+    print("Number of unique sizes:", set_sizes_key_chunks)
+
 
 if __name__ == "__main__":
     main()
