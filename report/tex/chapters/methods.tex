@@ -1235,6 +1235,13 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
         Percentage of in-use chunks with correct footer value: 1.8051818044922352%
         Average number of annoted chunks per file: 8.0
         Average number of chunks in use with correct footer and annotated per file: 0.2927723263716544
+        Set of sizes of key chunks: {32, 48, 64}
+        Sizes of key chunks with their number of occurences:
+        Size: 32  Number of occurences: 34366
+        Size: 48  Number of occurences: 109346
+        Size: 64  Number of occurences: 13434
+        Number of sizes: 157146
+        Number of unique sizes: {32, 48, 64}
     \end{lstlisting}
 
     The cleaned dataset contains 26191 RAW files and their corresponding annotation files. The program has been able to parse all those files, and has been able to detect 37682063 chunks, which represents 674232832 blocks. This is a huge number of blocks. The goal being to be able to predict which of those blocks are first key blocks, we need to be able to filter out the useless blocks as much as possible to both optimize computations and scale down the problem. 
@@ -1273,7 +1280,12 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
     
     This algorithm in itself and the results observed is an important discovery. The annotations are actually always given for the \texttt{chunk.address} which corresponds to the address of the first block after the malloc header block. This means that the annotations are actually given for the beginning of the user data space of a chunk. This is crucial discovery, since it means that we can filter out the malloc header and footer blocks, and only keep the first block of the user data space of the chunks we want to embed. There are $674232832 - 183331224 = 490901608$ blocks in use. But there is only $37346373$ chunks in use. This means that we can reduce the number of blocks to embed from $490901608$ to $37346373$ which is an additional reduction applied after the previous filtering that reduces the scale of the problem by a factor of 13. 
     
-    Now let's look at the footer parsing. We can see in the logs that 94.72\% of free chunks are said to have a correct footer value. But this value is misleading. Since the last chunk of a heap dump is often cropped, it means it has no footer. But we consider those special last chunks as free chunks. In fact, in the $354410$ free chunks, we have $18720$ or around 5.28\% of them that are those special last cropped chunks only composed of zeros. With this perspective, we understand that 100\% of the free chunks should be considered with correct footer value. In contrast, only 1.81\% of in-use chunks have a correct footer value. It's tempting to think that maybe, those few chunks could maybe be actually empty too and removed. But this is not the case since a few chunks are actually both in-use, with a key annotation and a correct footer value. This means that we need to keep those chunks. 
+    Now let's look at the footer parsing. We can see in the logs that 94.72\% of free chunks are said to have a correct footer value. But this value is misleading. Since the last chunk of a heap dump is often cropped, it means it has no footer. But we consider those special last chunks as free chunks. In fact, in the $354410$ free chunks, we have $18720$ or around 5.28\% of them that are those special last cropped chunks only composed of zeros. With this perspective, we understand that 100\% of the free chunks should be considered with correct footer value. In contrast, only 1.81\% of in-use chunks have a correct footer value. It's tempting to think that maybe, those few chunks could maybe be actually empty too and removed. But this is not the case since a few chunks are actually both in-use, with a key annotation and a correct footer value. This means that we need to keep those chunks.
+
+    \subsubsection{Chunk filtering}
+    Based on the previous observations, we can propose different ways of filtering some chunks out. The objective is to reduce the number of chunks before any further processing to reduce the imbalanceness.
+
+    Since we have seen that free chunks are never annotated, we can filter them out. This filtering technique is applied in the final implementation of the chunk parsing algorithm. This filtering technique allows to reduce the number of chunks from $37682063$ to $37346373$, which is a reduction of 0.89\%. This is not a huge reduction, but it's still a reduction.
 
     After all those extensive analysis and tests, we have gained invaluable knowledge about how we can reduce the scale of the problem and parse the files. Now, we need a way to create meaninglful embeddings for the blocks we want to perform machine learning on. This is the goal of the next section.
 

@@ -1,6 +1,6 @@
 # TODO
 
-Write a paragraph on repartition of training and testing files.
+* [ ] Write a paragraph on repartition of training and testing files.
 
 ```
  ❮onyr ★ nixos❯ ❮phdtrack_data_clean❯❯ find ./Performance_Test/ -type f -name '*-heap.raw' | wc -l
@@ -10,6 +10,29 @@ Write a paragraph on repartition of training and testing files.
  ❮onyr ★ nixos❯ ❮phdtrack_data_clean❯❯ find ./Validation/ -type f -name '*-heap.raw' | wc -l
 3735
 ```
+
+* [ ] Correct chunk filtering
+* [ ] correct mem graph construction
+
+
+
+* [ ] Write SUMMARY result section in Conclusion
+
+* Identifying a key is equivalent to identifying its chunk
+* We can filter out chunks based on the entropy of the 12 first bytes of their user data, their connectivity to other chunks, or their size.
+* We can build a directed graph representing every block and every chunk from a heap dump
+* We can perform embeddings on those graph via manual feature engineering, or automated techniques like Node2Vec
+* ML and Deep Learning models are efficient at identifying keys from thoses embeddings, but hyperparam tuning and model fitting is time and compute intensive.
+
+* [ ] Write future work
+
+* Leverage the work done in this masterarbeit and generalize it to other programs based on GLibC
+* Study the impact of different C libraries on the algorithms developped here
+* Improve hyperparameter tuning
+* Test more advanced GCN algorithm, with different layers, attention mecanism and more
+* Add new custom embeddings to mem2graph program.
+
+
 
 # Logs
 

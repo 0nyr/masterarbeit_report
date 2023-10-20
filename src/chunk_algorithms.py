@@ -1093,7 +1093,12 @@ def main():
     # print set of sizes of key chunks
     set_sizes_key_chunks = set(sizes_key_chunks)
     print("Set of sizes of key chunks:", set_sizes_key_chunks)
-    
+
+    # print each unique size of key chunks, with the number of chunks with this size
+    print("Sizes of key chunks with their number of occurences:")
+    for size in set_sizes_key_chunks:
+        print(f"Size: {size}  Number of occurences: {np.count_nonzero(sizes_key_chunks == size)}")
+
     # print number of sizes
     print("Number of sizes:", len(sizes_key_chunks))
     print("Number of unique sizes:", set_sizes_key_chunks)
