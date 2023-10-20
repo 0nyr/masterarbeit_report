@@ -687,13 +687,17 @@ def parsing_blocks_to_chunks_with_stats(
 
 
     # load annotations
-    keys_addresses, ssh_struct_addr, session_state_addr = get_addresses_of_annotations(
-        json_annotations,
-        blocks,
-        heap_start_addr,
-        heap_size_in_bytes,
-    )
-    
+    try:
+        keys_addresses, ssh_struct_addr, session_state_addr = get_addresses_of_annotations(
+            json_annotations,
+            blocks,
+            heap_start_addr,
+            heap_size_in_bytes,
+        )
+    except Exception as err:
+        print(f"ERROR: {err}", f"Skipping file: {raw_file_path}")
+        return None
+        
     # chunk post processing
     for i in range(0, len(chunks)):
         chunk = chunks[i]
