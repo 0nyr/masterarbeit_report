@@ -2,18 +2,37 @@
 
 % Summarize the thesis and provide a outlook on future work.
 
-The evolving landscape of cybersecurity necessitates robust techniques for safeguarding digital communications. OpenSSH, a pivotal element in this landscape, is a popular implementation of the Secure Shell (\acrshort{ssh}) protocol, which enables secure communication between two networked devices. The protocol is widely used in the industry, particularly in the context of remote access to servers. Using digital forensic techniques, it is possible to extract the SSH keys from memory dumps, which can then be used to decode encrypted communications thus allowing the monitoring of controlled systems. At the crux of this Masterarbeit is the development of machine learning algorithms to predict SSH keys within these heap dumps, focusing on using graph-like-structures and vectorization for custom embeddings. With an interdisciplinary approach that fuses traditional feature engineering with graph-based methods as well as memory modelization for inductive reasoning and learning inspired by recent developments in \acrfull{kg}s, this research not only leverages existing machine learning paradigms but also explores new avenues, such as \acrfull{gcn}.
+The evolving landscape of cybersecurity necessitates robust techniques for safeguarding digital communications. OpenSSH, a pivotal element in this landscape, is a popular implementation of the Secure Shell (\acrshort{ssh}) protocol, which enables secure communication between two networked devices. The protocol is widely used in the industry, particularly in the context of remote access to servers. Using digital forensic techniques, it is possible to extract the SSH keys from memory dumps, which can then be used to decode encrypted communications thus allowing the monitoring of controlled systems. At the crux of this Masterarbeit is the development of algorithms and machine learning models to predict SSH keys within these heap dumps, focusing on using graph-like-structures and vectorization for custom embeddings. With an interdisciplinary approach that fuses traditional feature engineering with graph-based methods as well as memory modelization for inductive reasoning and learning inspired by recent developments in \acrfull{kg}s, this research not only leverages existing machine learning paradigms but also explores new avenues, such as \acrfull{gcn} applied to memory forensics. The present work also introduces a new memory forensics tool, \textit{mem2graph}, which is designed to be modular and extensible, and which can be used to generate memory graphs from memory dumps. 
 
 \section{Summary of Results}
+Below is a summary of the results achieved in the present work.
+
+\subsection{Memory Graph Generation}
+This masterarbeit has introduced a range of algorithms able to generate memory graphs from memory dumps. The algorithms are designed to be as generic as possible, and can be applied to any memory dump dataset. The algorithms are mostly implemented in the \textit{mem2graph} program.
+
+With those algorithm, it is possble to parse a RAW heap dump file, and transform it into a memory graph. The memory graph is a graph-like structure, where each node represents a memory block with a precise address in the heap. Each edge represents either a pointer pointing to another block, or materialize the fact that a block belongs to a specific chunk. 
+
+The memory graph can be used to extract features from the memory dump, and to apply machine learning algorithms to the memory dump. It can also be used for direct graph visualization.
+
+\subsection{Feature Engineering and Embeddings}
+
+\subsection{Classic Machine Learning Models}
+
+\subsection{Deep Learning GCN Models}
+
 
 \section{Outlook on Future Work}\label{conclusion:sec:future_work}
 
 % What are the next steps? What are the open questions? What are the limitations of your work?
 
-The present report and related Masterarbeit work have introduced a range of new algorithms and implementations. 
+The current report, in conjunction with the associated Masterarbeit, has introduced numerous novel algorithms and implementations. These have been instrumental in addressing the initial research questions. However, as with most research endeavors, new queries and potential avenues for enhancement have emerged, paving the way towards further exploration.
 
-In order to integrate efficiently the machine learning part into the \textit{mem2graph} program, more work is needed. Incorporating the machine learning directly after the memory graph construction would greatly improve the efficiency, for instance in the objective of developping a real-time OpenSSH memory forensics tool.
+The methodologies and algorithms introduced for the OpenSSH memory dump dataset are versatile and can be extended to other memory dump datasets utilizing the GLIBC library. Given that this library is the default for Linux, adapting the methods from this Masterarbeit to other applications requires minimal effort. The \textit{mem2graph} program is inherently modular and built for extensibility. Furthermore, this tool can be employed to produce memory graphs for diverse datasets. Thanks to the universal character of the generated embeddings and memory graphs, new datasets can be readily integrated into the \acrshort{ml} and \acrshort{dl} pipelines crafted in Python. While an extensive array of features and embedding techniques have been explored in this report, there remains ample opportunity for innovative experimentation.
 
-The pipeline and algorithms introduced specifically for the OpenSSH memory dump dataset could be applied to other memory dump datasets. The \textit{mem2graph} program is designed to be modular and extensible, and the algorithms are designed to be as generic as possible. The \textit{mem2graph} program could be used to generate memory graphs for other memory dump datasets, and the machine learning algorithms could be applied to other memory dump datasets. Only some minor algorithm changes are needed, related to the architecture used to generate or extract the heap dump. This would be a major step towards a generic memory forensics tool for machine learning assisted extraction.
+For a seamless fusion of machine learning into the \textit{mem2graph} program, further effort is required. Embedding machine learning immediately post-memory graph creation can substantially boost efficiency, particularly when aiming to craft a real-time OpenSSH memory forensics utility. However, this integration is challenging due to the current limited \acrshort{ml} support within Rust.
 
-Indeed, and as illustrated by the background section, there exist so many \acrshort{ml} architectures and solutions that it is impossible to cover them all. The present work has focused on the most popular and promising architectures, but there are many more that could be explored. The programs developped to support \acrshort{ml} pipelines are designed to be modular and extensible, and could be used to explore other \acrshort{ml} models.
+Another avenue for enhancement involves analyzing the effects of different C libraries on allocated chunks and the layout of heap dump memory. Investigating various languages could also be insightful. Depending on the level of variation encountered, modifications to the algorithms might be required, especially concerning the architecture involved in generating or extracting heap dump configurations. Pursuing this direction could significantly advance the development of a universal machine learning-assisted memory forensics tool for key extraction.
+
+While the background section underscores the vast array of \acrshort{ml} architectures available, it's clear that not all can be thoroughly explored. This research has primarily addressed the most common and promising ones, yet numerous others await investigation. The tools crafted to bolster \acrshort{ml} pipelines present a solid foundation for such endeavors. Another dimension to consider is hyperparameter optimization. Given the constraints of time and resources, only certain parameter ranges were tested. Expanding these tests, incorporating larger datasets, and harnessing increased computational capacity can directly enhance performance.
+
+
