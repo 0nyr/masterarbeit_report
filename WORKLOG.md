@@ -25,9 +25,13 @@
 
 * Leverage the work done in this masterarbeit and generalize it to other programs based on GLibC
 * Study the impact of different C libraries on the algorithms developped here
+* Integrate the models into a new Rust program, able to do the full graph parsing and ML predictions.
 * Improve hyperparameter tuning
-* Test more advanced GCN algorithm, with different layers, attention mecanism and more
+* Test more model of ML and DL
 * Add new custom embeddings to mem2graph program.
+
+* [X] Correct shema graphs to be using CHN instead of DTN.
+
 
 # Logs
 
