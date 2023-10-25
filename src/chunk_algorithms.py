@@ -655,7 +655,7 @@ def parsing_blocks_to_chunks_with_stats(
         if malloc_header.size == 0:
             print(
                 f"ERROR: malloc_header.size is 0. "
-                f"Skipping file: {raw_file_path}"
+                f"Skipping (or deleting) file: {raw_file_path}"
             )
             return None
 

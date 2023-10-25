@@ -20,7 +20,7 @@ The are other approaches that allows to decrypt SSH connections without relying 
 
 % Write down and explain your research questions (2-5)
 
-At the very beginning of this thesis, the objective was to answer the following research questions:
+At the very beginning of this thesis, first questions were:
 \begin{itemize}
 	\item What is the state of the art in the field of security key detection in heap dump memory?
 	\item What are the challenges of security key detection in heap dump memory?
@@ -62,12 +62,25 @@ To ensure the highest level of reproducibility and accessibility, this thesis in
 	In the context of the present Masterarbeit, a number of GitHub repositories have been created to facilitate the sharing of code and data. These repositories are listed below:
 
 	\begin{itemize}
-		\item \textbf{masterarbeit\_report}: Repository containing the LaTeX code for the report as well as several small scripts related to dataset exploration. \url{https://github.com/0nyr/masterarbeit_report}
-		\item \textbf{mem2graph}: Memory graph creation utility built in Rust, featuring different graph creation and embedding strategies. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/mem2graph}
-		\item \textbf{research-base}: Custom Python framework for developing programs that include all the basics of a research project, such as logging, environment and argument loading, result keeping, and more. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/research-base}
-		\item \textbf{data\_processing\_masterarbeit}: Python program for data processing and machine learning for SSH key prediction. \url{https://github.com/0nyr/data_processing_masterarbeit}
-		\item \textbf{phdtrack\_project\_3}: Historical repository containing the first version of the memory graph creation utility and the first version of the dataset creation script. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/phdtrack_project_3}
+
+		\item \textbf{masterarbeit\_report\_onyr}: Repository containing the LaTeX code for the report as well as several scripts related to dataset exploration: \url{https://github.com/passau-masterarbeit-2023/masterarbeit_report_onyr}
+		
+		\item \textbf{mem2graph}: Memory graph creation utility built in Rust, featuring different graph creation and embedding strategies. Collaboration with Clément Lahoche: \url{https://github.com/passau-masterarbeit-2023/mem2graph}
+
+		\item \textbf{research-base}: Custom Python framework for developing programs that include all the basics of a research project, such as logging, environment and argument loading, result keeping, and more. Collaboration with Clément Lahoche: \url{https://github.com/0nyr/research-base}
+
+		\item \textbf{data\_processing}: Python program for data processing and machine learning for SSH key prediction. This repository contains tests on machine learning model training and evaluation for classical .csv based embedding files from \textit{mem2graph}: \url{https://github.com/passau-masterarbeit-2023/data_processing}
+		
+		\item \textbf{phdtrack\_project\_3}: Legacy repository containing the first version of the memory graph creation utility and the first version of the dataset creation script. Collaboration with Clément Lahoche. \url{https://github.com/0nyr/phdtrack_project_3}
+		
+		\item \textbf{memory\_graph\_gcn}: Main Python program and scripts around GCN for SSH key prediction. This program leverages the modified DOT file with embedding generayted by \textit{mem2graph}: \textit{mem2graph}:
+		\url{https://github.com/passau-masterarbeit-2023/memory_graph_gcn}
+
+		\item \textbf{phdtrack\_server\_scripts}: Scripts for the servers used for computating. This repository contains the scripts used to install the necessary tooling and run the experiments on the different servers we used. Collaboration with Clément Lahoche:
+		\url{https://github.com/passau-masterarbeit-2023/phdtrack_server_scripts}
 	\end{itemize}
+
+	As one can see, and considering the collaborative work effort that has been, it has been decided to regroup all repositories related to the OpenSSH heap dump exploration in a single GitHub organization, \textit{passau-masterarbeit-2023} \url{https://github.com/passau-masterarbeit-2023}.
 
 \section{Structure of the Thesis}
 

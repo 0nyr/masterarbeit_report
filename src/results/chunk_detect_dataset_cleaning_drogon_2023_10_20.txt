@@ -1,0 +1,36 @@
+Processing files: 100%|█████| 103595/103595 [24:31<00:00, 70.40it/s, file=6717-1644319566]
+------> Statistics:
+Total number of parsed files: 26202
+Total number of skipped files: 77393
+Total number of chunks: 37714898
+Total number of blocks: 674604544
+Total number of chunks with P=1: 37378977
+Total number of chunks with M=1: 0
+Total number of chunks with A=1: 0
+Total number of free chunks: 354641
+Total number of chunks only composed of zeros: 18720
+Total number of blocks in free chunks: 183334260
+Total number of chunks with correct footer value: 1009995
+Total number of chunks both free and with correct footer value: 335921
+Total number of chunks free and annotated: 0
+Total number of potential footers with annotations (should be 0): 0
+Total number of annotated chunks: 209616
+Total number of chunks in used, with correct footer, and annotated: 7668
+Total number of chunks in used, with correct footer, and key annotated: 7668
+Total number of deleted raw files: 77393
+Percentage of free chunks: 0.9403207188840866%
+Percentage of blocks in free chunks: 27.176552786457364%
+Percentage of free chunks with correct footer value: 94.72142250895976%
+Percentage of in-use chunks with correct footer value: 1.8042541837975041%
+Average number of annoted chunks per file: 8.0
+Average number of chunks in use with correct footer and annotated per file: 0.29264941607510875
+Q1 size of key chunks: 48.0
+Q2 size of key chunks: 48.0
+Q3 size of key chunks: 48.0
+Set of sizes of key chunks: {32, 48, 64}
+Sizes of key chunks with their number of occurences:
+Size: 32  Number of occurences: 34366
+Size: 48  Number of occurences: 109401
+Size: 64  Number of occurences: 13445
+Number of sizes: 157212
+Number of unique sizes: {32, 48, 64}

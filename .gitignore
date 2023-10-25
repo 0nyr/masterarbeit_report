@@ -23,3 +23,7 @@
 *.lot
 *.lof
 
+# Python build file
+__pycache__/
+*.pyc
+

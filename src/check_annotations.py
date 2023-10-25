@@ -162,10 +162,20 @@ def validate_json(json_data: dict, json_file_path: str) -> dict:
         else:
             errors[key] = True
             if key == "SESSION_STATE_ADDR":
-                dp("SESSION_STATE_ADDR:", "is in heap of range (", hex(heap_start_addr), ",", hex(heap_start_addr + heap_size_in_bytes), ")")
+                if heap_start_addr is None or heap_size_in_bytes is None:
+                    dp("SESSION_STATE_ADDR:", 
+                        "is in heap of unknown range"
+                    )
+                else:
+                    dp("SESSION_STATE_ADDR:", 
+                        "is in heap of range (", 
+                        hex(heap_start_addr), ",", 
+                        hex(heap_start_addr + heap_size_in_bytes), 
+                        ")"
+                    )
 
     # get all key names
-    key_names: list[str] = set()
+    key_names = set()
     for keys in json_data.keys():
         if keys.startswith("KEY_"):
             # get first letter after "KEY_"
@@ -327,7 +337,8 @@ def main():
             
             # write to CSV file if JSON is incorrect
             if errors["incorrect_keys"] > 0 or errors["incomplete_keys"] > 0:
-
+                
+                status = ""
                 if errors["incorrect_keys"] > 0:
                     status = "incorrect"
                 elif errors["incomplete_keys"] > 0:

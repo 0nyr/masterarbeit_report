@@ -33,6 +33,10 @@
             # python packages
             pythonPackages.numpy
             pythonPackages.tqdm
+            pythonPackages.graphviz
+            pythonPackages.pygraphviz
+            pythonPackages.pydot # needed with networkx
+            pythonPackages.networkx
           ];
         };
       }

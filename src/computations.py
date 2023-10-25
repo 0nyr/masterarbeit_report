@@ -68,6 +68,6 @@ for potential_pointer in list_of_potential_pointers:
     pointer_value = pointer_str_to_addr(potential_pointer)
     if ((pointer_value >= HEAP_START_ADDR) and 
         (pointer_value <= HEAP_END_ADDR) and 
-        is_8_bytes_aligned(pointer_value)):
+        is_8_bytes_aligned(bytes.fromhex(potential_pointer))):
         print("Pointer {} is in heap".format(potential_pointer))
 

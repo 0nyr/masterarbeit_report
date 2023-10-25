@@ -13,9 +13,6 @@
 
 * [ ] Correct chunk filtering
 * [ ] correct mem graph construction
-
-
-
 * [ ] Write SUMMARY result section in Conclusion
 
 * Identifying a key is equivalent to identifying its chunk
@@ -32,15 +29,32 @@
 * Test more advanced GCN algorithm, with different layers, attention mecanism and more
 * Add new custom embeddings to mem2graph program.
 
-
-
 # Logs
+
+### Sat 21 Oct 2023
+
+`python run_pipelines.py -k -i /home/onyr/code/phdtrack/phdtrack_data_clean/ -p graph-with-embedding-comments`: In mem2graph, launcher script params.
+
+### Fri 20 Oct 2023
+
+Started launching the dataset generation on the server.
+
+```shell
+[2023-10-20T10:41:06 UTC][INFO mem_to_graph::exe_pipeline::pipeline]  🟢 [t: worker-25] [N°16771 / 26202 files] [fid: 6017-1644319566]    (Nb samples: 0)
+[2023-10-20T10:41:06 UTC][INFO mem_to_graph::exe_pipeline::pipeline]  🟢 [t: worker-55] [N°20331 / 26202 files] [fid: 12821-1644324152]    (Nb samples: 0)
+[2023-10-20T10:41:06 UTC][INFO mem_to_graph::exe_pipeline::pipeline]  🟢 [t: worker-77] [N°16751 / 26202 files] [fid: 6862-1644319566]    (Nb samples: 0)
+[2023-10-20T10:41:06 UTC][INFO mem_to_graph::exe_pipeline::pipeline]  🟢 [t: worker-70] [N°20326 / 26202 files] [fid: 12432-1644324152]    (Nb samples: 0)
+[2023-10-20T10:41:06 UTC][INFO mem_to_graph::exe_pipeline::pipeline]  ⏱️  total pipeline time: 518.97s]
+🟢 Finished compute instance: cargo run -- -d /root/phdtrack/phdtrack_data_cleaned -o /root/phdtrack/mem2graph/data/48_graph_with_embedding_comments_-e_none_-a_chunk-header-node -p graph-with-embedding-comments -e none -a chunk-header-node
+100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1/1 [08:39<00:00, 519.31s/it]
+Total time: 0 hours, 8 minutes, 39 seconds
+```
+
+### Thu 28 Sep 2023
 
 NOTE: Since we are only predicting first block of chunks, this is equivalent to predict the chunk itself.
 
 `cargo run -- -d /home/onyr/code/phdtrack/phdtrack_data_clean/ -o /home/onyr/code/phdtrack/mem2graph/data/chunk_semantic_no_vn -p chunk-semantic-embedding -e only-max-entropy -a chunk-header-node -v`
-
-### Thu 28 Sep 2023
 
 Lot of work.
 
