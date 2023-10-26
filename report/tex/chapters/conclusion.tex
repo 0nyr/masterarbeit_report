@@ -7,14 +7,22 @@ The evolving landscape of cybersecurity necessitates robust techniques for safeg
 \section{Summary of Results}
 Below is a summary of the results achieved in the present work.
 
+\subsection{Dataset Exploration}
+A careful exploration of the dataset, and deep understanding of the original heap dumps have been invaluable in discovering patterns in the raw data. This exploration has allowed the development of a range of parsing algorithm able to extract information like structure and content of a given heap dump.
+
+It has been discovered that the problem of finding the address of keys in the heap dump can be reduced to identifying the chunks that contain those keys. This allows to reduce the size of the problems from aroud 100 000 of blocks per heap dump, to around 1000 chunks per file. This also allows to concentrate the heap dump memory graph representation around the chunks.
+
+It has also been demonstrated that two powerful chunk filtering techniques can drastically reduce the number of chunks to consider. The first filter criterion consist in the Shannon's entropy value of a chunk user data start bytes. This is because the keys are expected to have a high entropy compared to other raw data types. The second important criterion is the chunk byte size. It has been shown that key chunks actually have a small size in the range of possible key size. If filtering is not possible, as it is the case with \acrshort{gcn} models, those filters can actually be converted in powerful float and boolean features.
+
 \subsection{Memory Graph Generation}
-This masterarbeit has introduced a range of algorithms able to generate memory graphs from memory dumps. The algorithms are designed to be as generic as possible, and can be applied to any memory dump dataset. The algorithms are mostly implemented in the \textit{mem2graph} program.
+This masterarbeit has introduced a range of algorithms able to generate memory graphs from memory dumps. The algorithms are designed to be as generic as possible, and can be applied to any memory dump dataset. The algorithms are mostly implemented in the \textit{mem2graph} program, and many exploration and sanity checking scripts are also available in Python.
 
-With those algorithm, it is possble to parse a RAW heap dump file, and transform it into a memory graph. The memory graph is a graph-like structure, where each node represents a memory block with a precise address in the heap. Each edge represents either a pointer pointing to another block, or materialize the fact that a block belongs to a specific chunk. 
-
-The memory graph can be used to extract features from the memory dump, and to apply machine learning algorithms to the memory dump. It can also be used for direct graph visualization.
+With those algorithms, it is possible to parse a RAW heap dump file, and transform it into a memory graph. The memory graph is a graph-like structure, where each node represents a memory block with a precise address in the heap. Each edge represents either a pointer pointing to another block, or materialize the fact that a block belongs to a specific chunk. In order to reduce the size of the graph, it is possible to compact the block graph into a chunk graph, where each node represents a chunk, and chunks are connected through their pointers.
 
 \subsection{Feature Engineering and Embeddings}
+The memory graph can be used to extract features from the memory dump, and to apply machine learning algorithms to the memory dump. It can also be used for direct graph visualization. The memory graph serves as a direct source of embedding whether they are made manually or using readily available and tested techniques like RandomWalks or Node2Vec.
+
+All those embeddings can be combined. The feature evaluation has shown that those features are very lowly correlated, meaning that their quality is high. However, all those different embeddings doens't have the same results on the \acrshort{ml} and \acrshort{gcn} models, depending on the strengths and weaknesses of the different models.
 
 \subsection{Classic Machine Learning Models}
 

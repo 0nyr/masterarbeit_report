@@ -1352,64 +1352,80 @@ This example is based on the heap dump file \textit{Training/basic/V\_7\_1\_P1/2
     sfdp -Gsize=30! -Goverlap=voronoi -Tpng 17016-1643962152_truncated_no_addresses.gv > 17016-1643962152_truncated_no_addresses.png
 \end{lstlisting}
 
-\subsection{Graph Construction}
-Now that the basis of the memory graph representation has been described, let's dive in the graph construction process. 
+\section{From heap dump to memory graph embeddings}
+Now that the basis of the memory graph representation has been described, let's dive in the different phases involved in transforming a raw heap dump file into a memory graph file with some custom embeddings that can later be loaded and used by some data analysis and \acrshort{ml} programs.
 
-\subsubsection{Graph Construction steps}
-The graph construction process is composed of several steps:
-
-\begin{comment}
+\subsubsection{Initialisation and data checking}
 1. graph initialization
 * loading a given heap dump file and its associated annotation file
 * perform some checks on the annotation file, like checking if the annotation file is valid, that all annotations are present
 
+\subsubsection{Graph Construction steps}
 2. graph building
 * build the graph from heap dump byte blocks
 * perform data structure detection step
 * perform pointer detection step
 
+Optionally perform chunk pointer reduction step, to remove any blocks that are not Chunk Header Nodes, that in the context of the memory graph, represent the root node of a chunk. 
+
+\subsubsection{Graph annotation}
+
 3. graph annotation
-* replace VN by KN from annotation file
-* add other annotations like SSH_STRUCT
+replace VN by KN from annotation file
+add other annotations like SSH\_STRUCT
 After this step, its possible to export the graph to a file, like a \texttt{.dot} file or a \texttt{.gv} file for visualization or other purposes.
 
+\subsubsection{Custom graph-based embeddings}
 4. Generate embedding from graph
 different embedding are possible. We will focus on the semantic embedding which is a general way to embed the graph by addind the related graph structure and vicinity information to each node.
-\end{comment}
 
-\subsubsection{Graph Construction Algorithms}
+\subsubsection{Exporting the Graph}
+5. Exporting the graph
+export the graph to a .gv DOT file, with custom embeddings being integrated by using the comment fields and a slightly modified JSON format. This allows to easily read the embeddings associated with each node, and is still valid DOT file that can be used through tool and libraries supporting DOT graph formal.
 
-
-% graph construction algorithm
-% graph annotation algorithm
-
-\subsection{Exporting the Graph}
-% the DOT format
+Explain what is the dot format, and show examples.
 
 
-\begin{minipage}{\dimexpr\linewidth-20pt}
-    Here are the constants define for memory format conversion in the Rust code:
+\section{A wilde range of features and embeddings}
 
-   %\begin{lstlisting}[language=json, , label={lst:json}]
-   \begin{lstlisting}[style=rust, caption={Rust memory format constants in \textit{mem2graph}}]
-    pub const BLOCK_BYTE_SIZE: usize = 8; // 64-bit, ex: C0 03 7B 09 2A 56 00 00
-    pub const PTR_ENDIANNESS: Endianness = Endianness::Little;
-    pub const MALLOC_HEADER_ENDIANNESS: Endianness = Endianness::Little;
-   \end{lstlisting}
-\end{minipage}
+\subsection{Embeddings based on custom features}
 
-\subsection{Semantic Embedding}\label{sec:mem_2_graph:semantic_embedding}
+\subsubsection{Semantic Embedding}\label{sec:mem_2_graph:semantic_embedding}
 % semantic embedding algorithm
 % the CSV embedding format
 
+\subsubsection{Statistical Embedding}
 
+\subsubsection{Start-bytes Embedding}
 
-%\section{Packaging and deployment with Nix}
-\section{Feature engineering}
-% describe the feature engineering process
+\subsubsection{Node filtering to feature}
+
+\subsection{Graph-agnostic embeddings}
+
+\subsubsection{RandomWalk}
+
+\subsubsection{Node2Vec}
+
+\subsection{Feature evaluation}
+
+\section{Machine learning binary classification}
+
+\subsection{Classic models of machine learning}
+
+\subsubsection{Random Forest}
+
+\subsection{GCN}
+
+\subsection{A first GCN model}
+
+\subsection{The impact of complexity}
+
+\subsection{More advanced models}
 
 \section{ML for key prediction}
 % this is composed of the classical ML pipelines and of the GCN pipelines
+
+
 
 The chapter has been an overview of the dataset, development environment, and tools used for this thesis. In the next chapter, we will dive deeper into the graph memory representation and associated algorithms and programs.
 
