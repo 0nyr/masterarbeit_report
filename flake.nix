@@ -30,6 +30,9 @@
             # testing
             pythonPackages.pytest
 
+            # LaTeX
+            pythonPackages.pygments
+
             # python packages
             pythonPackages.numpy
             pythonPackages.tqdm
@@ -37,6 +40,9 @@
             pythonPackages.pygraphviz
             pythonPackages.pydot # needed with networkx
             pythonPackages.networkx
+            pythonPackages.pandas
+            pythonPackages.seaborn
+            pythonPackages.matplotlib
           ];
         };
       }
