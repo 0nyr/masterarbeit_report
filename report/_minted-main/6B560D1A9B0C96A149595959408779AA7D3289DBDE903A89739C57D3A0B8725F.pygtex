@@ -1,0 +1,32 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+     * Running program...
+    Passed program params:
+    param[0]: src/sanity\PYGZus{}check\PYGZus{}gv\PYGZus{}files.py
+    param[1]: \PYGZhy{}k
+    Parsed program params:
+    keep\PYGZus{}old\PYGZus{}output: True
+    skip\PYGZus{}dir\PYGZus{}starting\PYGZus{}with\PYGZus{}number: None
+    dry\PYGZus{}run: False
+     * Now, performing data loading and sanity checks...
+     * Looking for Mem2Graph dataset directories in /root/phdtrack/mem2graph/data...
+     * Skipping .gitignore...
+     * Found 6 Mem2Graph dataset directories.
+    Mem2Graph dataset dir paths:
+     \PYGZhy{}\PYGZgt{} /root/phdtrack/mem2graph/data/0\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}semantic\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}none\PYGZus{}\PYGZhy{}s\PYGZus{}none, which contains 26202 files.
+     \PYGZhy{}\PYGZgt{} /root/phdtrack/mem2graph/data/1\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}statistic\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}none\PYGZus{}\PYGZhy{}s\PYGZus{}none, which contains 26202 files.
+     \PYGZhy{}\PYGZgt{} /root/phdtrack/mem2graph/data/2\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}start\PYGZhy{}bytes\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}none\PYGZus{}\PYGZhy{}s\PYGZus{}none, which contains 26202 files.
+     \PYGZhy{}\PYGZgt{} /root/phdtrack/mem2graph/data/3\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}semantic\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}only\PYGZhy{}max\PYGZhy{}entropy\PYGZus{}\PYGZhy{}s\PYGZus{}activate, which contains 26202 files.
+     \PYGZhy{}\PYGZgt{} /root/phdtrack/mem2graph/data/4\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}statistic\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}only\PYGZhy{}max\PYGZhy{}entropy\PYGZus{}\PYGZhy{}s\PYGZus{}activate, which contains 26202 files.
+     \PYGZhy{}\PYGZgt{} /root/phdtrack/mem2graph/data/5\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}start\PYGZhy{}bytes\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}only\PYGZhy{}max\PYGZhy{}entropy\PYGZus{}\PYGZhy{}s\PYGZus{}activate, which contains 26202 files.
+     * Loading graphs in /root/phdtrack/mem2graph/data/0\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}semantic\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}none\PYGZus{}\PYGZhy{}s\PYGZus{}none...
+    [...]
+    Loading graphs: 100\PYGZpc{}|\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}| 26201/26202 [3:22:17\PYGZlt{}00:00,  1.17it/s]
+    Loading graphs: 100\PYGZpc{}|\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}| 26202/26202 [3:22:25\PYGZlt{}00:00,  3.19s/it]
+    Loading graphs: 100\PYGZpc{}|\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}\PYGZsh{}| 26202/26202 [3:22:25\PYGZlt{}00:00,  2.16it/s]
+     * Checking embedding length of graphs in /root/phdtrack/mem2graph/data/5\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}start\PYGZhy{}bytes\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}only\PYGZhy{}max\PYGZhy{}entropy\PYGZus{}\PYGZhy{}s\PYGZus{}activate...
+    \PYGZhy{}\PYGZgt{} [x] 26202 graphs in /root/phdtrack/mem2graph/data/5\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}start\PYGZhy{}bytes\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}only\PYGZhy{}max\PYGZhy{}entropy\PYGZus{}\PYGZhy{}s\PYGZus{}activate have been loaded and checked.
+    \PYGZhy{}\PYGZgt{} [\PYGZus{}] 0 graphs in /root/phdtrack/mem2graph/data/5\PYGZus{}graph\PYGZus{}with\PYGZus{}embedding\PYGZus{}comments\PYGZus{}\PYGZhy{}v\PYGZus{}\PYGZhy{}a\PYGZus{}chunk\PYGZhy{}header\PYGZhy{}node\PYGZus{}\PYGZhy{}c\PYGZus{}chunk\PYGZhy{}start\PYGZhy{}bytes\PYGZhy{}embedding\PYGZus{}\PYGZhy{}e\PYGZus{}only\PYGZhy{}max\PYGZhy{}entropy\PYGZus{}\PYGZhy{}s\PYGZus{}activate have been skipped (deleted).
+    [x] 157212 total graphs in the input mem2graph dataset dir paths have been loaded and checked.
+    [\PYGZus{}] 0 total graphs in the input mem2graph dataset dir paths have been skipped (deleted).
+    \PYGZlt{}END\PYGZgt{} Program took: 42626.062309 total sec (11h 50m 26s)
+\end{Verbatim}

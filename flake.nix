@@ -43,6 +43,7 @@
             pythonPackages.pandas
             pythonPackages.seaborn
             pythonPackages.matplotlib
+            pythonPackages.jinja2
           ];
         };
       }
