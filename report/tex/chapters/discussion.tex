@@ -8,3 +8,74 @@ Discuss the results. What is the outcome of your experiments?
 
 \section{Comparing GCN and classical ML models}
 
+\section{Limitations of the Experiments}
+
+While the experiments conducted offer valuable insights into the performance and capabilities of the machine learning and deep learning classifiers, it is crucial to acknowledge the limitations that were inherent in the experimental setup. These limitations range from computational resources to the scale and duration of the experiments. Understanding these constraints is essential for interpreting the results accurately and for identifying avenues for future research. This section aims to discuss the following limitations in detail:
+
+\begin{itemize}
+    \item \textbf{Number of Compute Instances:} The experiments were constrained by the available number of compute instances, affecting the scale at which they could be conducted.
+    
+    \item \textbf{Number of Input Graphs:} The quantity of input graphs used in the experiments was limited, which could impact the generalizability of the results.
+    
+    \item \textbf{Duration of the Experiments:} The time allocated for each experiment was finite, potentially affecting the depth of the analysis.
+    
+    \item \textbf{Memory Usage:} Memory constraints could have influenced the performance and efficiency of the classifiers.
+    
+    \item \textbf{CPU-only Environment:} The experiments were conducted in a CPU-only setting, without the acceleration benefits that a GPU could offer, due to problems of memory consumption being too high for the GPU.
+    
+    \item \textbf{High Memory Bandwidth Usage:} The experiments were characterized by high memory bandwidth usage, which could have implications for performance.
+\end{itemize}
+
+The subsequent subsections will delve into each of these limitations, providing a comprehensive understanding of their impact on the experiments.
+
+\subsection{Limited number of input graphs}
+The number of input graphs is a parameter that can be easily changed, and the experiments can be run again with a higher number of input graphs, but it would take a very long time to run, and the results would be similar although improved to the ones obtained with 16 input graphs. Improving the performances could be done essentially by recoding the program Node2Vec embedding part and adding those results directly inside the \textit{Mem2Graph} program. Leveraging the Rust zero-abstraction costs philosophy, it would be possible to improve the performances by a probable factor of 100 to 1000 times, and to run the experiments with a higher number of input graphs. For ease of development and handling of the results, I would still recommend to perform the machine learning related experiments using the powerful Python dedicated libraries.
+
+That being said, its remarquable that the models can perform so well considering the very small number of training memgraph and the very high imbalance ratio of the dataset. The imbalance ratio is the ratio of the number of negative samples over the number of positive samples. In the case of the dataset used in this research, the imbalance ratio is very high, ranging generally at several hundred times more negative samples than positive samples. No rebalancing has been performed on the dataset since we wanted to explore the impact of learning on a full memgraph dataset, without alteration of those memgraphs.
+
+The results obtained in this research are already very promising, and the imbalance ratio is not a problem for the models, as they are able to perform very well despite the very high imbalance ratio.
+
+\subsection{Duration of the experiments}
+
+Although a lot of efforts have been put to deal both with dataset reduction, for instance transforming the initial block address prediction into a chunk address prediction problem, then optimizing a lot of computing through the use of a dedicated Rust parallel and optimized program, then using techniques like file preloading, the sheer number of hyperparameters and the number of experiments to run, as well as the compute time for the Node2Vec embedding generation, make the experiments very long to run. 
+
+Below are the duration times for the different steps of the experiments.
+
+\begin{table}[H]
+    \centering
+    \caption{Duration times for duration of embedding generation in ML/DL/FE pipeline (in seconds).)}
+    \begin{tabular}{lcccccc}
+      \textbf{Model}  & \textbf{Min duration} & \textbf{Max duration} & \textbf{Min duration} \\
+        advanced-gcn & 506.5721079074733 & 1548.909129 & 0.129933 \\
+        first-gcn & 503.49931116140345 & 1548.909129 & 0.129933 \\
+        gcn-with-dropout & 506.5721079074733 & 1548.909129 & 0.129933 \\
+        logistic-regression & 505.3690870955711 & 1565.660571 & 0.06828 \\
+        random-forest & 505.3690870955711 & 1565.660571 & 0.06828 \\
+        sgd-classifier & 505.3690870955711 & 1565.660571 & 0.06828 \\
+        simple-gcn & 506.5721079074733 & 1548.909129 & 0.129933 \\
+        very-simple-gcn & 506.5721079074733 & 1548.909129 & 0.129933 \\
+    \end{tabular}
+\end{table}
+
+Considering the tested models are not especially complex, and since the number of input memgraph stays limited, the duration of the training and testing steps is actually quite small:
+
+\begin{table}[H]
+    \centering
+    \caption{Duration times for duration of training and testing in ML/DL/FE pipeline (in seconds).}
+    \begin{tabular}{lcccccc}
+      \textbf{Model}  & \textbf{Min duration} & \textbf{Max duration} & \textbf{Min duration} \\
+        advanced-gcn & 10.843279690391459 & 496.664757 & 2.247229 \\
+        first-gcn & 5.5063934491228075 & 279.007307 & 0.583914 \\
+        gcn-with-dropout & 8.272014035587189 & 418.445809 & 0.905496 \\
+        logistic-regression & 1.3495811305361307 & 4.165722 & 0.362695 \\
+        random-forest & 11.72722453030303 & 48.723031 & 0.315739 \\
+        sgd-classifier & 0.6751382750582751 & 6.405859 & 0.020952 \\
+        simple-gcn & 4.337255024911032 & 163.587265 & 0.509536 \\
+        very-simple-gcn & 8.188304871886121 & 58.307836 & 0.242535 \\
+    \end{tabular}
+\end{table}
+
+All those values have been produced only by the python pipeline program. The embedding time is actually mostly accounting for the Node2Vec generation, since the other embeddings are already loaded in memory. The Node2Vec generation is the most time consuming part of the pipeline, and it is the reason why the experiments take so long to run. Transfering this algorithm into Mem2Graph would be a huge improvement, and would allow to run the experiments with a much higher number of input memgraphs.
+
+
+
