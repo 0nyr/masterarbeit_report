@@ -39,6 +39,10 @@
 \usepackage{algorithm} % algorithm
 % \usepackage{algorithmic}  % old, use algorithmicx from algpseudocode
 \usepackage{algpseudocode} % pseudocode
+
+% fix Font shape `T1/fve/m/sc' undefined on \Procedure
+\renewcommand{\algorithmicprocedure}{\textbf{Procedure}}
+
 \usepackage{tikz} % for drawing graphs
 %\usetikzlibrary{positioning} % for relative positioning of nodes
 
@@ -301,8 +305,8 @@ Finally, my last acknowledgments go to my family and friends for their support a
 \pagenumbering{arabic} % reset page numbering of main matter sections
 
 \include{tex/chapters/introduction}
-%\include{tex/chapters/background}
-%\include{tex/chapters/related_work}
+\include{tex/chapters/background}
+\include{tex/chapters/related_work}
 \include{tex/chapters/methods}
 \include{tex/chapters/results}
 \include{tex/chapters/discussion}

@@ -7,8 +7,6 @@ For each model, the following metrics (columns) are shown:
     - Recall for Class 1
     - F1 Score for Class 1
     - AUC for Class 1
-    - Node embedding
-    - Number of input graphs
 
     Raws:
     - Best precision of the model for Class 1
@@ -20,9 +18,33 @@ One result table is generated for each model.
 """
 
 import pandas as pd
+from os.path import join
+import os
+
 
 INPUT_RESULT_CSV_PATH = "/home/onyr/code/phdtrack/predicting_ssh_key_masterarbeit_report/src/results/csv/concatenated_csv/concatenated_raw_result.csv"
 OUTPUT_LATEX_TABLES_DIR_PATH = "/home/onyr/code/phdtrack/predicting_ssh_key_masterarbeit_report/src/results/tables"
+
+def latex_escape(s):
+    # Add LaTeX escape characters to the string
+    return s.replace("_", "\\_")
+
+def generate_latex_table(df):
+    caption = f"Best result metrics for the models."
+    latex_str = "    \\begin{table}[ht]\n"
+    latex_str += "        \\centering\n"
+    latex_str += f"        \\caption{{{caption}}}\n"
+    latex_str += "        \\begin{tabular}{lcccccc}\n"
+    latex_str += "          \\textbf{Model}  & \\textbf{Best Precision} & \\textbf{Best Recall} & \\textbf{Best F1 Score} & \\textbf{Best AUC} \\\\\n"
+
+    # one row per model
+    for index, row in df.iterrows():
+        latex_str += f"            {row['Model']} & {row['Best precision']} & {row['Best recall']} & {row['Best f1 score']} & {row['Best AUC']} \\\\\n"
+
+    latex_str += "        \\end{tabular}\n"
+    latex_str += "    \\end{table}\n"
+    return latex_str
+
 
 # Load your concatenated csv file
 df = pd.read_csv(INPUT_RESULT_CSV_PATH)
@@ -37,38 +59,45 @@ df["subpipeline_name"] = df["subpipeline_name"].str.replace("-pipeline", "")
 # Remove the "-embedding" suffix from the node_embedding column
 df["node_embedding"] = df["node_embedding"].str.replace("-embedding", "")
 
-# ...
-from os.path import join
+
+
 
 # Filter metrics for Class 1 and other relevant columns
 relevant_columns = ["subpipeline_name", "node_embedding", "precision_class_1", "recall_class_1", "f1_score_class_1", "AUC", "nb_input_graphs"]
 df_filtered = df[relevant_columns]
 
+# Create directory for LaTeX tables if it doesn't exist
+if not os.path.exists(OUTPUT_LATEX_TABLES_DIR_PATH):
+    os.makedirs(OUTPUT_LATEX_TABLES_DIR_PATH)
+
 # Group data by model (subpipeline_name)
 grouped = df_filtered.groupby("subpipeline_name")
 
+all_model_best_metrics_df = pd.DataFrame()
 for model_name, group in grouped:
-    # Create a DataFrame to hold the best metrics for each model
     best_metrics_df = pd.DataFrame()
 
     # Calculate the best metrics
-    best_metrics_df["Best precision for Class 1"] = [group["precision_class_1"].max()]
-    best_metrics_df["Best recall for Class 1"] = [group["recall_class_1"].max()]
-    best_metrics_df["Best F1 score for Class 1"] = [group["f1_score_class_1"].max()]
-    best_metrics_df["Best AUC for Class 1"] = [group["AUC"].max()]
-
-    # Add node_embedding and nb_input_graphs of the best metrics
     for metric in ["precision_class_1", "recall_class_1", "f1_score_class_1", "AUC"]:
-        best_row = group[group[metric] == group[metric].max()].iloc[0]
-        best_metrics_df[f"Node embedding for best {metric}"] = best_row["node_embedding"]
-        best_metrics_df[f"Number of input graphs for best {metric}"] = best_row["nb_input_graphs"]
-    
-    # Convert the DataFrame to a LaTeX table
-    latex_table = best_metrics_df.to_latex(index=False)
+        best_value = group[metric].max()
+        best_metrics_df[f"Best {metric.replace('_class_1', '').replace('_', ' ')}"] = [best_value]
+        print(f"Best {metric.replace('_class_1', '').replace('_', ' ')} for {model_name}: {best_value}")
+        
+    best_metrics_df["Model"] = [model_name]
 
-    # Save the LaTeX table to a .tex file
-    output_file_path = join(OUTPUT_LATEX_TABLES_DIR_PATH, f"{model_name}_results_table.tex")
-    with open(output_file_path, "w") as f:
-        f.write(latex_table)
+    # Add the best metrics for the model to the DataFrame containing the best metrics for all models
+    all_model_best_metrics_df = pd.concat([all_model_best_metrics_df, best_metrics_df], ignore_index=True)  
 
-    print(f"LaTeX table for {model_name} saved.")
+# transform all float columns to string columns, with a maximum of 4 decimal places
+for column in all_model_best_metrics_df.columns:
+    if all_model_best_metrics_df[column].dtype == "float64":
+        all_model_best_metrics_df[column] = all_model_best_metrics_df[column].map(lambda x: f"{x:.4f}")
+
+latex_table = generate_latex_table(all_model_best_metrics_df)
+
+# Save the LaTeX table to a .tex file
+output_file_path = join(OUTPUT_LATEX_TABLES_DIR_PATH, f"best_model_metrics_results_table.tex")
+with open(output_file_path, "w") as f:
+    f.write(latex_table)
+
+print(f"LaTeX table for best model metrics saved.")

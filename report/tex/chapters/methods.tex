@@ -1336,7 +1336,7 @@ In our case, the properties of a node are at minimum the address and the byte bl
 
 These nodes and edges form the base of the memory graph representation. Below is a simplified (truncated) example of a memory graph representation. The full example is available in \ref{appendix:mem_graph:17016-1643962152:full}. For clarity, the addresses are not displayed in this simplified version. Another version of this graph with real addresses is available in \ref{appendix:mem_graph:17016-1643962152:truncated}.
 
-\begin{figure}[H]\label{appendix:mem_graph:17016-1643962152:simplified}
+\begin{figure}[H]\label{methods:mem_graph:17016-1643962152:simplified}
     \centering
     \includegraphics[width=16cm]{graphs/17016-1643962152_truncated_no_addresses.png}
     \caption{Visualization of a truncated memory graph generated from \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. The addresses are not displayed for imploved readability. Version with addresses here \ref{appendix:mem_graph:17016-1643962152:truncated}.}
@@ -1374,6 +1374,13 @@ Optionally perform chunk pointer reduction step, to remove any blocks that are n
 replace VN by KN from annotation file
 add other annotations like SSH\_STRUCT
 After this step, its possible to export the graph to a file, like a \texttt{.dot} file or a \texttt{.gv} file for visualization or other purposes.
+
+\begin{figure}[H]\label{methods:mem_graph:585-1644391327:chunk_only}
+    \centering
+    \includegraphics[width=16cm]{graphs/chunk_top_vn_semantic_home_onyr_code_phdtrack_phdtrack_data_clean_585-1644391327-heap.raw_dot_no_vn_chn_annotation_no_vn-sfdp.png}
+    \caption{Visualization of the chunk memory graph, with only Chunk Header Nodes representing chunks, generated from \textit{Training/scp/V\_7\_8\_P1/16/
+    585-1644391327-heap.raw}.}
+\end{figure}
 
 \subsubsection{Custom graph-based embeddings}
 4. Generate embedding from graph
@@ -1416,7 +1423,7 @@ Explain what is the dot format, and show examples.
 
 \subsection{GCN}
 
-\subsection{A first GCN model}
+\subsubsection{Simple GCN models}
 
 \subsection{The impact of complexity}
 
