@@ -1200,10 +1200,10 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
         Block [8182]: 	b' \x00\x00\x00\x00\x00\x00\x00' 		32 		-footer-
     \end{lstlisting}
 
-    Here, the status of the chunk has been detected using the \texttt{P} flag technique. At first sight, those two blocks seems similar. The first 2 blocks in the user data space of the chunks both seems to contain what look like pointers. As one can see, the first chunk in this example, with a \texttt{block\_index=80} has clearly a malloc header and footer as expected. Note that here, the value $33$ represents the size of the block ($32$ bytes which correspond to 4 blocks) with the \acrshort{lsb} being set to 1 meaning the preceding chunk is in use. However, the in-use block footer doesn't correspond to the value we expect. This difference of behavior is observed throughout the cleaned dataset. 
+    Here, the status of the chunk has been detected using the \texttt{P} flag technique. At first sight, those two blocks seems similar. The first 2 blocks in the user data space of the chunks both seems to contain what looks like pointers. As one can see, the first chunk in this example, with a \texttt{block\_index=80} has clearly a malloc header and footer as expected. Note that here, the value $33$ represents the size of the block ($32$ bytes which correspond to 4 blocks) with the \acrshort{lsb} being set to 1 meaning the preceding chunk is in use. However, the in-use block footer doesn't correspond to the value we expect. This difference of behavior is observed throughout the cleaned dataset. 
 
     \subsection{Discussing chunk parsing for problem scale reduction}
-    Now that we have presented all the necessary knowledge and algorithms used to be able to parse the dataset, we can discuss the results of those algorithms and their uses and limitations. Many tests have been needed in order to develop the final algorithms. This testing process has also unveiled some interesting properties of the dataset that will be used as basis for the semantic embedding of the memory graph representation and subsequent machine learning steps.
+    Now that we have presented all the necessary knowledge and algorithms used to be able to parse the RAW heap dump files, we can discuss the results of those algorithms and their uses and limitations. Many tests have been needed in order to develop the final algorithms. This testing process has also unveiled some interesting properties of the dataset that will be used as basis for the semantic embedding of the memory graph representation and subsequent machine learning steps.
 
     The program \texttt{chunk\_algorithms.py} has been developped specifically to test the chunk parsing and refine the associated algorithms on the cleaned dataset. Below are presented the global statistics produced by the final version of the program:
 
@@ -1227,8 +1227,8 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
         Total number of chunks free and annotated: 0
         Total number of potential footers with annotations (should be 0): 0
         Total number of annotated chunks: 209528
-        Total number of chunks in used, with correct footer, and annotated: 7668
-        Total number of chunks in used, with correct footer, and key annotated: 7668
+        Total number of chunks in use, with correct footer, and annotated: 7668
+        Total number of chunks in use, with correct footer, and key annotated: 7668
         Percentage of free chunks: 0.9405270619074121%
         Percentage of blocks in free chunks: 27.19108523033183%
         Percentage of free chunks with correct footer value: 94.71798199825061%
@@ -1248,7 +1248,9 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
 
     Using the \texttt{P} flag technique, we can see that 37346373 chunks are in use, and 354410 chunks are free. Although the proportion of free chunks is only 0.94\%, there are 27.19\% of the blocks that are in free chunks. More importantly, we can see that no free chunk is annotated. This means we can filter out all free chunks and their blocks. This allows a huge reduction of the scale of the problem. 
     
-    The average number of annotated chunks per file being a perfect 8 value, this means that all the parsed files indeed contains the 6 key annotations with the additional \texttt{SSH\_STRUCT} and \texttt{SSH\_KEY} annotations. The dataset is very imbalanced since we have only 6 keys times the number of RAW files as positive labels and the rest as negative, thus the need for advanced reduction techniques. 
+    The average number of annotated chunks per file being a perfect value of 8, this means that all the parsed files indeed contains the 6 key annotations with the additional \texttt{SSH\_STRUCT} and \texttt{SSH\_KEY} annotations. The dataset is very imbalanced since we have only 6 keys times the number of RAW files as positive labels and the rest as negative, thus the need for advanced reduction techniques. 
+
+    \subsubsection{From a block-based to a chunk-based approach}
     
     The exact code to annotate the chunks can be as simple as the following:
 
@@ -1279,20 +1281,34 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
     \end{algorithm}
     
     This algorithm in itself and the results observed is an important discovery. The annotations are actually always given for the \texttt{chunk.address} which corresponds to the address of the first block after the malloc header block. This means that the annotations are actually given for the beginning of the user data space of a chunk. This is crucial discovery, since it means that we can filter out the malloc header and footer blocks, and only keep the first block of the user data space of the chunks we want to embed. There are $674232832 - 183331224 = 490901608$ blocks in use. But there is only $37346373$ chunks in use. This means that we can reduce the number of blocks to embed from $490901608$ to $37346373$ which is an additional reduction applied after the previous filtering that reduces the scale of the problem by a factor of 13. 
+
+    \subsubsection{Using chunk footer for filtering is not possible}
     
     Now let's look at the footer parsing. We can see in the logs that 94.72\% of free chunks are said to have a correct footer value. But this value is misleading. Since the last chunk of a heap dump is often cropped, it means it has no footer. But we consider those special last chunks as free chunks. In fact, in the $354410$ free chunks, we have $18720$ or around 5.28\% of them that are those special last cropped chunks only composed of zeros. With this perspective, we understand that 100\% of the free chunks should be considered with correct footer value. In contrast, only 1.81\% of in-use chunks have a correct footer value. It's tempting to think that maybe, those few chunks could maybe be actually empty too and removed. But this is not the case since a few chunks are actually both in-use, with a key annotation and a correct footer value. This means that we need to keep those chunks.
 
     \subsubsection{Chunk filtering}
     Based on the previous observations, we can propose different ways of filtering some chunks out. The objective is to reduce the number of chunks before any further processing to reduce the imbalanceness.
 
-    Since we have seen that free chunks are never annotated, we can filter them out. This filtering technique is applied in the final implementation of the chunk parsing algorithm. This filtering technique allows to reduce the number of chunks from $37682063$ to $37346373$, which is a reduction of 0.89\%. This is not a huge reduction, but it's still a reduction.
+    Since we have seen that free chunks are never annotated, we can filter them out. This filtering technique allows to reduce the number of chunks from $37682063$ to $37346373$, which is a small reduction of 0.89\%. This is not a huge reduction of chunks, but is a much more significant reduction of the number of blocks since 27.2\% of the blocks are in free chunks.
+
+    We can also filter the chunks whose size is not 32, 48 or 64 bytes. This is based on the observation that the key chunks are of those sizes. This filtering technique allows to reduce the number of chunks significantly, since there is a cumulated $109346+34366+13434 = 157146$ chunks of those size, which represents, compare to the original number of chunks, a diminution of 99.6\%. This is indeed a huge reduction of the scale of the problem.ch
+
+    A last approach to chunk filtering for key prediction consists in measuring the entropy of the first bytes of a chunk. Since we have previously discovered that keys are always located at the beggining of a chunk, and since the keys are composed of random bytes, we can expect the entropy of the first bytes of a chunk to be high.
+
+    The following graph illustrates this phenomenon:
+
+    \begin{figure}[H]\label{methods:entropy_of_all_chunks}
+        \centering
+        \includegraphics[width=16cm]{plots/chunk_entropy_by_key_status.png}
+        \caption{Visualization of the entropy distribution for all chunks of the \textit{phdtrack\_data\_clean/} RAW heap dump dataset.}
+    \end{figure}
+
+    Using a script to perform some counting, we realize that the number of chunks whose entropy is less than the minimum entropy of the chunks that contains a key (is key chunk) is 19690826, which represents 52.3\% of the total number of chunks. It's not entirely clear why the key chunk entropy values seems spread across 2 strips of values, but is probably an effect of the different distributions of chunks across the input dataset, depending on the version, use can and number of chunks in the considered input files.
 
     After all those extensive analysis and tests, we have gained invaluable knowledge about how we can reduce the scale of the problem and parse the files. Now, we need a way to create meaninglful embeddings for the blocks we want to perform machine learning on. This is the goal of the next section.
 
 \section{Graph-based memory dumps embedding}\label{chap:mem_2_graph}
 Now that we have a decent understanding of the dataset as well as the low level memory dump format, we can start to think about how to convert the memory dumps into graphs. As a recall, we want to be able to convert a memory dump into a graph representation that can be used for machine learning, since we want to be able to create a memory modelization as a basis for efficient embedding and feature engineering later. This is inherently due to the imbalanceness of the dataset, as we want to add more information to each memory block that just its raw bytes. The goal is to have a graph representation of the memory dump that can be used for efficient machine learning.
-
-This section will be dedicated to describe the methods developped around this problem. We will first describe the design of the graph representation, then the implementation of the graph construction process. Finally, we will discuss the semantic embedding built from this graph representation.
 
 \subsection{Initial work from Python to Rust}
 
@@ -1308,7 +1324,7 @@ Initially, we have been working and manipulating the code provided by SmartKex\f
 
 We decided to build a memory graph representation at that moment because we wanted to be able to add more information to the memory blocks than just their raw bytes. This new program was called \texttt{ssh\_key\_discover}, and relied on a number of Python libraries to work, like \texttt{graphviz}. This was a all-in-one library, composed of 2 sections, \texttt{mem\_graph} and \texttt{ml\_discovery}. The first one was devoted to build memory graphs, while the second one was dedicated to the data science and machine learning part.
 
-This initial program was already capable of handling several data processing pipelines, including machine learning pipelines with models like Random Forest, a grid search for hyperparameter optimization, and a cross validation pipeline, several balancing strategies and of course, a memory graph representation and semantic embedding. As an early development version, this program was not optimized for performance, and just loading a given heap dump file and its annotation, and then building the memory graph representation, could take from 30 seconds to a minute (on the TUXEDO machine), depending on the size of the heap dump file. As the original dataset comprises more than $ 10^{6} $ files, a rapid estimation of the time needed just for the semantic embedding of the memory graph representation was above a month. In this regard, this initial program was just used on a bunch of files as a way to develop the semantic embedding model, algorithm and start working on feature engineering and machine learning. But it could not be used to produce final results on the whole dataset due to the performance issues described above.
+This initial program was already capable of handling several data processing pipelines, including machine learning pipelines with models like Random Forest, a grid search for hyperparameter optimization, a cross validation pipeline, several balancing strategies and of course, a memory graph representation with a semantic embedding. As an early development version, this program was not optimized for performance, and just loading a given heap dump file and its annotation, then building the memory graph representation could take from 30 seconds to a minute (on the TUXEDO machine), depending on the size of the heap dump file. As the original dataset comprises more than $ 10^{6} $ files, a rapid estimation of the time needed just for the semantic embedding of the memory graph representation was above a month. In this regard, this initial program was just used on a bunch of files as a way to develop the semantic embedding model, parsing algorithms and start working on feature engineering and machine learning. But it could not be used to produce final results on the whole dataset due to the performance issues described above.
 
 This optimization issue was clearly not acceptable, and we decided to rewrite the graph part in Rust. This is a compiled language that leverages zero-cost abstractions, and thus, is several order of magnitude faster than Python. This was also a good opportunity to learn Rust, which is a language that is gaining more and more popularity, especially in the security community. This new program was called \texttt{mem2graph}. Switching from Rust to Python and doing a proper use of multithreading allowed us to reduce the time needed to build the memory graph representation from 30 seconds to less than 1 second. In out case, and comparing using only the TUXEDO laptop, this represent an estimated minimum of a 130x speedup. But this is even much better on the server, where the multithreading can really be leverage. This was a significant improvement which allowed us to build the memory graph representation for the whole original dataset in a just a few hours.
 
@@ -1325,13 +1341,13 @@ Our memory graph representation is inherently a property graph. Each node and ed
     \item \textbf{ptr:} Pointer Relationship (direction is from the source to the target)
 \end{itemize}
 
-In our case, the properties of a node are at minimum the address and the byte block.  The graph is also heterogeneous since our nodes can have different types corresponding to their infered characteristics. 
+In our case, the properties of a node are at minimum the address and the byte block. The graph is also heterogeneous since our nodes can have different types corresponding to their infered characteristics. 
 
 \begin{itemize}
     \item \textbf{PN:} Pointer Node. This is a node whose bytes have been identified as a pointer.
-    \item \textbf{DTN:} Data Structure Node. This is a node whose bytes have been identified as a data structure header. In the graph, this node is the root node of an allocated structure.
+    \item \textbf{CHN:} Chunk Header Node. This is a node whose bytes have been identified as a memory (malloc) chunk header. In the graph, this node is the root node of a memory structure managed by the C library responsible for memory management and allocation.
     \item \textbf{KN:} Key Node. This is a node whose bytes have been identified as a key. This identification relies both on the annotations and some verification checks.
-    \item \textbf{VN:} Value Node. These are all blocks that have not been identified. It is the default  node type.
+    \item \textbf{VN:} Value Node. These are all blocks that have not been identified. It is the default node type.
 \end{itemize}
 
 These nodes and edges form the base of the memory graph representation. Below is a simplified (truncated) example of a memory graph representation. The full example is available in \ref{appendix:mem_graph:17016-1643962152:full}. For clarity, the addresses are not displayed in this simplified version. Another version of this graph with real addresses is available in \ref{appendix:mem_graph:17016-1643962152:truncated}.
@@ -1355,25 +1371,21 @@ This example is based on the heap dump file \textit{Training/basic/V\_7\_1\_P1/2
 \section{From heap dump to memory graph embeddings}
 Now that the basis of the memory graph representation has been described, let's dive in the different phases involved in transforming a raw heap dump file into a memory graph file with some custom embeddings that can later be loaded and used by some data analysis and \acrshort{ml} programs.
 
-\subsubsection{Initialisation and data checking}
-1. graph initialization
-* loading a given heap dump file and its associated annotation file
-* perform some checks on the annotation file, like checking if the annotation file is valid, that all annotations are present
+\subsection{Initialisation and data checking}
+
+The graph construction process begins with the initialisation phase. In this phase, the first step is graph initialization, which involves loading a given heap dump file and its associated annotation file. Once the files are loaded, several checks are performed on the annotation file to ensure its validity. These checks include verifying that all annotations are present and formatted correctly, as well as ensuring that the annotation file is neither empty nor contains errors.
 
 \subsubsection{Graph Construction steps}
-2. graph building
-* build the graph from heap dump byte blocks
-* perform data structure detection step
-* perform pointer detection step
 
-Optionally perform chunk pointer reduction step, to remove any blocks that are not Chunk Header Nodes, that in the context of the memory graph, represent the root node of a chunk. 
+The second major step in the process is graph building. This involves constructing the graph from heap dump byte blocks. The first part of this step is the data structure detection, where blocks are parsed from start to finish. The parsing process leaps over blocks by using chunk sizes that are stored in chained chunk headers. Each chunk is then verified for its size, alignment, and the presence of a potential footer. Following this, the pointer detection step is carried out. In this phase, potential pointers are identified using the previously introduced pointer detection algorithm and are added to the graph. 
 
-\subsubsection{Graph annotation}
+An optional step that can be performed is the chunk pointer reduction. This step removes any blocks that are not Chunk Header Nodes, effectively transforming the graph from a block-based graph to a chunk-based graph. While this step is not mandatory, it can be useful for reducing the scale of the problem. This approach will be extensively used in the machine learning section, as it has been shown that the key block prediction problem is equivalent to a key chunk prediction problem.
 
-3. graph annotation
-replace VN by KN from annotation file
-add other annotations like SSH\_STRUCT
-After this step, its possible to export the graph to a file, like a \texttt{.dot} file or a \texttt{.gv} file for visualization or other purposes.
+\subsubsection{Graph Annotation}
+
+The third major step in the process is graph annotation. In this phase, Value Nodes in the graph are replaced by Key Nodes, utilizing the annotations provided in the JSON annotation file. Additional annotations, such as SSH\_STRUCT, can also be added at this stage. Following the completion of the annotation step, it becomes possible to export the graph for various purposes. The graph can be exported to file formats like \texttt{.dot} or \texttt{.gv}, which are suitable for visualization or other analytical tasks.
+
+At this step, the graph is looking similar to the example shown before \ref{methods:mem_graph:17016-1643962152:simplified}. Using the pointer reduction to a chunk-only memgraph, we can obtain something like the following:
 
 \begin{figure}[H]\label{methods:mem_graph:585-1644391327:chunk_only}
     \centering
@@ -1382,16 +1394,42 @@ After this step, its possible to export the graph to a file, like a \texttt{.dot
     585-1644391327-heap.raw}.}
 \end{figure}
 
+Note how we can identify some data structures formed by pointer-connected chunks. This is a very interesting property of the memory graph representation, since it allows to identify data structures and their members based only on the shape of connections. This is a very important property that will be used later for feature engineering and embeddings.
+
 \subsubsection{Custom graph-based embeddings}
 4. Generate embedding from graph
-different embedding are possible. We will focus on the semantic embedding which is a general way to embed the graph by addind the related graph structure and vicinity information to each node.
+different embedding are possible. We present some of those custom embeddings like the semantic embedding which is a general way to embed the graph by addind the related graph structure and vicinity information to each node. Other embeddings are possible, like the statistical embedding, which is based on the statistical properties of the graph, or the random walk embedding, which is based on the random walk algorithm. 
+
+\subsubsection{Custom Graph-Based Embeddings}
+
+The fourth step in the workflow involves generating embeddings from the graph. Multiple types of embeddings can be generated, each serving a unique purpose and offering different insights into the graph structure. One such embedding is the semantic embedding. This is a general approach that enriches each node with information related to its graph structure vicinity. It captures the essence of the node's position and relationships within the graph, making it useful for various machine learning and analytics tasks.
+
+In addition to semantic embeddings, other types of embeddings can also be generated. For instance, statistical embeddings focus on capturing the statistical properties of the graph. Another interesting type of embedding is the random walk embedding and related version called Node2Vec. This method leverages the random walk algorithm to generate embeddings, capturing the local and global structure of the graph by simulating random paths through it.
+
+Each of these embeddings offers a unique lens through which to analyze and interpret the graph, and the choice of embedding can be tailored to the specific requirements of the task at hand. It's also possible to add additional features like entropy of the chunk start bytes and filtering information.
 
 \subsubsection{Exporting the Graph}
-5. Exporting the graph
-export the graph to a .gv DOT file, with custom embeddings being integrated by using the comment fields and a slightly modified JSON format. This allows to easily read the embeddings associated with each node, and is still valid DOT file that can be used through tool and libraries supporting DOT graph formal.
 
-Explain what is the dot format, and show examples.
+The fifth step in the process involves exporting the graph. The graph is exported to a \texttt{.gv} DOT file format. Custom embeddings are integrated into the graph by utilizing the comment fields in a slightly modified stringified JSON format. This approach allows for easy reading of the embeddings associated with each node while maintaining the DOT file as a valid format that can be used with tools and libraries supporting the DOT graph formal.
 
+The DOT (Directed Orthogonal Text) format is a plain text graph description language that is widely used for representing structured information. An example of a memgraph in DOT format without embeddings is provided for reference. In this example, nodes and edges are represented along with their attributes such as color, shape, and labels.
+
+When embeddings are added to the graph, additional comment fields are included in the DOT file nodes. These comment fields contain a JSON string that holds the embedding information for each node. Moreover, the graph starts with a pseudo JSON comment field that contains a serialized JSON object specifying the embedding type and feature names. 
+
+Here is an example of a comment field in a node:
+
+\begin{lstlisting}[style=text, caption={A comment field example for a node with embedding. Output is cropped.}]
+    comment="[0,94918015119368,1,108,108,108,108,108,108,108,1,67,82,139,175,204,...
+    0,0,2.355388542207534]"
+\end{lstlisting}
+
+Below is an example of a memgraph comment field containing a JSON serialized object with embedding type and feature names.
+
+\begin{lstlisting}[style=text, caption={A memgraph comment field example containing JSON serialized object with embedding type and feature names. Output is cropped.}]
+    comment="{ 'embedding-type': 'chunk-semantic-embedding', 'embedding-fields': ['block_position_in_chunk','chn_addr','chns_ancestor_1',...'chns_children_8','chunk_byte_size','chunk_number_in_heap','chunk_ptrs','chunk_vns','ptrs_ancestor_1','ptrs_ancestor_2',...,'ptrs_children_8','entropy'] }"
+\end{lstlisting}
+
+The inclusion of these comment fields serves multiple purposes. First, it allows for the storage of embeddings along with additional information, making the graph more informative. Second, this format can be easily integrated into Python machine learning pipelines, facilitating the use of the graph in various machine learning tasks. Lastly, the DOT format serves as a standard format for graph representation, making it a versatile choice for both visualization and computational tasks.
 
 \section{A wilde range of features and embeddings}
 

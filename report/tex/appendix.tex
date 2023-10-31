@@ -1,6 +1,26 @@
 % !TeX spellcheck = en_US
 % !TeX encoding = UTF-8
-\section{Code}
+\section{Code and files}
+
+\begin{lstlisting}[style=text, caption={The DOT file of uncompressed block memgraph, here \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}, with real addresses. Output is cropped.}, label={appendix:dot:17016-1643962152:cropped}]
+    strict digraph "17016-1643962152" {
+        "CHN(0x558343d21d40)" [label="CHN(1)" color="cyan" style=filled shape=square];
+        "CHN(0x558343d1a448)" [label="CHN(2)" color="cyan" style=filled shape=square];
+        "VN(0x558343d1a450)" [label="VN" color="grey" style=filled];
+        "VN(0x558343d1a458)" [label="VN" color="grey" style=filled];
+        "PN(0x558343d24ae8)" [label="PN" color="orange" style=filled shape=hexagon];
+        "KN_KEY_A(0x558343d29460)" [label="KN(A)" color="green" style=filled];
+        "KN_KEY_B(0x558343d2b960)" [label="KN(B)" color="green" style=filled];
+        "CHN(0x558343d21d40)" -> "KN_KEY_A(0x558343d29460)" [label="dts" weight=1]
+        "PN(0x558343d204e8)" -> "KN_KEY_A(0x558343d29460)" [label="ptr" weight=1]
+        "CHN(0x558343d21d40)" -> "KN_KEY_B(0x558343d2b960)" [label="dts" weight=1]
+        "PN(0x558343d2deb8)" -> "KN_KEY_B(0x558343d2b960)" [label="ptr" weight=1]
+        "CHN(0x558343d21d40)" -> "KN_KEY_C(0x558343d29080)" [label="dts" weight=1]
+        "PN(0x558343d204e0)" -> "KN_KEY_C(0x558343d29080)" [label="ptr" weight=1]
+        "PN(0x558343d24ae8)" -> "VN(0x558343d1a010)" [label="ptr" weight=1]
+        "PN(0x558343d1a240)" -> "VN(0x558343d20680)" [label="ptr" weight=1]
+    }
+\end{lstlisting}
 
 \section{Memory Graphs}
 

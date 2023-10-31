@@ -119,6 +119,7 @@ from utils.mem_utils import block_bytes_to_int, hex_str_to_addr, int_to_little_e
 
 INPUT_RAW_HEAP_DUMP_FILE_PATH = "/home/onyr/code/phdtrack/phdtrack_data_clean/Training/Training/basic/V_7_1_P1/24/17016-1643962152-heap.raw"
 KEY_MIN_BYTE_SIZE = 24
+CHUNK_ENTROPIES_CSV_OUTPUT_FILE_PATH = "/home/onyr/code/phdtrack/predicting_ssh_key_masterarbeit_report/src/results/chunk_entropies/chunk_entropies.csv"
 
 # -------------------- CLI arguments -------------------- #
 import sys
@@ -617,6 +618,50 @@ def compute_entropy_of_chunk_user_data(
     entropy = get_entropy(cropped_first_bytes)
     return entropy
 
+def save_chunk_entropies_to_csv(
+        raw_file_path: str,
+        chunks: list[Chunk],
+    ):
+    """
+    Save chunk information, and especially its entropy, to a CSV file.
+    """
+    chunk_entropies_columns = [
+        #"file_path", # removed file path for optimization of memory
+        "chunk_index",
+        "chunk_entropy",
+        "chunk_size",
+        "chunk_is_free",
+        "chunk_is_annotated",
+        "chunk_is_key",
+    ]
+    # check if file exists
+    chunk_entropies_file_exists = os.path.isfile(CHUNK_ENTROPIES_CSV_OUTPUT_FILE_PATH)
+    # if file does not exist, create it and write the header
+    if not chunk_entropies_file_exists:
+        with open(CHUNK_ENTROPIES_CSV_OUTPUT_FILE_PATH, "w") as f:
+            f.write(",".join(chunk_entropies_columns) + "\n")
+    
+    # iterate over chunks and save them in the CSV file
+    for i in range(0, len(chunks)):
+        chunk = chunks[i]
+        chunk_entropy = chunk.first_bytes_entropy
+        chunk_size = chunk.size
+        chunk_is_free = chunk.is_free
+        chunk_is_annotated = len(chunk.annotations) > 0
+        chunk_is_key = ChunkAnnotation.ChunkContainsKey in chunk.annotations
+
+        # save chunk entropies
+        with open(CHUNK_ENTROPIES_CSV_OUTPUT_FILE_PATH, "a") as f:
+            f.write(",".join([
+                #raw_file_path,
+                str(i),
+                str(chunk_entropy),
+                str(chunk_size),
+                str(chunk_is_free),
+                str(chunk_is_annotated),
+                str(chunk_is_key),
+            ]) + "\n")
+
 def parsing_blocks_to_chunks_with_stats(
         blocks: np.ndarray,
         heap_start_addr: int,
@@ -798,6 +843,12 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
 
     sizes_key_chunks: list[int] = []
 
+    # chunk entropies
+    save_chunk_entropies_to_csv(
+        raw_file_path,
+        chunks,
+    )
+
     nb_annotated_chunks = 0
     for i in range(0, len(chunks)):
         chunk = chunks[i]
@@ -925,7 +976,7 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     dp(f"number of annotated chunks: {nb_annotated_chunks}")
     dp(f"number of chunks in used, with correct footer, and annotated: {nb_chunks_in_use_correct_footer_annotated}")
 
-    # save statistics
+    # statistics
     stats["nb_free_chunks"] = nb_free_chunks
     stats["nb_zeros_chunks"] = nb_zeros_chunks
     stats["nb_blocks_in_free_chunks"] = nb_blocks_in_free_chunks
@@ -936,6 +987,10 @@ def pipeline(raw_file_path: str, cli: CLIArguments):
     stats["nb_chunks_in_use_correct_footer_annotated"] = nb_chunks_in_use_correct_footer_annotated
     stats["nb_chunks_in_use_correct_footer_annotated_and_key"] = nb_chunks_in_use_correct_footer_annotated_and_key
     
+    # entropy stats
+    stats["nb_chunks_with_max_entropy"] = nb_chunks_with_max_entropy
+    stats["nb_chunks_with_max_entropy_and_key_annotation"] = nb_chunks_with_max_entropy_and_key_annotation
+
     # save lists
     stats["sizes_key_chunks"] = sizes_key_chunks
 
@@ -971,6 +1026,8 @@ def main():
     global_stats["nb_annoted_chunks"] = 0
     global_stats["nb_chunks_in_use_correct_footer_annotated"] = 0
     global_stats["nb_chunks_in_use_correct_footer_annotated_and_key"] = 0
+    global_stats["nb_chunks_with_max_entropy"] = 0
+    global_stats["nb_chunks_with_max_entropy_and_key_annotation"] = 0
 
     global_stats["nb_skipped_files"] = 0
 
@@ -997,6 +1054,8 @@ def main():
         global_stats["nb_annoted_chunks"] += stats["nb_annotated_chunks"]
         global_stats["nb_chunks_in_use_correct_footer_annotated"] += stats["nb_chunks_in_use_correct_footer_annotated"]
         global_stats["nb_chunks_in_use_correct_footer_annotated_and_key"] += stats["nb_chunks_in_use_correct_footer_annotated_and_key"]
+        global_stats["nb_chunks_with_max_entropy"] += stats["nb_chunks_with_max_entropy"]
+        global_stats["nb_chunks_with_max_entropy_and_key_annotation"] += stats["nb_chunks_with_max_entropy_and_key_annotation"]
 
         all_sizes_key_chunks.extend(stats["sizes_key_chunks"])
 

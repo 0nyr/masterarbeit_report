@@ -27,3 +27,4 @@
 __pycache__/
 *.pyc
 
+src/results/chunk_entropies/chunk_entropies.csv
