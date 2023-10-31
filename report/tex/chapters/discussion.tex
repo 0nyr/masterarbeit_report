@@ -1,12 +1,105 @@
 \chapter{Discussion}\label{chap:discussion}
+In the previous chapter, the results of the experiments were presented. This chapter aims to provide an in-depth discussion of those results, as well as to identify the limitations of the experiments and to propose avenues for future research.
 
-Discuss the results. What is the outcome of your experiments?
+\section{Discussion of the results}
+The following subsections will discuss the results obtained in the experiments, and will provide insights into the performance of the different models, as well as the impact of the different features and embeddings on the performance of the models.
 
-\section{Objectives of the experiments}
+\subsection{Objectives of the experiments}
 
-\section{Discussing features and embeddings}
+The primary objectives of the experiments conducted in this study are multi-faceted. First and foremost, we aim to demonstrate the feasibility of utilizing machine learning and deep learning models to predict chunks with keys in the OpenSSH program based on a graph-like representation of the heap dump files provided in the original dataset. To achieve this, we employ a range of algorithms to extract features from memory graphs, or 'memgraphs.' These algorithms include not only custom solutions tailored to our specific needs but also well-established, powerful algorithms like Node2Vec. Furthermore, we seek to evaluate the impact of these diverse features on the performance metrics of the predictive models. Lastly, we compare the performances of various models to identify the most effective approaches for our specific use-case.
 
-\section{Comparing GCN and classical ML models}
+\subsection{Discussing features and embeddings}
+
+In this section, we delve into the intricacies of the features and embeddings used in our experiments, focusing particularly on their inter-relationships as revealed by correlation matrices. Correlation matrices provide a quantitative measure of how different features of custom embeddings relate to each other. Each cell in the matrix represents the correlation coefficient between two features, which ranges from -1 to 1. A high positive value indicates a strong positive correlation, meaning that as one feature increases, the other tends to also increase. A negative value would indicate the opposite.
+
+It's worth noting that performing this analysis on Node2Vec embeddings is generally considered irrelevant. Node2Vec embeddings are designed to capture the neighborhood structure of nodes in a way that is optimized for machine learning tasks, and their dimensions do not have an easily interpretable meaning. Therefore, analyzing the correlation between different dimensions of a Node2Vec embedding is unlikely to provide insights that are useful for feature engineering.
+
+To interpret the correlation matrices, we use a color-coded system where red signifies high correlation and blue signifies low or no correlation. In the context of machine learning, understanding feature correlation is crucial for several reasons:
+
+\begin{itemize}
+    \item \textbf{Feature Selection:} Highly correlated features carry redundant information, which may not only be unnecessary but can also lead to overfitting and poor generalization.
+    \item \textbf{Interpretability:} Understanding how features are correlated can provide insights into the underlying structure of the data and the problem being solved.
+    \item \textbf{Computational Efficiency:} Eliminating correlated features can reduce the dimensionality of the problem, making the model simpler and faster to train.
+\end{itemize}
+
+Therefore, the correlation matrices serve as a valuable tool for both feature selection and model interpretation. In that context, and looking at the correlation matrices provided for the different algorithms like Pearson, Spearman, and Kendall correlation, we can see that the correlation between the different features is generally very low, meaning that the features are not correlated to each other. This is a good thing, as it means that the features are not redundant, and that they are all bringing new information to the model. No matter the correlation algorithm used, the matrices look very similar, and the correlation between the features is very low. The only features that stands a bit from the rest are the features corresponding to the filtering and entropy. This is actually just a sign that the entropy was indeed used in the filtering algorithm, since key chunks are generally more entropic than non-key chunks. In practice, that's also why the experiments have been run with and without this filtering feature.
+
+\subsection{Classic ML models performances}
+
+In this subsection, we discuss the performance of three tested classical binary classification machine learning models, namely Logistic Regression, Random Forest, and SGD Classifier, in the context of key chunk prediction. The models were evaluated based on four key metrics: Precision, Recall, F1 Score, and AUC (Area Under the Curve).
+
+\subsubsection{Logistic Regression}
+The Logistic Regression model excels in precision with a perfect score of 1.0000 but falls short in recall, F1 score, and AUC. The model is highly precise but fails to capture the majority of the positive instances, as indicated by the low recall of 0.0417. This suggests that while the model makes very few false-positive errors, it misses a large number of true positives.
+
+\subsubsection{Random Forest}
+Random Forest shows excellent precision at the expense of recall. It has a high precision of 1.0000 but a very low recall of 0.0833, indicating that it is precise but not sensitive. The AUC of 0.5417 suggests that the model's ability to distinguish between the classes is slightly better than random guessing.
+
+\subsubsection{SGD Classifier}
+The SGD Classifier stands out in terms of recall and AUC, both scoring close to a perfect score This indicates that the model is excellent at identifying all the positive instances and distinguishing between the two classes. However, its precision isn't always perfect, suggesting a higher rate of false positives.
+
+\subsubsection{Comparison}
+Upon comparing the three models, it's evident that each has its own strengths and weaknesses. Logistic Regression has a much better overall recall than Random Forest which is very precise but fails to find a lot of cases. However, SGD Classifier is clearly the best overall model here, since it is highly sensitive and excellent in class separation but lacks in precision.
+
+In summary, the SGD Classifier would be more appropriate in the binary classification task of predicting is a chunk is a key chunk or not. Random Forest offers a balanced but mediocre performance and could serve as a baseline model. Those models merely serve as a comparison point for the deep learning models.
+
+\subsection{GCN models performances}
+
+In this subsection, we delve into the performance metrics of five different \acrfull{gcn} models: Very Simple GCN, Simple GCN, First GCN, GCN with Dropout, and Advanced GCN. These models were evaluated on the same four key metrics as the classical models: Precision, Recall, F1 Score, and AUC.
+
+\subsubsection{Very Simple GCN}
+The Very Simple GCN model shows generally balanced performances. It's worth noting that the best instance of the model reached a perfect recall of 1.0000, indicating excellent sensitivity. However, the precision of the model is at best only of 0.6000, suggesting a higher rate of false positives. Its best instance having an AUC score of 0.9907 suggests excellent class separation capabilities.
+
+\subsubsection{Simple GCN}
+This model has similar or slightly lower performance metrics to the Very Simple GCN, with a precision and recall of 0.5000. The AUC score is slightly lower at 0.9891 but still indicates excellent class separation.
+
+\subsubsection{First GCN}
+The First GCN model also looks very similar to the two previous models. Its best AUC instance has a high AUC indicating excellent sensitivity and class separation. 
+
+\subsubsection{GCN with Dropout}
+This model has the lowest precision among the GCN models at 0.3500 but shows a decent AUC score of 0.8810. The model overall seems to be more sensitive but less precise compare to the simpler models introduced before. This was indeed expected due to the use of dropout, which is known to increase sensitivity at the expense of precision.
+
+\subsubsection{Advanced GCN}
+The Advanced GCN model, despite its complexity, does not outperform the simpler models in this limited dataset. It displays the worst performances in precision, f1 score and AUC, but has the best recall of all the GCN models, at 0.9000. This suggests that the model is very sensitive but not very precise, which is not surprising considering the complexity of the model, and the limited number of input memgraphs. This trend is likely to change if tested with a larger number of training graphs.
+
+\subsubsection{Layer Complexity}
+It's worth noting that the simpler models (Very Simple and Simple GCN) with only 2 layers tend to perform better in this limited training dataset. This could be due to the low number of example graphs, which might not be sufficient to train the more complex, 4-layer Advanced GCN model effectively. Yet, the Advanced GCN model has the best recall of all the GCN models, suggesting that it is more sensitive than the simpler models.
+
+In summary, each GCN model has its own set of strengths and weaknesses. While some excel in precision, others are more sensitive or better at class separation. The choice of model would depend on the specific requirements of the task at hand.
+
+\subsection{Comparing the embeddings impact on the models}
+Based on the results of the experiments, it's evident that the choice of embedding has a significant impact on the performance of the models. As this can ben seen in \ref{results:compare:embeddings:full}, and surprisingly, it seems that the custom embeddings developped specifically for this research are actually not the best performing embeddings. As such, adding the features from those custom embeddings to the Node2Vec embeddings does not improve the performances of the models, but actually degrade them. This is a very surprising result. The Node2Vec embedding is actually the best performing embedding, no matter the model used, which is even more surprising, since the GCN models were actively using the graph structure, which is not the case for the classic ML models. This means that the Node2Vec embedding, which is purely based on the graph structure, is actually the best performing embedding, and that the custom embeddings are not bringing any additional information to the models. Thus, this demonstrate that the memgraph structure is in and on itself sufficiently meaningful to perform the classification task. 
+
+It's worth mentioning the master thesis of Clément Lahoche that actually dives deeper in the question of embedding quality and impacts. His work displays significantly different results than the ones obtained in this research about embeddings. It shows that the question of embeddings is indeed a complex topic, and that the results can vary a lot depending on the dataset, the model, and the approach used.
+
+The big difference between this present work and his thesis is that he used a much larger number of input memgraphs, but also that he actually perform a real rebalancing on the dataset before training. This means that whereas the experiments perform in this work have been dealing with a very high imbalance rate, his classifiers have been trained on a much better balanced dataset. This is a huge difference, and it's not surprising that the results are so different. The reason why this thesis did not use active rebalancing is that we wanted to explore the impact of learning on a full memgraph dataset, without alteration of those memgraphs. This is due to the fact that this work has been focused aroung those graphs and their equivalent in the classification phase with GCNs that rely on the graph structure. The goal was to see if the graph structure was enough to perform the classification, and the results are very promising. Results show that the imbalance ratio is not a problem for the models, as they are able to perform well despite the very high imbalance ratio.
+
+\subsection{Comparing GCN and classical ML models}
+
+In this subsection, we aim to compare the performance of classical machine learning models with Graph Convolutional Networks (GCNs) for the task of key chunk prediction. The comparison is based the results of the experiments, the best instances of each model on each metric, but also the distribution of the metrics as illustrated in \ref{results:compare:models:full}.
+
+\subsubsection{Overall Performance}
+
+For overall balanced performance, the SGD Classifier from the classical models and the Very Simple GCN from the GCN models stand out. The SGD Classifier excels in recall and AUC, making it highly sensitive and excellent in class separation, although it lacks in precision. On the other hand, the Very Simple GCN shows balanced metrics across the board. It has a decent recall and AUC, but its precision is not perfect. However, it is the best performing GCN model in terms of precision.
+
+\subsubsection{Precision}
+
+If precision is the primary concern, then Logistic Regression and Random Forest from the classical models and the Very Simple GCN from the GCN models are the best choices. Logistic Regression and Random Forest both have a perfect precision score of 1.0000, while the Very Simple GCN has a precision of 0.6000, which is the highest among the GCN models.
+
+\subsubsection{Recall}
+
+For applications where high recall is crucial, the SGD Classifier from the classical models and the Advanced GCN from the GCN models are the most suitable. The SGD Classifier has a near-perfect recall, while the Advanced GCN has the highest recall among the GCN models at 0.9000.
+
+\subsubsection{Class Separation (AUC)}
+
+If the ability to distinguish between classes is of utmost importance, then the SGD Classifier from the classical models and the Very Simple GCN from the GCN models are the best options. Both models have AUC scores close to 1, indicating excellent class separation capabilities, between key and non-key chunks.
+
+\subsubsection{Considerations for Small Datasets}
+
+It's worth noting that the simpler GCN models (Very Simple and Simple GCN) tend to perform better on the limited dataset used for training. This suggests that for small datasets, simpler models may be more effective. The Advanced GCN model, despite its complexity, does not perform as well but shows promise in terms of high recall, which could potentially improve with more training data.
+
+\subsubsection{Summary}
+
+In summary, the choice of model would depend on the specific metric that is most important for the task. For balanced performance, the SGD Classifier and Very Simple GCN are recommended. For high precision, Logistic Regression or Very Simple GCN should be considered. For high recall, the SGD Classifier or Advanced GCN would be the most appropriate. Finally, for excellent class separation, the SGD Classifier and Very Simple GCN are the best choices according to the experiments.
 
 \section{Limitations of the Experiments}
 
@@ -15,13 +108,11 @@ While the experiments conducted offer valuable insights into the performance and
 \begin{itemize}
     \item \textbf{Number of Compute Instances:} The experiments were constrained by the available number of compute instances, affecting the scale at which they could be conducted.
     
-    \item \textbf{Number of Input Graphs:} The quantity of input graphs used in the experiments was limited, which could impact the generalizability of the results.
+    \item \textbf{Number of Input Graphs:} The quantity of input graphs used in the experiments was rather limited, which could impact the generalizability of the results.
     
     \item \textbf{Duration of the Experiments:} The time allocated for each experiment was finite, potentially affecting the depth of the analysis.
     
-    \item \textbf{Memory Usage:} Memory constraints could have influenced the performance and efficiency of the classifiers.
-    
-    \item \textbf{CPU-only Environment:} The experiments were conducted in a CPU-only setting, without the acceleration benefits that a GPU could offer, due to problems of memory consumption being too high for the GPU.
+    \item \textbf{CPU-only Environment:} The experiments were conducted in a CPU-only setting, without the acceleration benefits that a GPU could offer, due to problems of memory consumption being too high for the GPU. Additional work on this aspect could significantly improve the performance of the experiments, especially the Node2Vec embedding generation.
     
     \item \textbf{High Memory Bandwidth Usage:} The experiments were characterized by high memory bandwidth usage, which could have implications for performance.
 \end{itemize}
@@ -43,7 +134,7 @@ Below are the duration times for the different steps of the experiments.
 
 \begin{table}[H]
     \centering
-    \caption{Duration times for duration of embedding generation in ML/DL/FE pipeline (in seconds).)}
+    \caption{Duration times for duration of embedding generation in ML/DL/FE pipeline (in seconds).}
     \begin{tabular}{lcccccc}
       \textbf{Model}  & \textbf{Min duration} & \textbf{Max duration} & \textbf{Min duration} \\
         advanced-gcn & 506.5721079074733 & 1548.909129 & 0.129933 \\
@@ -75,7 +166,6 @@ Considering the tested models are not especially complex, and since the number o
     \end{tabular}
 \end{table}
 
-All those values have been produced only by the python pipeline program. The embedding time is actually mostly accounting for the Node2Vec generation, since the other embeddings are already loaded in memory. The Node2Vec generation is the most time consuming part of the pipeline, and it is the reason why the experiments take so long to run. Transfering this algorithm into Mem2Graph would be a huge improvement, and would allow to run the experiments with a much higher number of input memgraphs.
+All those values have been produced only by the python pipeline program. The embedding time is actually mostly accounting for the Node2Vec generation, since the other embeddings are already loaded in memory as they are produced and included in the outputs of Mem2Graph. The Node2Vec generation is the most time consuming part of the pipeline, and it is the reason why the experiments take so long to run. Transfering this algorithm into Mem2Graph would be a huge improvement, and would allow to run the experiments with a much higher number of input memgraphs.
 
-
-
+Throughtout this report, we have introduced a lot of concepts, diverse algorithms, and different models. The experiments conducted in this research were limited in scope due to the focus around a large set of models, embeddings and hyperparameters which already represented a consequent amount of work and computational resources. However, there are many more avenues for future research, which will be introduced with the conclusion of this report.

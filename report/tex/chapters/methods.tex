@@ -1427,6 +1427,33 @@ Explain what is the dot format, and show examples.
 
 \subsection{The impact of complexity}
 
+\subsection{Understanding Dropout in GCN}
+
+Dropout is a regularization technique used in neural networks, including Graph Convolutional Networks (GCNs) and Convolutional Neural Networks (CNNs), to prevent overfitting. The dropout layer randomly sets a fraction of the input units to 0 during training, which helps to make the model more robust and improves generalization. In the \acrshort{ml} pipelines developed in Python, a dropout rate of 0.5 is used, meaning approximately 50\% of the neurons will be turned off during each forward pass. This section will discuss the effect of dropout on the model's performance and the intuition behind it.
+
+\subsubsection{Effect on Binary Classification}
+
+In a binary classification problem, dropout can have several effects:
+
+\begin{itemize}
+    \item \textbf{Reduced Overfitting}: By randomly deactivating neurons, the model is less likely to rely on any single feature, making it generalize better to unseen data. This is expected to reduce overfitting and thus improve the model's performance, especially the recall of the positive class.
+    \item \textbf{Increased Robustness}: Dropout can make the model more robust to noise in the training data.
+    \item \textbf{Variable Performance}: While dropout can improve generalization, it may also lead to increased variance in the model's predictions, especially if the dropout rate is too high.
+\end{itemize}
+
+In the code of some GCN models implemented, dropout is applied after the activation functions of the GCN layers and the first fully connected layer:
+
+\begin{verbatim}
+    x = F.relu(x)
+    x = self.dropout(x)
+\end{verbatim}
+
+This is a common practice as it allows the model to learn more robust features. However, the dropout rate and its placement in the architecture are yet other hyperparameters that may need to be tuned for optimal performance. Since we already have a large number of hyperparameters, we will not tune the dropout rate in this thesis.
+
+\subsubsection{Batch Normalization}
+
+The code also includes Batch Normalization layers, denoted by \texttt{self.bn1} and \texttt{self.bn2}. These layers normalize the features to have zero mean and unit variance, which can accelerate training and provide some regularization effect, complementing the dropout layers.
+
 \subsection{More advanced models}
 
 \section{ML for key prediction}

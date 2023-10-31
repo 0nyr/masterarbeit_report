@@ -34,11 +34,18 @@
 
 # Logs
 
+### Mon 30 Oct 2023
+
+Continuing the work on the results and discussion part.
+
+* [ ] Add section about conda and nixos
+* [ ] add section describing in detail each ML and DL models
+
 ### Thu 26 Oct 2023
 
 * [ ] Intégrer les notes de Clem, particulièrement les embeddings
 * [ ] Remplir les sections vides
-* [ ] Graphiques de résultats (pour les 4 métriques, par classifier)
+* [X] Graphiques de résultats (pour les 4 métriques, par classifier)
 
 ### Sat 21 Oct 2023
 
