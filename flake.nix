@@ -20,6 +20,8 @@
             pkgs.texlive.combined.scheme-full
             pkgs.biber
             pkgs.gnumake
+            # Adding Java for LTeX spell checker
+            pkgs.openjdk
           ];
 
           # package needed at build and runtime.

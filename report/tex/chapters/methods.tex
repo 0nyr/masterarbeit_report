@@ -1537,30 +1537,107 @@ Node2Vec extends the capabilities of the RandomWalk algorithm by introducing add
 
 Note that the two last hyperparameters have a huge impact on the performance of the algorithm. These hyperparameters play a crucial role in shaping the behavior of the Node2Vec algorithm. Specifically, the return and in-out parameters help guide the random walks in a way that allows the algorithm to capture different types of structural information from the graph. The length and number of walks, meanwhile, impact the granularity and quality of the embeddings generated.
 
-\section{Machine learning binary classification}
+\section{Machine Learning Binary Classification}
 
-\subsection{Classic models of machine learning}
+Binary classification is a type of machine learning task where the model is trained to differentiate between two classes. In the context of key chunk prediction, binary classification serves to identify whether a given chunk is a "key chunk" or not. Successfully predicting key chunks is crucial as it leads to a 100\% successful key retrieval rate. This is because, in our case, all keys are situated at the beginning of a chunk, and no chunk contains more than one key. Various machine learning models, ranging from classic approaches to more modern methods like Graph Convolutional Networks (GCNs), have been employed for this task.
+
+\subsection{Classic Models of Machine Learning}
+
+For baseline comparisons, we have experimented with classic machine learning models including Random Forest, Logistic Regression, and the SGD Classifier. These models serve as a well-studied and understood starting point for our classification problem, providing a frame of reference against which more complex models can be compared.
 
 \subsubsection{Random Forest}
 
+Random Forest is an ensemble learning method that operates by constructing multiple decision trees during training and outputs the class that is the mode of the classes of the individual trees for classification tasks. It is highly flexible and can handle a wide range of data types, making it a strong candidate for various use cases, including key chunk prediction.
+
+\textbf{Strong and Weak Points:}
+\begin{itemize}
+  \item \textbf{Strong:} The model is robust to overfitting and can handle high dimensional data well.
+  \item \textbf{Weak:} Random Forest models can be computationally expensive and may require a long training time, especially for larger datasets.
+\end{itemize}
+
+As often with models, Random Forst has a bunch of hyperparameters:
+
+\textbf{Hyperparameters:}
+\begin{itemize}
+  \item \textbf{n\_estimators:} Number of trees in the forest.
+  \item \textbf{max\_features:} The number of features to consider when looking for the best split.
+  \item \textbf{max\_depth:} The maximum depth of the tree.
+  \item \textbf{min\_samples\_split:} The minimum number of samples required to split an internal node.
+  \item \textbf{min\_samples\_leaf:} The minimum number of samples required to be at a leaf node.
+\end{itemize}
+
+We have used the implementation of Random Forest available in the scikit-learn library \cite{scikit-learn}.
+
 \subsubsection{Logistic Regression}
+
+Logistic Regression is a statistical model commonly used for binary classification tasks. It models the log-odds of the probability of the event occurring as a linear combination of the predictor variables. The model is particularly effective when the probability of the outcome (dependent variable) can be expressed as a logistic function of the predictor (independent variable).
+
+\textbf{Strong and Weak Points:}
+Logistic Regression is straightforward to implement and understand, making it a good starting point for many classification problems. However, its simplicity is both a strength and a weakness; it might not perform well when the relationship between the variables is not log-linear or when the dataset has high dimensionality.
+
+\textbf{Hyperparameters:}
+\begin{itemize}
+  \item \textbf{C:} Inverse of regularization strength; smaller values specify stronger regularization.
+  \item \textbf{solver:} Algorithm to use for optimization, such as 'liblinear' or 'saga'.
+  \item \textbf{max\_iter:} Maximum number of iterations for the solver to converge.
+\end{itemize}
+
+We have relied on the Logistic Regression implementation available in the scikit-learn library for our experiments\cite{scikit-learn}, using the default hyperparameters.
 
 \subsubsection{SGD Classifier}
 
-\subsection{GCN}
-* we have already discussed the GCN in the background section, so we can focus on the implementation and the different models used.
-* GCN are used for the key chunk prediction task.
-* special type of neural network that can operate on graphs: present its main characteristics
-* they capture the structure of the graph as part of their input  (using edge connectivity from adjacency matrix or edge list)
+The Stochastic Gradient Descent (SGD) Classifier is a linear classifier optimized by stochastic gradient descent. It is especially useful for large-scale and sparse machine learning problems. The SGD Classifier can approximate other types of linear classifiers like Logistic Regression and Support Vector Machines.
 
-\subsubsection{Simple GCN models}
-* first models used, with a simple architecture
+\textbf{Strong and Weak Points:}
+SGD Classifier is computationally efficient, making it well-suited for large datasets. However, it requires careful tuning of its hyperparameters and might be sensitive to feature scaling.
 
-\subsection{The impact of complexity}
-* discuss how the complexity of the model impacts the performance, especially the precision and recall, 
-* impact of different numbers on input graphs (few, a lot)
+\textbf{Hyperparameters:}
+\begin{itemize}
+  \item \textbf{alpha:} Regularization term that discourages large coefficients to prevent overfitting.
+  \item \textbf{loss:} Specifies the loss function to be used, such as 'hinge' for SVM or 'log' for logistic regression.
+  \item \textbf{max\_iter:} Maximum number of passes over the training data.
+  \item \textbf{learning\_rate:} The learning rate schedule, could be 'constant', 'optimal', 'invscaling', or 'adaptive'.
+\end{itemize}
 
-\subsection{Understanding Dropout in GCN}
+For the SGD Classifier as well, we used the scikit-learn implementation\cite{scikit-learn}.
+
+\subsection{Graph Convolutional Networks (GCN)}
+
+As GCNs have already been introduced in the background section, this part will primarily focus on our specific implementation and the variants of GCN models employed for the task of key chunk prediction.
+
+GCNs are a specialized form of neural networks designed to operate directly on graphs. One of their main characteristics is their ability to capture the graph's structural information. They accomplish this by using edge connectivity information, either from an adjacency matrix or an edge list, as part of their input. This makes them particularly effective for tasks involving irregular data structures like the memory graphs discussed previously.
+
+We used the PyTorch Geometric library for the development of our GCN models. This library offers a robust set of tools and abstractions, making it easier to construct custom graph-based neural networks \cite{PyTorchGeometric19}.
+
+GCNs excel at capturing the topological features of graphs, making them a strong candidate for our task of key chunk prediction. However, they can be computationally intensive, especially for large graphs, and also require careful tuning of hyperparameters for optimal performance.
+
+\subsubsection{Very Simple GCN}
+
+The Very Simple GCN model is a minimalist approach, capturing the essential features of a Graph Convolutional Network. This model consists of just one graph convolution layer followed by a single fully connected layer. The convolution layer takes the input features and transforms them into a 16-dimensional space.
+
+After the graph convolution operation, a ReLU (Rectified Linear Unit) activation function is applied to the output. ReLU is defined as \( f(x) = \max(0, x) \), replacing all negative values in the tensor with zeros. In the context of GCNs, ReLU is commonly used to introduce non-linearity into the model. It enables the network to learn from the error and make adjustments, making it more capable of handling complex, non-linear relationships in the graph data.
+
+Finally, the output from the ReLU activation is passed through a fully connected layer to produce the final output for classification. Due to its simplicity, this model is computationally efficient but may not capture complex graph structures effectively.
+
+\subsubsection{Simple GCN Models}
+
+The Simple GCN model, or \texttt{LessSimplifiedGNN}, is a step up in complexity from the very simplified version. It incorporates two graph convolutional layers, doubling the depth of the network. The first convolution transforms the input features to a 12-dimensional space, and the second one further transforms these 12-dimensional vectors into 24 dimensions. Two fully connected layers follow, ultimately producing the final output. This model is capable of capturing more complex features in the graph but is computationally more demanding than the simpler model.
+
+\subsubsection{First GCN Model}
+
+The First GCN model is the first version that was actually implemented and tested for the task. It's a more complex architecture optimized for higher performance. It consists of two graph convolution layers that transform the input features first into a 16-dimensional and then into a 32-dimensional space. Following these, the network contains three fully connected layers. These layers are intended to capture more intricate patterns in the data. Failed attempts to scale the model computation speed by delegating the fully connected layers to the GPU were made, but ultimately, the model was too memory intensive to be trained on the GPU. This model is designed for capturing more nuanced relationships in the graph but at the cost of higher computational requirements.
+
+\subsection{The Impact of Complexity}
+
+The complexity of a model is a double-edged sword when it comes to performance metrics like precision and recall. On one hand, more complex models with additional layers or more neurons can capture intricate patterns in the graph data, potentially improving precision by accurately identifying key chunks. On the other hand, the complexity often leads to overfitting, especially when the training dataset is small or lacks diversity. Overfitting can adversely affect recall, as the model might become too specialized in recognizing training graphs and fail to generalize well to unseen data.
+
+In the case of Graph Convolutional Networks (GCNs), the non-linear transformations and multiple layers can allow the network to learn highly specialized features, which is excellent for achieving high precision. However, these can be detrimental to recall if the model becomes so tailored to the training data that it fails to identify key chunks in new, unseen graphs.
+
+The impact of the model's complexity also varies with the number of input graphs. For datasets with few graphs, a simpler model is often more appropriate to prevent overfitting. In contrast, when numerous diverse graphs are available for training, a more complex model can be employed to capture the rich set of features inherent in the data, thereby potentially improving both precision and recall.
+
+Therefore, the choice of model complexity should be carefully considered, weighing its impact on performance metrics and the size and diversity of the available training data. This is why more complex GCN models have also been implemented and tested.
+
+\subsection{Understanding Dropout in GCNs}
 
 Dropout is a regularization technique used in neural networks, including Graph Convolutional Networks (GCNs) and Convolutional Neural Networks (CNNs), to prevent overfitting. The dropout layer randomly sets a fraction of the input units to 0 during training, which helps to make the model more robust and improves generalization. In the \acrshort{ml} pipelines developed in Python, a dropout rate of 0.5 is used, meaning approximately 50\% of the neurons will be turned off during each forward pass. This section will discuss the effect of dropout on the model's performance and the intuition behind it.
 
@@ -1587,12 +1664,36 @@ This is a common practice as it allows the model to learn more robust features. 
 
 The code also includes Batch Normalization layers, denoted by \texttt{self.bn1} and \texttt{self.bn2}. These layers normalize the features to have zero mean and unit variance, which can accelerate training and provide some regularization effect, complementing the dropout layers.
 
-\subsection{More advanced models}
+\subsection{More Complex GCN Models}
 
-\section{ML for key prediction}
-% this is composed of the classical ML pipelines and of the GCN pipelines
+In an effort to enhance the performance of our initial GCN models, we explored more complex architectures. The motivation behind increasing the complexity was to evaluate whether additional layers or techniques could lead to improved performance metrics such as precision and recall. These advanced models have been tested against the simpler GCN models to determine their effectiveness.
 
+\subsubsection{GCN with Dropout and Batch Normalization}
 
+Building upon the First GCN model, we incorporated dropout and batch normalization layers. Dropout is employed to mitigate the issue of overfitting, especially relevant for complex models trained on limited data. With a dropout rate of 0.5 after each ReLU activation, we were able to regulate the model's complexity during training. 
 
-The chapter has been an overview of the dataset, development environment, and tools used for this thesis. In the next chapter, we will dive deeper into the graph memory representation and associated algorithms and programs.
+Batch normalization, on the other hand, aims to accelerate training and stabilize the learning process. By normalizing the output features of each layer, batch normalization helps in alleviating internal covariate shift, making the model training more resilient to the choice of hyperparameters.
+
+This version of the model aligns closely with the First GCN model, but the addition of dropout and batch normalization layers offer greater robustness, especially when training on imbalanced or smaller datasets.
+
+\subsubsection{Advanced GCN}
+
+The Advanced GCN model represents the most intricate architecture we have experimented with. This model introduces several additional components compared to the simpler models.
+
+The Advanced GCN consists of three Graph Convolution layers, followed by Batch Normalization layers. The initial Graph Convolution layer transforms the input features into a 32-dimensional space, which is then normalized using \texttt{BatchNorm1d}. The second and third Graph Convolution layers further increase the dimensions to 64 and 128, respectively, also followed by batch normalization steps. These layers aim to capture more complex features from the graph structure.
+
+ReLU (Rectified Linear Unit) activation functions are applied after each batch normalization, introducing non-linearity to the model and helping to capture intricate relationships in the data. Additionally, dropout layers with a rate of 0.5 are placed after each ReLU activation to mitigate the risk of overfitting.
+
+After the Graph Convolution layers, the architecture includes a series of fully connected layers that transform the 128-dimensional feature vector into a 256-dimensional space, which is further compressed into 128 and then 64 dimensions. Finally, the model outputs a vector of dimensions corresponding to the number of classes. Each of these fully connected layers is followed by ReLU activations, except for the final output layer.
+
+\begin{itemize}
+    \item \textbf{Graph Conv Layers}: Three layers with dimensions 32, 64, and 128
+    \item \textbf{Batch Normalization}: Applied after each Graph Conv layer
+    \item \textbf{Fully Connected Layers}: Layers with dimensions 256, 128, and 64
+    \item \textbf{Dropout}: Applied after each ReLU activation with a rate of 0.5
+\end{itemize}
+
+In summary, the model is engineered to capture more complex relationships in the data, at the cost of increased computational requirements and a higher risk of overfitting, especially when trained on small or less diverse datasets. The dropout and batch normalization layers are integrated to combat overfitting to some extent.
+
+The current chapter has been an overview of the dataset, development environment, and tools used for this thesis. In the next chapter, we will dive deeper into developed programs, experimentations conducted and subsequent results.
 

@@ -80,6 +80,12 @@
 \usepackage{xurl}
 \usepackage[acronym, toc]{glossaries} 
 \makeglossaries
+\newglossaryentry{memgraph}
+{
+  name=memory graph,
+  description={A memory graph, or \textit{memgraph} is a graph representation of a memory dump. This graph can be a graph of blocks, where each node in the graph corresponds to a block of 8 bytes in the heap dump and each edge corresponds to a pointer from one block to another, or describes which blocks are part of a chunk whose root note is a Chunk Header Node. It can also be a graph of objects, where each node in the graph corresponds to a chunk in heap dump and each edge corresponds to a pointer from one object to another.}
+}
+
 \newglossaryentry{nodes}
 {
   name=nodes,
