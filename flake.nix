@@ -20,6 +20,7 @@
             pkgs.texlive.combined.scheme-full
             pkgs.biber
             pkgs.gnumake
+            
             # Adding Java for LTeX spell checker
             pkgs.openjdk
           ];
@@ -47,6 +48,11 @@
             pythonPackages.matplotlib
             pythonPackages.jinja2
           ];
+
+          shellHook = ''
+            export JAVA_HOME=${pkgs.openjdk11}/lib/openjdk
+            export JAVA_OPTS="-Xms64m -Xmx512m"
+          '';
         };
       }
     );

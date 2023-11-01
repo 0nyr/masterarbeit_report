@@ -10,7 +10,7 @@
 %
 % Audience: Assumes the reader may not be an expert in the specific area of your research but has some knowledge of the broader field.
 
-This section is dedicated to the background information needed to understand the work developed in the thesis. It provides the necessary context for the research, including the problem being solved, why it's important, and the related state-of-the-art and background information. It also includes fundamental concepts and theories, terminology definitions, and a high-level overview of the problem domain. It serves as a primer to the rest of the report, providing the necessary context for the research and is intended for readers who may not be experts in the specific area of the research but have some knowledge of the broader field.
+This section is dedicated to the background information needed to understand the work developed in the thesis. It provides the necessary context for the research, including the problem being solved, why it's important, and the related state-of-the-art and background information. It also includes fundamental concepts and theories, terminology definitions, and a high-level overview of the problem domain. Likewise, it serves as a primer to the rest of the report, providing the necessary context for the research and is intended for readers who may not be experts in the specific area of the research but have some knowledge of the broader field.
 
 \section{SSH and OpenSSH Implementation}\label{sec:background:ssh}
 
@@ -63,7 +63,7 @@ This section is dedicated to the background information needed to understand the
         \end{itemize}
     } \cite{OpenSSHUnderHood07}. Details about the hash function are given in the next section.
     
-    The most interesting keys are the encryption keys, as they are used to encrypt the communication between the client and the server. The other keys are used for integrity checks and initialization vectors. Decrypting encrypted SSH communication necessitates either to retreive these session keys and variables so as to recompute the keys, or to retreive those keys directly, which is the focus of this Masterarbeit. 
+    The most interesting keys are the encryption keys, as they are used to encrypt the communication between the client and the server. The other keys are used for integrity checks and initialization vectors. Decrypting encrypted SSH communication necessitates either to retrieve these session keys and variables so as to recompute the keys, or to retrieve those keys directly, which is the focus of this Masterarbeit. 
 
     \subsection{OpenSSH Implementation}
     OpenSSH (OpenBSD Secure Shell) is an open-source implementation written in C of the SSH protocol suite, and it is the most widely used SSH implementation \cite{OpenSSHUnderHood07}. It is the default SSH implementation on most Linux distributions, and it is also available for Windows. OpenSSH is used for a wide range of purposes, including remote command-line login and remote command execution. It is also used for port forwarding, tunneling, and transferring files via SCP and SFTP either manually or via automated processes, such as backup systems, configuration management tools, and automated software deployment tools. 
@@ -74,7 +74,7 @@ This section is dedicated to the background information needed to understand the
         \item \textbf{ssh:} The basic client program that allows to log into and execute commands on a remote machine.
         \item \textbf{sftp:} An interactive file transfer program that uses SSH to secure the connection.
         \item \textbf{sshd:} This is the SSH daemon that runs on the server. This is used for connecting to a remote machine when using the SSH client from another system.
-        \item \textbf{ssh-agent:} The program that holds private keys in memory, so one doesn't have to enter ones passphrase every time.
+        \item \textbf{ssh-agent:} The program that holds private keys in memory, so one doesn't have to enter one's passphrase every time.
         \item \textbf{ssh-add:} A program for adding RSA or DSA identities to the authentication agent.
         \item \textbf{ssh-keygen:} A utility for creating and managing SSH keys.
         \item \textbf{ssh-keyscan:} A utility for gathering public SSH host keys from a number of hosts.
@@ -109,7 +109,7 @@ This section is dedicated to the background information needed to understand the
         \item \textbf{NTRU Prime-x25519:} \textit{(since OpenSSH 9.0)} A new, highly secure algorithm focused on post-quantum cryptography, providing future-proof security \cite{NTRUPostQuantum17} \cite{OpenSSHReleaseNotes9-0}.
     \end{itemize}
     
-    These hashes have fixed lengths such that key lengths range between 12 and 64 bytes \cite{SmartKex22}. Since high-quality random number generation is crucial to ensure that thoses keys are secure and difficult to predict, it can thus be assumed that thoses key have a high entropy \cite{McLaren2019}. This is a crucial assumption as it is the basis for the use of both brute force and machine learning algorithms to predict the presence and location of SSH keys in memory dumps.
+    These hashes have fixed lengths such that key lengths range between 12 and 64 bytes \cite{SmartKex22}. Since high-quality random number generation is crucial to ensure that those keys are secure and difficult to predict, it can thus be assumed that those key have a high entropy \cite{McLaren2019}. This is a crucial assumption as it is the basis for the use of both brute force and machine learning algorithms to predict the presence and location of SSH keys in memory dumps.
 
     The keys generated by these hash functions are pseudo-random numbers stored in the system's RAM. Following the Kerckhoffs' principle: that \say{a cryptosystem should be secure, even if everything about the system, except the key, is public knowledge}, the code for the OpenSSH implementation is open-source and available on GitHub \cite{PortableOpenSSHGitHub}. This allows for the analysis of the code and the identification of the memory structures where the keys are stored.
 
@@ -117,10 +117,10 @@ This section is dedicated to the background information needed to understand the
     Since its origins, SSH has been developed with cybersecurity in mind, and is generally considered a secure method for remote login and other secure network services over an insecure network. However, as with any technology, it can be exploited if not configured or managed correctly. The protocol is used by system administrators to manage remote systems, and it is also used by automated processes to transfer data and perform other tasks. This makes SSH a valuable target for attackers. In fact, SSH has been a popular target for cyber-attacks. Due to being so prevalent, it is often used by threat actors either as a vector for initial access, as a means to move laterally across a network or as a covered exit for exfiltration of sensitive data \cite{APTTactics19}. The encrypted nature of its communications makes it an attractive option for attackers, as it can be difficult to detect malicious activity.
     
     \subsubsection{SSH security issues}
-    Here are some cases where SSH can involved in cyber-attacks, although it's important to note that SSH itself is not inherently insecure:
+    Here are some cases where SSH can involve in cyber-attacks, although it's important to note that SSH itself is not inherently insecure:
     \begin{itemize}
-        \item \textbf{SSH Brute-Force Attacks:} One of the most common types of attacks involving SSH is a brute-force attack, where an attacker tries to gain access by repeatedly attempting to login with different username-password combinations. These attacks are not sophisticated but can be effective if strong authentication measures are not in place. For instance, the botnet \textit{Chabulo} was used to launch a large-scale brute-force attack \say{through compromised SSH servers and IoT devices} in 2018 \cite{SSHReport18}. 
-        \item \textbf{SSH Key Theft:} In some advanced attacks, threat actors have stolen SSH keys to move laterally across a network after initial entry. This allows them to authenticate as a legitimate user and can make detection much more challenging. It can \say{ occurs when users have their SSH password or unencrypted keys stolen through a variety of methods (sniffed via a key-logging console program, shoulder-surfed via bad security awareness, poor key management practices, etc.).} \cite{SSHIdentityTheft05}.
+        \item \textbf{SSH Brute-Force Attacks:} One of the most common types of attacks involving SSH is a brute-force attack, where an attacker tries to gain access by repeatedly attempting to log in with different username-password combinations. These attacks are not sophisticated but can be effective if strong authentication measures are not in place. For instance, the botnet \textit{Chabulo} was used to launch a large-scale brute-force attack \say{through compromised SSH servers and IoT devices} in 2018 \cite{SSHReport18}. 
+        \item \textbf{SSH Key Theft:} In some advanced attacks, threat actors have stolen SSH keys to move laterally across a network after initial entry. This allows them to authenticate as a legitimate user and can make detection much more challenging. It can \say{ occur when users have their SSH password or unencrypted keys stolen through a variety of methods (sniffed via a key-logging console program, shoulder-surfed via bad security awareness, poor key management practices, etc.).} \cite{SSHIdentityTheft05}.
         \item \textbf{Man-in-the-Middle Attacks:} Although SSH is designed to be secure, it can be susceptible to man-in-the-middle attacks if proper verification of SSH keys is not done during the initial connection setup \cite{OpenSSHUnderHood07}.
         \item \textbf{Misconfiguration:} As with any technology, misconfiguration can lead to security issues. For example, leaving default passwords, using weak encryption algorithms, or enabling root login can all make an SSH-enabled system vulnerable \cite{SSHBotnetInfect21}.
     \end{itemize}
@@ -147,7 +147,7 @@ This section is dedicated to the background information needed to understand the
     It's worth noting that in many of these cases, SSH was not the initial attack vector but was used at some stage in the attack lifecycle. Properly configured and managed SSH is still considered a secure and robust protocol for remote access and data transfer. In all those situations, a tool monitoring the SSH traffic could have detected the malicious activities and prevented the attack.
 
     \subsection{The Imperative of SSH Honeypots in Cybersecurity Monitoring}
-    SH (Secure Shell) has become an indispensable protocol for secure communication but can also conceil malicous agents. This reality underscores the urgency for robust monitoring mechanisms capable of identifying suspicious activities in real-time. Among various countermeasures, SSH honeypots have emerged as a particularly effective tool for monitoring and gathering intelligence on potential threats. 
+    SH (Secure Shell) has become an indispensable protocol for secure communication but can also conceal malicious agents. This reality underscores the urgency for robust monitoring mechanisms capable of identifying suspicious activities in real-time. Among various countermeasures, SSH honeypots have emerged as a particularly effective tool for monitoring and gathering intelligence on potential threats. 
 
     An SSH honeypot is a decoy server or service that mimics legitimate SSH services. The primary aim is to attract cybercriminals and study their tactics, thereby offering an active form of surveillance and data collection. Unlike traditional intrusion detection systems, honeypots do not merely identify an attack; they engage the attacker in a controlled environment, enabling detailed observation and logging of the intruder's actions. This allows for the collection of valuable information, such as the attacker's IP address, the tools used, and the techniques employed. This data can then be used to enhance security measures and develop more robust countermeasures \cite{ClassificationMalware21}. 
 
@@ -175,7 +175,7 @@ This section is dedicated to the background information needed to understand the
     
     As explained in \citetitle{SSHHoneypotEffectiveness23}: \say{As attackers become more sophisticated with their ransomware and malware campaigns, there is a significant need for security researchers to assist the greater community by running vulnerable honeypot machines to collect malicious software}. \citeauthor{SSHHoneypotEffectiveness23} explain that \say{the ability to collect meaningful malware from attackers depends on how the attackers receive the honeypot. Most attackers fingerprint targets before they launch their attack, so it would be very beneficial for security researchers to understand how to hide honeypots from fingerprinting and trick the attackers into depositing malware.} They conclude that \say{What is certain is that if a cautious attacker believes they are in a honeypot, they will leave without depositing malware onto the system, which reduces the effectiveness of the honeypot for security research.} We can extrapolate this conclusion to SSH honeypots, which are also vulnerable to fingerprinting and detection by attackers. 
     
-    Hence, the need for more advanced SSH honeypots-inspired tools that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research (see \ref{chapter:related_work}), further enhancing the state of SSH honeypots. It aims to develop algorithms, proof of concepts and tools that can extract SSH keys from memory dumps of a real server, and use them to decrypt SSH traffic. This could lead to the developement of new tools for SSH monitoring, as discussed in the future work section \ref{conclusion:sec:future_work}.
+    Hence, the need for more advanced SSH honeypots-inspired tools that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research (see \ref{chapter:related_work}), further enhancing the state of SSH honeypots. It aims to develop algorithms, proof of concepts and tools that can extract SSH keys from memory dumps of a real server, and use them to decrypt SSH traffic. This could lead to the development of new tools for SSH monitoring, as discussed in the future work section \ref{conclusion:sec:future_work}.
 
 \section{Graph-based memory modelization}\label{sec:background:graph}
 
@@ -205,7 +205,7 @@ This section is dedicated to the background information needed to understand the
 
     \subsubsection{Endianness}
     
-    Endianness refers to the byte order used to represent multi-byte data types. In a \textit{little-endian} system, the least significant byte is stored first, while in a \textit{big-endian} system, the most significant byte is stored first. Knowing the endianness of the system is crucial for interpreting the content of memory \cite{InferenceEndianness17}.
+    Endianness refers to the byte order used to represent multibyte data types. In a \textit{little-endian} system, the least significant byte is stored first, while in a \textit{big-endian} system, the most significant byte is stored first. Knowing the endianness of the system is crucial for interpreting the content of memory \cite{InferenceEndianness17}.
     
     For instance, the hexadecimal value \textit{0x56343a198000} (taken from \textit{"HEAP\_START"} of \ref{lst:json-annotation-ex-1}) is represented as $550179058774$ ($\simeq 5.50e+11$) in decimal basis in a little-endian system, while it is represented as $94782313037824$ ($\simeq 9.48e+13$) in a big-endian system.
 
@@ -224,8 +224,8 @@ This section is dedicated to the background information needed to understand the
     \end{minipage}
     
     \begin{minipage}{\dimexpr\linewidth-20pt}
-        \paragraph{Big-Endian convertion}
-        And the convertion of a hexadecimal number in \textit{big-endian} format to a decimal number is given by following formula:
+        \paragraph{Big-Endian conversion}
+        And the conversion of a hexadecimal number in \textit{big-endian} format to a decimal number is given by following formula:
         \par % solve the underfull hbox warning
         
         \vspace{2em}  % Adds vertical space
@@ -263,7 +263,7 @@ This section is dedicated to the background information needed to understand the
         Where $ p_1, p_2, \ldots, p_n $ are the probabilities of the set of all possible messages \cite{InferenceEndianness17}.
     \end{minipage}
 
-    Endianness, as presented before, refers to the byte order used to represent multi-byte data types in computer memory \cite{InferenceEndianness17}. It is necessary to know the endianness of the heap dump to correctly interpret the content of memory, and especially the addresses of potential pointers. In this context, entropy can be used to infer the endianness of a system by analyzing the distribution of byte values in a memory dump, as presented in \citetitle{InferenceEndianness17} \cite{InferenceEndianness17}.
+    Endianness, as presented before, refers to the byte order used to represent multibyte data types in computer memory \cite{InferenceEndianness17}. It is necessary to know the endianness of the heap dump to correctly interpret the content of memory, and especially the addresses of potential pointers. In this context, entropy can be used to infer the endianness of a system by analyzing the distribution of byte values in a memory dump, as presented in \citetitle{InferenceEndianness17} \cite{InferenceEndianness17}.
 
     Entropy is also a key element for encryption key detection, since those should be random byte sequences with high entropy \cite{SmartKex22}. By examining 8-byte aligned data for high entropy, it is possible to detect potential keys in a heap dump. Techniques such as the calculation of discrete differences and logical operations can further refine this detection as described in \citetitle{SmartKex22} \cite{SmartKex22}.
 
@@ -286,9 +286,8 @@ This section is dedicated to the background information needed to understand the
         \item \textbf{Degree}: The number of edges connected to a node.
         \item \textbf{Path}: A sequence of edges that connect two nodes.
         \item \textbf{Cycle}: A path that starts and ends at the same node.
-        every pair of nodes.
         \item \textbf{Order}: The number of vertices in the graph.
-        \item \textbf{Adjascency}: Two nodes are adjacent if there is an edge between them.
+        \item \textbf{Adjacency}: Two nodes are adjacent if there is an edge between them.
         \item \textbf{Loop}: An edge that connects a node to itself.
         \item \textbf{Weight}: A value assigned to an edge.
         \item \textbf{Ancestors (parents) and Descendants (children)}: A node \(s_i\) is an ancestor of \(s_j\) if there is a path from \(s_i\) to \(s_j\). A node \(s_j\) is a descendant of \(s_i\) if there is a path from \(s_i\) to \(s_j\).
@@ -297,7 +296,7 @@ This section is dedicated to the background information needed to understand the
     Various other terminologies and concepts exist in graph theory, but these are the most important ones for our purposes. For a more in-depth understanding of graph theory, the reader is encouraged to consult the work by \citeauthor{GraphTheorySolnon} as a quick introduction, \cite{GraphTheorySolnon} or a more in-depth one by \citeauthor{GraphTheoryIntro01} \cite{GraphTheoryIntro01}.
 
     \subsubsection{Graphs types}
-    Graphs offer a flexible way to conceptualize, represent, and integrate diverse and incomplete data. Many graph models exist, each with its own advantages and disadvantages, as well as graph properties \footnote{Some parts of the following section are directly from a prior work for Seminar 5369S: Knowledge Graphs, written during summer 2023. As of the date of writting and to the best of my knowledge, this work has not been published, and as such, cannot be properly referenced.}. Those different types of graphs include:
+    Graphs offer a flexible way to conceptualize, represent, and integrate diverse and incomplete data. Many graph models exist, each with its own advantages and disadvantages, as well as graph properties \footnote{Some parts of the following section are directly from a prior work for Seminar 5369S: Knowledge Graphs, written during summer 2023. As of the date of writting and to the best of my knowledge, this work has not been published, and as such, cannot be properly referenced}. Those different types of graphs include:
 
     \begin{itemize}
         \item \textbf{Directed Edge-labelled Graphs (DEL):} The classic graph, set of nodes and edges that connect the nodes with in certain way. \acrshort{rdf} is a popular \acrshort{del} data model.
@@ -320,22 +319,22 @@ This section is dedicated to the background information needed to understand the
     \subsubsection{Graph vs Knowledge Graph}
     A \acrfull{kg} is a specialized form of graph intended to accumulate and convey real-world knowledge. As said before, we are not technically building KGs, but we rely on many concepts from the domain. Research on \acrshort{kg} has further accelerated in recent years, and introduced significant improvement to Graph Theory, especially in the practical applications of graph construction and use for Machine Learning or Deep Learning \cite{KG21}. They have a number of benefits when compared with a relational model or NoSQL alternatives, such as the ability for data to evolve in a more flexible manner, and the capacity to organize data in a way that is not hierarchical. They can represent incomplete information, and does not require a precise schema \cite[p.2]{KG21}, which is invaluable in the context of memory analysis, where the structure of the heap is not known in advance.
 
-    While all KGs are graphs, not all graphs are KGs. However the line between the two is often blurry, and the distinction is not always clear. The term "knowledge graph" first appeared in 1973, but really gained popularity through a 2012 blog post about Google's Knowledge Graph \cite{googleblog2023knowledgegraph}. Several definition attempts have been made, but none of them are universally accepted. Below are listed some of the most common definitions of Knowledge Graphs:
+    While all KGs are graphs, not all graphs are KGs. However, the line between the two is often blurry, and the distinction is not always clear. The term "knowledge graph" first appeared in 1973, but really gained popularity through a 2012 blog post about Google's Knowledge Graph \cite{googleblog2023knowledgegraph}. Several definition attempts have been made, but none of them are universally accepted. Below are listed some of the most common definitions of Knowledge Graphs:
     \begin{itemize}
         \item \say{A graph of data intended to accumulate and convey knowledge of the real world, whose nodes represent entities of interest and whose edges represent potentially different relations between these entities.} \cite{KG21}
         \item \say{A graph of data consisting of semantically described entities and relations of different types that are integrated from different sources. Entities have a unique identifier. KG entities and relations are semantically described using an ontology or, more clearly, an ontological representation.} \cite{CKG23}
     \end{itemize}
     
-    In KGs, edges are often labeled and may represent complex relationships like "is a subclass of" or "is married to," allowing for more expressive power. The very nature of KG makes any definition attempt difficult. Indeed, KG is a broad concept that can be applied to many different domains, use cases and can have diverse implementations. The definition of KGs is thus very context-dependent, and it's debatable where the line between a graph and a KG is drawn. 
+    In KGs, edges are often labeled and may represent complex relationships like "is a subclass of" or "is married to", allowing for more expressive power. The very nature of KG makes any definition attempt difficult. Indeed, KG is a broad concept that can be applied to many domains, use cases and can have diverse implementations. The definition of KGs is thus very context-dependent, and it's debatable where the line between a graph and a KG is drawn. 
     
-    For the purpose of this thesis, we won't focus on this distinction and just consider that we deal with memory \textit{graphs}, which are graphs that are not necessarily KGs, but that can be used to represent complex relationships between entities extracted from memory dumps and be leveraged using \acrshort{kg}-related tecnhiques for advance tasks like feature engineering, automated embedding, inductive reasoning and learning.
+    For the purpose of this thesis, we won't focus on this distinction and just consider that we deal with memory \textit{graphs}, which are graphs that are not necessarily KGs, but that can be used to represent complex relationships between entities extracted from memory dumps and be leveraged using \acrshort{kg}-related techniques for advance tasks like feature engineering, automated embedding, inductive reasoning and learning.
 
     \subsubsection{Ontologies}\label{sec:background:ontology}
     An ontology is a formal representation of knowledge within a domain, providing a structured framework for organizing and interpreting information. It consists of a set of concepts, relationships, and rules that define how data is interconnected and how it can be reasoned about. Ontologies are often used to model a domain and support reasoning about entities and their relationships \cite{KG22}.
 
     Ontologies play a crucial role in the development and utility of knowledge graphs. They provide a semantic layer to the knowledge graph, enabling machines to understand the meaning and context of the data. The axioms and rules in an ontology enable automated reasoning, allowing the knowledge graph to infer new facts from existing data. Ontologies also help in maintaining the quality and consistency of data by enforcing constraints and validation rules. Finally, ontologies enable interoperability by providing a common vocabulary for data exchange and integration. Different popular ontologies exists, such as \acrfull{owl} or \acrfull{rdf}.
 
-    By incorporating ontologies, knowledge graphs become more than just a collection of nodes and edges; they become a rich, interconnected web of semantically meaningful information that can be easily queried, analyzed, and extended. We will be refering to concepts that have been inspired by ontologies in the next sections, like \textit{rdf:Bag}.
+    By incorporating ontologies, knowledge graphs become more than just a collection of nodes and edges; they become a rich, interconnected web of semantically meaningful information that can be easily queried, analyzed, and extended. We will be referring to concepts that have been inspired by ontologies in the next sections, like \textit{rdf:Bag}.
 
     The \texttt{rdf:Bag} container is a part of the Resource Description Framework (RDF) used to represent collections where the order of elements is not significant. Unlike other containers such as \texttt{rdf:Seq} and \texttt{rdf:Alt}, \texttt{rdf:Bag} permits duplicate entries. It can be used to model unsorted collections of resources or literals. An instance of \texttt{rdf:Bag} can be represented as a graph where each node connected to the root node represents an item in the collection \cite{OrderedDataInRDF20}. For example, consider a root node named \texttt{"DataStructure"} with a property \texttt{Address} specifying its \texttt{malloc header address}.
 
@@ -380,7 +379,7 @@ This section is dedicated to the background information needed to understand the
         \item \textbf{Geospatial Features}: These attributes represent geographical or spatial coordinates.
     \end{itemize}
 
-    Features are pivotal for the performance of machine learning models. The quality and pertinence of features can significantly influence the model's capability to discern underlying patterns in the data. Inadequately chosen or irrelevant features can lead to a poorly performing model, while carefully selected, relevant features can result in a robust and accurate model.
+    Features are pivotal for the performance of machine learning models. The quality and pertinence of features can significantly influence the model's capability to discern underlying patterns in the data. Inadequately chosen, or irrelevant features can lead to a poorly performing model, while carefully selected, relevant features can result in a robust and accurate model.
 
     \subsubsection{The Curse of Dimensionality}
     The \textit{curse of dimensionality} refers to a set of challenges that arise when dealing with high-dimensional data. As the number of features, or dimensions, in a dataset increases, the volume of the feature space grows exponentially. This exponential growth leads to several issues:
@@ -423,7 +422,7 @@ This section is dedicated to the background information needed to understand the
         \item \textbf{Spearman's Rank}: Also a non-parametric test, it assesses how well an arbitrary monotonic function can describe the relationship between two variables without making any assumptions about the frequency distribution.
     \end{itemize}
 
-    These techniques are useful for evaluating the relationship between each feature and allows to generate correlation matrices, which can be used to identify redundant features. It's also possible to evaluate each feature independently through univariate feature selection techniques. In Python's scikit-learn library \cite{ScikitLearn}, methods like \textit{F-test} and the \textit{p-value} are often used for this purpose.
+    These techniques are useful for evaluating the relationship between each feature and allows generating correlation matrices, which can be used to identify redundant features. It's also possible to evaluate each feature independently through univariate feature selection techniques. In Python's Scikit-learn library \cite{ScikitLearn}, methods like \textit{F-test} and the \textit{p-value} are often used for this purpose.
 "
     \begin{itemize}
         \item \textbf{F-test value}: Measures the linear dependency between the feature variable and the target. A higher F-test value indicates a more useful feature.
@@ -826,7 +825,7 @@ This section is dedicated to the background information needed to understand the
         \end{itemize}
     \end{itemize}
 
-    Several Python libraries can be used to implement GCNs for our specific task. Some of the notable ones are PyTorch Geometric, Spektral, and DGL (Deep Graph Library). These libraries offer pre-built GCN layers and various utilities to facilitate the embedding and binary classification of heap dump graphs.
+    Several Python libraries can be used to implement GCNs for our specific task. Some notable ones are PyTorch Geometric, Spektral, and DGL (Deep Graph Library). These libraries offer pre-built GCN layers and various utilities to facilitate the embedding and binary classification of heap dump graphs.
 
     \subsection{Graph Neural Networks}
     A \acrfull{gnn} constructs a neural network that mirrors the structure of the underlying data graph. In this architecture, nodes are linked according to their relationships in the data graph. The model is trained in a supervised fashion to map input features of nodes to their corresponding output features \cite{KG22}. These output features can either be manually annotated or sourced from a knowledge graph. 
@@ -877,7 +876,7 @@ This section is dedicated to the background information needed to understand the
     For graph-focused tasks, a special node is used for the target (\( t \)), whereas for node-focused tasks, supervision can be performed on every node. More information about the learning process can be found in \cite{GNN08}.
 
     \subsubsection{Convolutional Graph Neural Networks (ConvGNNs)}
-    As introduced before, Graph Convolutional Networks extend the concept of convolution from images to graphs. \say{The core idea in the image setting is to apply small kernels (aka filters) over localised regions of an image using a convolution operator to extract features from that local region.} \cite{KG22}. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features.
+    As introduced before, Graph Convolutional Networks extend the concept of convolution from images to graphs. \say{The core idea in the image setting is to apply small kernels (aka filters) over localized regions of an image using a convolution operator to extract features from that local region.} \cite{KG22}. They are designed to work with non-Euclidean data and are particularly useful for semi-supervised learning tasks on graphs. GCNs aim to learn a function that maps nodes to a low-dimensional space while considering their local neighborhood and features.
 
     \paragraph{Convolution filters}
     A Convolutional Neural Network (CNN) is a type of neural network that uses convolutional filters to extract features from images. These filters are applied to local regions of the image to capture spatial patterns \cite{CNNIntro15}. The same concept can be extended to graphs, where the convolution filters are applied to local regions of the graph to capture structural patterns. 

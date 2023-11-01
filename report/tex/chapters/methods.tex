@@ -11,12 +11,12 @@ In the preceding chapters, all the necessary background knowledge to understand 
 % * packaging and deployment with Nix
 
 \section{Hardware and software architecture}
-    Throughtout this thesis, we have used a variety of hardware and software architectures. 
+    Throughout this thesis, we have used a variety of hardware and software architectures. 
     
     \subsection{Hardware development and testing environment}
     In this section, as a reference for the reader, we will describe shortly the hardware development environment. All environments are running some Linux \texttt{x86\_64} distribution.
 
-    At the start of the project, around the end of 2022, the project started on a old laptop \textit{HP EliteBook Folio 1040 G2}, running \texttt{Ubuntu 22.04 LTS (Jammy Jellyfish)} with the following specifications:
+    At the start of the project, around the end of 2022, the project started on an old laptop \textit{HP EliteBook Folio 1040 G2}, running \texttt{Ubuntu 22.04 LTS (Jammy Jellyfish)} with the following specifications:
 
     \begin{itemize}
         \item \textbf{CPU:} 5th Generation Intel Core i7-5600U 2.6 GHz (max turbo frequency 3.2-GHz), 4 MB L3 Cache, 15W
@@ -32,11 +32,11 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{RAM:} 64GB DDR5 4800MHz Samsung
     \end{itemize}
 
-    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system \cite{NixOS08}. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
+    For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system \cite{NixOS08}. This means that the operating system is built by the Nix package manager, using a declarative configuration language. It allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
     
-    Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset. Small bash and python scripts have been run on this laptop, as well as tests of the different developed programs, but all the main experiments have been run on the server.
+    Unfortunately, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset. Small bash and python scripts have been run on this laptop, as well as tests of the different developed programs, but all the main experiments have been run on the server.
     
-    In that context, we were provided 2 development servers towards the end of the thesis, around august 2023. The hardware server is a \textit{AS-4124GS-TNR} with the following specifications:
+    In that context, we were provided 2 development servers towards the end of the thesis, around August 2023. The hardware server is a \textit{AS-4124GS-TNR} with the following specifications:
 
     \begin{itemize}
         \item \textbf{CPU:} 2x AMD EPYC 7662 (256) @ 2.000GHz
@@ -44,29 +44,29 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{RAM:} 512GB DDR4 3200MHz
     \end{itemize}
 
-    On this server, we have been given access to two docker instances running \texttt{Ubuntu 20.04.6 LTS}. The first instance is called \textbf{Deathstar} and the second one is called \textbf{Drogon}. For this masterarbeit, I have mostly relied on Drogon for the final experiments, although Deathstar has been used for some preliminary experiments. 
+    On this server, we have been given access to two docker instances running \texttt{Ubuntu 20.04.6 LTS}. The first instance is called \textbf{Deathstar} and the second one is called \textbf{Drogon}. For this Masterarbeit, I have mostly relied on Drogon for the final experiments, although Deathstar has been used for some preliminary experiments. 
 
     This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
 
     \subsection{Software, languages and tools}
-    In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used.
+    In Computer Sciences, it doesn't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used.
 
     In this section, as a reference for the reader, we will describe the software architectures, languages and tools that have been used throughout this thesis.
 
-    Throughtout the project, we have come to use a range of programming languages. Initial tests have been done using shell and bash command and simple scripts. However, as the project grew, we quickly moved to more powerful programming languages. 
+    Throughout the project, we have come to use a range of programming languages. Initial tests have been done using shell and bash command and simple scripts. However, as the project grew, we quickly moved to more powerful programming languages. 
 
-    Python version 3.11 has been the main language for high level data science and \acrshort{ml} development. This new version of python features many improvements over the previous version, and especially in terms of performance. Better error messages, exception groups, improved support for f-strings, support for TOML configuration files, variadic generics, improved support for asyncio, and new modules for working with cryptography and machine learning are just some of the new features of this new version of python. While relatively new, this is why we have decided to use this version of python for the development of the \acrshort{ml} part of the project.
+    Python version 3.11 has been the main language for high level data science and \acrshort{ml} development. This new version of python features many improvements over the previous version, and especially in terms of performance. Better error messages, exception groups, improved support for f-strings, support for TOML configuration files, variadic generics, improved support for asyncio, and new modules for working with cryptography and machine learning are just some new features of this new version of python. While relatively new, this is why we have decided to use this version of python for the development of the \acrshort{ml} part of the project.
 
     Although Python is a popular and powerful language, it is not the most efficient language. As such, we have used Rust for some parts of the project, especially when no high level library is needed and when performances are critical to be able to parse efficiently the dataset. Rust is a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety. It is a very powerful language, and is especially useful for low-level programming. We have used it for the development of the algorithms that are used to extract the data from the dataset.
 
     \subsubsection{Packaging and deployment}
-    We made an extensive use of git repositories for version control, with GitHub as a main platform for hosting the repositories. An ever growing number of script and programs have been developed for this thesis. As such, we have needed a way to easily deploy those programs on different machines.
+    We made an extensive use of git repositories for version control, with GitHub as a main platform for hosting the repositories. An ever-growing number of script and programs have been developed for this thesis. As such, we have needed a way to easily deploy those programs on different machines.
 
     Rust comes with a handful of tools for managing packages and dependencies. Cargo is Rust's build system and package manager. Cargo downloads your Rust project's dependencies, compiles your project, makes executables, and runs the tests. It is a powerful tool that allows to easily manage Rust projects. However, it is not the best tool for deploying programs on different machines. 
 
-    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one linux distribution to the other. 
+    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one Linux distribution to the other. 
 
-    An example is the library \texttt{pygraphviz}. This library relies on third parties system libraries, that have different names depending on the linux distribution:
+    An example is the library \texttt{pygraphviz}. This library relies on third parties system libraries, that have different names depending on the Linux distribution:
     
     \begin{itemize}
         \item \textbf{Ubuntu:} \lstinline[language=bash]|sudo apt-get install graphviz graphviz-dev| is needed before a correct install of the Python \texttt{pygraphviz} library. 
@@ -75,9 +75,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     Although it can be seen as a minor issue, this is just one example among dozens of libraries. This is real problem with \texttt{conda}. This is why we have decided to use Nix for managing python packages and dependencies. Nix is a purely functional package manager \cite{NixOriginalThesis06}. It allows to easily manage packages and dependencies, and to easily deploy programs on different machines as it guarantees reproducible builds. It is also very useful for development, as it allows to easily create isolated environments for development. This is why we have used Nix for managing the python packages and dependencies. Gradually, Nix has become a superset of other package managers like pip, conda, or cargo. 
     
-    Any Nix project comes with either a \textit{shell.nix} or a more modern \textit{flake.nix}. Those files are used to describe the project, and to list all necessary dependencies. Since we are developping on NixOS, the integration of Nix with the operating system is very good, and can be easily setup.
+    Any Nix project comes with either a \textit{shell.nix} or a more modern \textit{flake.nix}. Those files are used to describe the project, and to list all necessary dependencies. Since we are developing on NixOS, the integration of Nix with the operating system is very good, and can be easily setup.
     
-    Nix is however really straightforward to install on any other distribution through the use of a single script available online. It can be install in as little as one command.
+    Nix is however really straightforward to install on any other distribution through the use of a single script available online. It can be installed in as little as one command.
 
 
 %\section{Programs development}
@@ -133,7 +133,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     Two primary file formats are used to store the data: JSON and RAW. The JSON files contain meta-information like the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. The RAW files, on the other hand, contain the actual heap dump of the OpenSSH process.
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
-        Here is an example of content of a RAW memory dump file, displayed using \textit{vim} and \textit{xdd} commands:
+        Here is an example of content of a RAW memory dump file, displayed using \textit{vim} and \textit{xxd} commands:
 
         \begin{lstlisting}[style=hexdump, caption={16 bytes per line visualization of a Hex Dump from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}}]
             00000000: 0000 0000 0000 0000 5102 0000 0000 0000  ........Q.......
@@ -181,7 +181,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     To this RAW file is associated a JSON file, which contains its annotations.  
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
-         Here is a example of content of a JSON annotation file that comes with the previous RAW file:
+         Here is an example of content of a JSON annotation file that comes with the previous RAW file:
 
         %\begin{lstlisting}[language=json, , ]
         \begin{lstlisting}[style=json, caption={Complete JSON example, from \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841.json}}, label={lst:json-annotation-ex-1}]
@@ -233,9 +233,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \end{lstlisting}
     \end{minipage}
 
-    Those annotation files contain the meta-information about the heap dump, such as the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. Those annotations are invaluable for the development of machine learning models for key extraction. 
+    Those annotation files contain the meta-information about the heap dump, such as the encryption method, virtual memory address of the key, and the key's value in hexadecimal representation. Those annotations are invaluable for the development of machine learning models used for key prediction. 
 
-    The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications, including but not limited to machine learning models for key extraction and malware detection. 
+    The dataset is not just limited to SSH key extraction; it also serves as a resource for identifying essential data structures that hold sensitive information. This makes it a versatile tool for various research applications. 
 
     \subsection{Assumptions}\label{sec:methods:dataset:assumptions}
     Before we dive in, let's make some assumptions about the dataset. We will use these assumptions to guide our exploration of the heap dump file. 
@@ -248,7 +248,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     The \textbf{chunk chaining assumption} is absolutely crucial for the exploration of the heap dump file. It allows us to follow the malloc header chaining to explore the heap dump file allocated memory chunks. This assumption is supported by the code where we can find a comment stating that: \say{since chunks are adjacent to each other in memory, if you know the address of the first chunk (lowest address) in a heap, you can iterate through all the chunks in the heap by using the size information, but only by increasing address, although it may be difficult to detect when you've hit the last chunk in the heap} \cite{MallocGLIBC2001}.
 
-    In the scripts and programs that have been developped for the following thesis, we have implemented a number of checks and tests to ensure that these assumptions are met. If not, the programs will raise an error, log the problem and generally skip the data. This behavior is implemented to ensure that the programs are robust to unexpected data, and to ensure that the results are reliable. These assumptions, and related problems will be discussed and measured at several locations in the following sections.
+    In the scripts and programs that have been developed for the following thesis, we have implemented a number of checks and tests to ensure that these assumptions are met. If not, the programs will raise an error, log the problem and generally skip the data. This behavior is implemented to ensure that the programs are robust to unexpected data, and to ensure that the results are reliable. These assumptions and related problems will be discussed and measured at several locations in the following sections.
 
     \subsection{Dataset production system information}\label{sec:methods:dataset:production_system_information}
     Neither the paper \citetitle{SmartKex22} nor the dataset itself provide information about the hardware and software used for its generation. This is important since we will be exploring allocated raw bytes which depend on the system and C library used. We obtained some information about the dataset generation by contacting the authors of the paper. 
@@ -303,7 +303,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \end{itemize}
 
     \subsection{Estimating the dataset balancing for key prediction}
-    First, let's quickly estimate what the dataset is composed about. This will later be used to estimate the balancing of data for our key prediction goal. Some quick linux commands can be used to get a general overview of the dataset.
+    First, let's quickly estimate what the dataset is composed about. This will later be used to estimate the balancing of data for our key prediction goal. Some quick Linux commands can be used to get a general overview of the dataset.
     
     A first command can quickly give us an idea of the number of files in the dataset:
     \begin{lstlisting}[caption={Count all dataset files}, label=methods:code:count_all_dataset_files, language=bash]
@@ -338,21 +338,21 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \lstinline[language=bash]!-exec du -b {} + | awk '{s+=$1} END {print s}'! executes the command \lstinline[language=bash]!du -b! on each file found by the previous command, and sums the size of each file.
     \end{itemize}
 
-    Theses commands indicate that the dataset contains $ 103595 $ RAW files, which represents a total of $ 18067001344 $ bytes, or around 18 Gigabytes. This shows that the vast majority of the data is contained in RAW files, with JSON files representing less than a percent of the dataset in term of byte size. As such, the average size for every RAW file is around 170 Kilobytes. 
+    These commands indicate that the dataset contains $ 103595 $ RAW files, which represents a total of $ 18067001344 $ bytes, or around 18 Gigabytes. This shows that the vast majority of the data is contained in RAW files, with JSON files representing less than a percent of the dataset in terms of byte size. As such, the average size for every RAW file is around 170 Kilobytes. 
 
     Now, considering that a given heap dump file is expecting to have only 6 keys (see \ref{sec:background:ssh:ssh_keys}), with keys maximal possible size being of 64 bytes, we can estimate that we have at maximum $ 39780480 $ or around 40 Megabytes of positively labeled samples. This, considering the total useful size of around 18 Gigabytes, means that our dataset is very imbalanced, with an expected upper-bounded ratio of $ 0.0022\% $ of positively labeled samples or around $ 2:1000 $.
 
     Considering that, a frontal \acrshort{ml} binary classification approach will not work. This is why the present report will discuss feature engineering and graph-based memory representation. The idea is to embed more information to our keys so as to be able to fight effectively the imbalanceness of the raw data.
 
     \subsection{Dataset validation}
-    The dataset is mearly a collection of heap dump RAW files for different use cases and versions of OpenSSH. Each heap dump file goes along a JSON annotation file that has been generated by the creators of the dataset to provide additional information about the heap dump, and especially encryption keys.
+    The dataset is merely a collection of heap dump RAW files for different use cases and versions of OpenSSH. Each heap dump file goes along a JSON annotation file that has been generated by the creators of the dataset to provide additional information about the heap dump, and especially encryption keys.
     
-    However, it is worth noting that the dataset is not perfect. The use of the dataset for machine learning has revealed some issues. For instance, some of the JSON annotation files are not valid JSON files, and cannot be loaded as such. Some of the JSON annotation files are also not complete, with some crucial information missing. This is a problem, as we will use the JSON annotation files to get the key addresses for annotating memory graphs used for the embedding step. If the format is not the same, we will assume that the JSON annotation file is corrupted, and we will skip it.
+    However, it is worth noting that the dataset is not perfect. The use of the dataset for machine learning has revealed some issues. For instance, some JSON annotation files are not valid JSON files, and cannot be loaded as such. Some JSON annotation files are also not complete, with some crucial information missing. This is a problem, as we will use the JSON annotation files to get the key addresses for annotating memory graphs used for the embedding step. If the format is not the same, we will assume that the JSON annotation file is corrupted, and we will skip it.
     
-    This is probably due to the fact that the annotations were generated automatically. For instance, in \textit{Training/basic/V\_7\_8\_P1/16/}, literally the first file of the dataset contains an incomplete annotation file, as some of the keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
+    This is probably due to the fact that the annotations were generated automatically. For instance, in \textit{Training/basic/V\_7\_8\_P1/16/}, literally the first file of the dataset contains an incomplete annotation file, as some keys are missing. This is a limitation of the dataset that should be kept in mind when using it for research purposes.
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
-        Here is an example of content of a JSON annotation file with missing keys, and with missing annotations (like address or lenght) for the keys that are present:
+        Here is an example of content of a JSON annotation file with missing keys, and with missing annotations (like address or length) for the keys that are present:
 
         \begin{lstlisting}[style=json, caption={Missing keys in JSON annotation file \textit{Training/basic/V\_6\_0\_P1/16/24375-1644243522.json}}]
             {
@@ -366,9 +366,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \end{minipage}
 
     \subsubsection{Automatic annotation validation}
-    So as to determine really how much of the dataset can be really for machine learned, we have developped a script that checks the validity of thoses annotations. This script called \texttt{check\_annotations.py}, is used to verify the quality, completeness, consistency and coherence of the annotations.
+    So as to determine really how much of the dataset can be really for machine learned, we have developed a script that checks the validity of those annotations. This script called \texttt{check\_annotations.py}, is used to verify the quality, completeness, consistency and coherence of the annotations.
 
-    Files are regroup under the following categories:
+    Files are regrouped under the following categories:
 
     \begin{itemize}
         \item \textbf{Correct and Complete Files:} Files that have no missing keys, and that have all the keys with correct values.
@@ -465,12 +465,12 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{Number of Incomplete key Files:} $ 18750 $ files have incomplete keys.
     \end{itemize}
 
-    We can also directly look at the the keys in general:
+    We can also directly look at the keys in general:
 
     \begin{itemize}
         \item \textbf{Number of SSH keys:} $546534$ keys
         \item \textbf{Number of missing (empty) SSH keys:} $157244$ keys
-        \item \textbf{Number of incompletly annotated SSH keys:} $37500$ keys
+        \item \textbf{Number of incompletely annotated SSH keys:} $37500$ keys
         \item \textbf{Number of incorrectly annotated SSH keys:} $0$ keys
     \end{itemize}
 
@@ -488,17 +488,17 @@ In the preceding chapters, all the necessary background knowledge to understand 
     26191
     \end{lstlisting}
 
-    In total, this means that only $25.3\% $ of the RAW files with their JSON files are actually usable (correct, complete, with valid chunk chaining), and can be used for machine learning. This is because we don't have access to the packets that have been used to generate the dataset, and thus we cannot regenerate the annotations. Since the machine learning relies entirely on those annotation, we cannot afford to use partially annotated files. 
+    In total, this means that only $25.3\% $ of the RAW files with their JSON files are actually usable (correct, complete, with valid chunk chaining), and can be used for machine learning. This is because we don't have access to the packets that have been used to generate the dataset, and thus we cannot regenerate the annotations. Since the machine learning relies entirely on those annotations, we cannot afford to use partially annotated files. 
     
     This is a limitation of the dataset that should be kept in mind when using it for research purposes, and especially for supervised machine learning.
 
     \subsection{Exploring patterns in RAW heap dump files}
-    Before diving into programming, we need to gain a better understanding of how to retreive useful information from heap dump raw file. For that matter, we will continue to experiment with simple commands in RAW heap dump files. Note that in the following, number bases are indicated, since endianness and conversions can get confusing.
+    Before diving into programming, we need to gain a better understanding of how to retrieve useful information from heap dump raw file. For that matter, we will continue to experiment with simple commands in RAW heap dump files. Note that in the following, number bases are indicated, since endianness and conversions can get confusing.
 
     Let's start by looking back at the RAW file we already presented in \ref{lst:hexdump-8bytes}.
 
     \subsubsection{Detecting potential pointers}
-    The paper \citetitle{SmartKex22} indicates that the keys are 8-bytes aligned. In fact, this is the case for the whole heap dump file. This is why we have choosen to split the study of heap dump files in chunks or blocks of 8 bytes. The term \textit{block} in code is always refering to this, unless specified otherwise. The precision is important, since these blocks should not be confused with \textit{memory blocks} like the ones that are allocated by the \lstinline[language=c]|malloc()| function in C.
+    The paper \citetitle{SmartKex22} indicates that the keys are 8-bytes aligned. In fact, this is the case for the whole heap dump file. This is why we have chosen to split the study of heap dump files in chunks or blocks of 8 bytes. The term \textit{block} in code is always referring to this, unless specified otherwise. The precision is important, since these blocks should not be confused with \textit{memory blocks} like the ones that are allocated by the \lstinline[language=c]|malloc()| function in C.
 
     \begin{minipage}{\dimexpr\linewidth-20pt}
         Let's re-open the heap dump file in vim, and let's use the following vim commands to explore the example heap dump file:
@@ -593,7 +593,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     Using this function on the potential pointers we have found so far, we can see that all of them are indeed 8-bytes aligned. This is a good sign for pointer detection, as we now have a range of tests that can be used to detect potential pointers from other potentially random values.
 
-    Here is the pseudo-code for the pointer detection algorithm. This algorithm is presented for a full heap dump file:
+    Here is the pseudocode for the pointer detection algorithm. This algorithm is presented for a full heap dump file:
 
     \begin{algorithm}
         \caption{Pointer Detection Algorithm}
@@ -620,7 +620,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \end{algorithmic}
     \end{algorithm}
 
-    This pseudo-code outlines the steps for detecting potential pointers in the heap dump file. It starts by reading the heap dump file 8 bytes at a time. For each 8-byte block, it checks if the block is non-zero and within the heap range. If so, it checks if the potential pointer is 8-bytes aligned using the \texttt{is\_pointer\_aligned} function we described before. If all conditions are met, the potential pointer is added to the list of potential pointers. The algorithm returns this list at the end.
+    This pseudocode outlines the steps for detecting potential pointers in the heap dump file. It starts by reading the heap dump file 8 bytes at a time. For each 8-byte block, it checks if the block is non-zero and within the heap range. If so, it checks if the potential pointer is 8-bytes aligned using the \texttt{is\_pointer\_aligned} function we described before. If all conditions are met, the potential pointer is added to the list of potential pointers. The algorithm returns this list at the end.
     
     \subsubsection{Detecting potential keys}
     % speak about SmartKex22 brute force approach
@@ -661,7 +661,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     
     This is why the authors of the paper have also developed a more sophisticated algorithm that uses a set of rules to detect potential keys.
 
-    No pseudo-code is given for the second algorithm, but the paper \citetitle{SmartKex22} gives a description of the algorithm. It rely on the high-entropy assumption of encryption keys. The algorithm is inspired by image processing techniques, and can be described as follows:
+    No pseudocode is given for the second algorithm, but the paper \citetitle{SmartKex22} gives a description of the algorithm. It relies on the high-entropy assumption of encryption keys. The algorithm is inspired by image processing techniques, and can be described as follows:
 
     \begin{algorithm}
         \caption{Image-processing inspired Preprocessing Algorithm, as described in \citetitle{SmartKex22} \cite{SmartKex22}}
@@ -684,11 +684,11 @@ In the preceding chapters, all the necessary background knowledge to understand 
     
     This Preprocessing Algorithm serves as a crucial step in adapting the heap data for machine learning models. The algorithm begins by reshaping the raw heap data into an \(N \times 8\) matrix \(X\), since keys are 8-bytes aligned \cite{SmartKex22}. Here, \(N \times 8\) is the size of the original heap data in bytes. It then calculates the discrete differences of the bytes in both vertical and horizontal directions, storing the results in matrix \(Y\). The algorithm employs a logical AND operation on these differences to identify high-entropy regions, which are likely candidates for encryption keys. Each 8-byte row in \(Y\) is examined for randomness, and if at least half of its bytes differ from adjacent bytes, it is marked as a potential part of an encryption key. The algorithm then filters out isolated rows that are unlikely to be part of an encryption key, resulting in an array \(R\). Finally, 128-byte slices are extracted from \(R\) for training the machine learning model. This preprocessing step not only adapts the data for machine learning but also narrows down the search space for potential encryption keys, thereby enhancing the efficiency of the subsequent steps. 
 
-    However, this algorithm is not as efficient as it could be. It rely on using a kind of sliding window, which is not easily parallelizable. Also, the entropy-inspired computation is not as straightforward as it could be. That why we propose a new algorithm that is more efficient and more easily parallelizable.
+    However, this algorithm is not as efficient as it could be. It relies on using a kind of sliding window, which is not easily parallelizable. Also, the entropy-inspired computation is not as straightforward as it could be. That why we propose a new algorithm that is more efficient and more easily parallelizable.
 
     In order to perform some \acrshort{ml} techniques, and because the keys we are looking for can have a range of possible lengths (16, 24, 32, or 64 bytes), we shift the focus from detecting the full key, to just be able to predict the address of the key. That way, we can deal with keys of different sizes, and we can also use the same algorithm to detect the IV. This is why we will focus on detecting potential keys addresses, and not the full keys.
 
-    We thus introduce a new algoritm for narrowing the search space for potential keys. This algorithm is inspired by the paper \citetitle{SmartKex22}, but is more efficient and more easily parallelizable, as it focuses on producing pairs of blocks of 8 bytes with high entropy. It uses directly the Shannon entropy formula, with each entropy computation being independent from the others.
+    We thus introduce a new algorithm for narrowing the search space for potential keys. This algorithm is inspired by the paper \citetitle{SmartKex22}, but is more efficient and more easily parallelizable, as it focuses on producing pairs of blocks of 8 bytes with high entropy. It uses directly the Shannon entropy formula, with each entropy computation being independent of the others.
 
     \begin{algorithm}
         \caption{Entropy Based Detection of Potential Key blocks}
@@ -706,7 +706,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \end{algorithmic}
     \end{algorithm}
 
-    The \textit{Entropy Based Detection of Potential Key blocks} algorithm takes a raw heap dump, represented by the variable \texttt{heapData}, as input. The data is first padded with zeros to align it to 8-byte blocks and then reshaped into an $N \times 8$ matrix $X$. The Shannon entropy is computed for each 8-byte block in parallel, resulting in an array \texttt{entropy}. Subsequently, the entropy values of adjacent blocks are summed to form pairs, which are stored in \texttt{entropy\_pairs} along with their block indexes. These pairs are then sorted by their entropy sums to produce \texttt{sorted\_pairs}. The idea of using pairs of blocks instead of a single block or more that two blocks is related to the minimim key size, which is 16 bytes. This means that we need at least 2 blocks to be able to detect a potential key. The algorithm returns sorted pairs, so that we can easily extract the ones with the highest entropy sums. Given the index of a block, its actual memory address can be recomputed using the \texttt{HEAP\_START} address available in annotations.
+    The \textit{Entropy Based Detection of Potential Key blocks} algorithm takes a raw heap dump, represented by the variable \texttt{heapData}, as input. The data is first padded with zeros to align it to 8-byte blocks and then reshaped into an $N \times 8$ matrix $X$. The Shannon entropy is computed for each 8-byte block in parallel, resulting in an array \texttt{entropy}. Subsequently, the entropy values of adjacent blocks are summed to form pairs, which are stored in \texttt{entropy\_pairs} along with their block indexes. These pairs are then sorted by their entropy sums to produce \texttt{sorted\_pairs}. The idea of using pairs of blocks instead of a single block or more than two blocks is related to the minimum key size, which is 16 bytes. This means that we need at least 2 blocks to be able to detect a potential key. The algorithm returns sorted pairs, so that we can easily extract the ones with the highest entropy sums. Given the index of a block, its actual memory address can be recomputed using the \texttt{HEAP\_START} address available in annotations.
     
     Using this algorithm, let's continue to explore our example heap dump file from \ref{lst:hexdump-8bytes}. We will use the following python function to compute the Shannon entropy of a given block of 8 bytes:
 
@@ -733,18 +733,18 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \end{lstlisting}
     \end{minipage}
 
-    This function used np array function for efficient computation. We can now use this function to compute the entropy of each block of 8 bytes in the heap dump file. We can then sort the pair of blocks by their entropy, and keep the ones with the highest entropy.
+    This function used NumPy array function for efficient computation. We can now use this function to compute the entropy of each block of 8 bytes in the heap dump file. We can then sort the pair of blocks by their entropy, and keep the ones with the highest entropy.
     
-    When applied to the file \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, the algorithm produced $ 16896 $ entropy pairs, with $ 631 $ pairs having the maximum entropy sum. Another test using the index to address conversion and the JSON annotation file also indicate that all of the 6 key addresses are within the $ 631 $ pairs with the highest entropy sum.
+    When applied to the file \textit{Training/basic/V\_7\_8\_P1/16/5070-1643978841-heap.raw}, the algorithm produced $ 16896 $ entropy pairs, with $ 631 $ pairs having the maximum entropy sum. Another test using the index to address conversion and the JSON annotation file also indicate that all the 6 key addresses are within the $ 631 $ pairs with the highest entropy sum.
     
-    This allows to reduce significantly the search space for potential keys, to already less that 4\% of the original heap dump file, which is significantly better that the 30\% reduction obtained by the preprocessing algorithm described in the paper SmartKex \cite{SmartKex22}, but less that the 2\% reduction obtained by the \acrshort{ml}-based processing algorithm described in the paper \cite{SmartKex22}. However the same paper indicated that it was tested only for Key A and Key C, whereas this algorithm is tested for all the keys. Keep in mind that this is just an example for a single random file in the dataset, as a way to introduce the subject. In-depth experiments will be done in the dedicated chapter on \acrlong{ml}.
+    This allows to reduce significantly the search space for potential keys, to already less that 4\% of the original heap dump file, which is significantly better that the 30\% reduction obtained by the preprocessing algorithm described in the paper SmartKex \cite{SmartKex22}, but less that the 2\% reduction obtained by the \acrshort{ml}-based processing algorithm described in the paper \cite{SmartKex22}. However, the same paper indicated that it was tested only for Key A and Key C, whereas this algorithm is tested for all the keys. Keep in mind that this is just an example for a single random file in the dataset, as a way to introduce the subject. In-depth experiments will be done in the dedicated chapter on \acrlong{ml}.
 
     Indeed, it is important to mention that we can rely on the JSON annotation files for providing labelling for key address prediction. Using this, we do not need to decrypt the network packets to be able to train our \acrshort{ml} models. This is a huge advantage, and is also required since we don't have the encrypted network packets in the dataset. Since we don't have those, and since the keys are already given, that is why we will focus on key address prediction, and not on key prediction.
 
     \subsection{Data structure exploration}
-    Since the dataset contain whole heap dump file, we can also try to detect allocated chunks in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers. However for data structure, we can rely on our knowledge of the C library used to know exactly what to look for.
+    Since the dataset contain whole heap dump file, we can also try to detect allocated chunks in those heap dumps. This can be done by looking for patterns in the heap dump file, in a similar fashion as we have done for potential pointers. However, for data structure, we can rely on our knowledge of the C library used to know exactly what to look for.
     
-    Since OpenSSH is written in C, we can expect to find some C memory chunks in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. It takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. We know that the dataset has been produced using \texttt{GLIBC 2.28} \ref{sec:methods:dataset:production_system_information}. Looking directly at the code for \lstinline[language=c]|malloc| in \texttt{GLIBC 2.28}, we can read in the comments that \say{Minimum overhead per allocated chunk: 4 or 8 bytes. Each malloced chunk has a hidden word of overhead holding size and status information} \cite{MallocGLIBC2001}. This is what we refer to as the \textit{malloc header}. This means that we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will try to detect memory chunks in heap dump files.
+    Since OpenSSH is written in C, we can expect to find some C memory chunks in the heap dump files. C uses the \lstinline[language=c]|malloc| function to allocate memory. This function is used to allocate memory for a given data structure. It takes as input the size of the data structure to allocate, and returns a pointer to the allocated memory. We know that the dataset has been produced using \texttt{GLIBC 2.28} \ref{sec:methods:dataset:production_system_information}. Looking directly at the code for \lstinline[language=c]|malloc| in \texttt{GLIBC 2.28}, we can read in the comments that \say{Minimum overhead per allocated chunk: 4 or 8 bytes. Each malloc chunk has a hidden word of overhead holding size and status information} \cite{MallocGLIBC2001}. This is what we refer to as the \textit{malloc header}. This means that we can expect to find some 8-bytes aligned blocks in the heap dump file, that are not pointers, but that are the result of a \lstinline[language=c]|malloc| call. Detecting and using those \textit{malloc headers} is how we will try to detect memory chunks in heap dump files.
 
     In Linux on a \texttt{x86\_64} architecture, the malloc function typically uses a block (chunk) header to store metadata about each allocated block. This header is placed immediately before the block of memory returned to the user. The exact layout can vary depending on the implementation of the C library (e.g., glibc, musl), but generally, it contains the following:
 
@@ -757,7 +757,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     The \texttt{malloc} function in GLIBC 2.28 uses a boundary tag method to manage chunks of memory. Each chunk contains metadata that helps in the allocation and deallocation of memory \cite{MallocGLIBC2001} \cite{MallocInternalsWiki2023}. Below are the key components of a chunk:
 
-    A chunck is a contiguous section of memory, in our case composed of several blocks of 8 bytes, that is handled by \texttt{malloc}. It contains the following components \cite{MallocInternalsWiki2023} \cite{StackExchangeMalloc2023}:
+    A chunk is a contiguous section of memory, in our case composed of several blocks of 8 bytes, that is handled by \texttt{malloc}. It contains the following components \cite{MallocInternalsWiki2023} \cite{StackExchangeMalloc2023}:
 
     \begin{enumerate}
         \item \textbf{Size of Previous Chunk}: This field exists only if the previous chunk is unallocated and its \texttt{P} (PREV\_INUSE) bit is clear. It helps in finding the front of the previous chunk.
@@ -766,7 +766,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         
         \item \textbf{User Data}: This is the actual memory space that is returned to the user.
         
-        \item \textbf{Footer}: This is the same as the size of the chunk but is used for application data. Depending on how the chunk is represented, this is exactly the same as the \textbf{Size of Chunk} field. This is a more intuitive representation and is the one choosen in the schematical representation below.
+        \item \textbf{Footer}: This is the same as the size of the chunk but is used for application data. Depending on how the chunk is represented, this is exactly the same as the \textbf{Size of Chunk} field. This is a more intuitive representation and is the one chosen in the schematic representation below.
         
         \item \textbf{Flags}:
         \begin{itemize}
@@ -776,7 +776,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \end{itemize}
     \end{enumerate}
 
-    The chunck allocation process involves the following concepts: 
+    The chunk allocation process involves the following concepts: 
 
     \begin{enumerate}
         \item \textbf{Initialization}: The very first chunk allocated always has the \texttt{P} bit set to prevent access to non-existent memory.
@@ -790,7 +790,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{Top Chunk}: This is a special chunk that always exists. If it becomes less than \texttt{MINSIZE} bytes long, it is replenished.
     \end{enumerate}
 
-    As explained directly in the code comments, an allocated chunck of 8 byte blocks can be described by the diagram below \cite{MallocGLIBC2001}. Note that is representation is personal to better suit the needs of our forensic annalysis. The slight difference resides in the fact that the \texttt{footer} with the size of the considered chunk is represented as being part of the next chunk and not the current chunk. The footer of the previous chunk is actually the \texttt{mchunkptr} address. As stated in the GlicC wiki: \say{within the malloc library, a "chunk pointer" or \texttt{mchunkptr} does not point to the beginning of the chunk, but to the last word in the previous chunk - i.e. the first field in mchunkptr is not valid unless you know the previous chunk is free} \cite{MallocInternalsWiki2023}. Due to consideration of free/allocated chunks, it's actually easier to just consider the footer as being part of the next chunk, and not the current chunk. This is why the diagram below is slightly different from the one in the GLIBC wiki. This is just a difference in schematical representation, and does not change the actual data structure.
+    As explained directly in the code comments, an allocated chunk of 8 byte blocks can be described by the diagram below \cite{MallocGLIBC2001}. Note that is representation is personal to better suit the needs of our forensic analysis. The slight difference resides in the fact that the \texttt{footer} with the size of the considered chunk is represented as being part of the next chunk and not the current chunk. The footer of the previous chunk is actually the \texttt{mchunkptr} address. As stated in the GlicC wiki: \say{within the malloc library, a "chunk pointer" or \texttt{mchunkptr} does not point to the beginning of the chunk, but to the last word in the previous chunk - i.e. the first field in mchunkptr is not valid unless you know the previous chunk is free} \cite{MallocInternalsWiki2023}. Due to consideration of free/allocated chunks, it's actually easier to just consider the footer as being part of the next chunk, and not the current chunk. This is why the diagram below is slightly different from the one in the GLIBC wiki. This is just a difference in schematic representation, and does not change the actual data structure.
 
     \begin{figure}[H]
     \centering
@@ -842,7 +842,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     The \texttt{malloc} function in GLIBC 2.28 uses a boundary tag method to manage chunks of memory. Each chunk contains metadata that helps in the allocation and deallocation of memory \cite{MallocGLIBC2001} \cite{MallocInternalsWiki2023}. The library stores available free chunks in circular doubly-linked lists called \say{bins}. This allows to quickly find a free chunk of memory of a given size. The problem is that we don't have access to those bins in the heap dump file. So to detect if a given chunk is in-use or free, we can rely on several methods. The first one is to look at the \texttt{P} bit of the malloc header. If it is set to 1, it means that the chunk is in use. If it is set to 0, it means that the chunk is free. 
 
-    I also remarked that sometimes, the given heap dump file is cropped and the last block is only composed of zeros and not complete. This is for instance the case with the last chunk of \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}.
+    I also remarked that sometimes, the given heap dump file is cropped, and the last block is only composed of zeros and not complete. This is for instance the case with the last chunk of \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}.
 
 \begin{lstlisting}[language=bash, caption={Logs from chunk exploration script, related to the last chunk of the file \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. }]
 WARN: Chunk [94022266975200] Chunk(block_index=10876, size=48176, flags=[A=False, M=False, P=True]) is out of bounds. Last block index: 16895 Iteration index: 16896 
@@ -905,7 +905,7 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
     \end{figure}
 
     \subsubsection{Chunk chaining}
-    The chunk chaining algorithm relies on the \textbf{chunck chaining assumption} \ref{sec:methods:dataset:assumptions}. This assumption states that the allocator allocates chunks after chunks, and that the chunks are contiguous in memory. This means that we can expect to find the malloc header of the next chunk at the address $ \text{current\_malloc\_header\_chunk\_address} + \text{current\_chunk\_size} + 8 $, where 8 is the size of the malloc header block, or $ \text{current\_chunk\_user\_data\_address} + \text{current\_chunk\_size} $. This is the case for both free and allocated chunks. This is why we can use this assumption to detect chunks in the heap dump file. 
+    The chunk chaining algorithm relies on the \textbf{chunk chaining assumption} \ref{sec:methods:dataset:assumptions}. This assumption states that the allocator allocates chunks after chunks, and that the chunks are contiguous in memory. This means that we can expect to find the malloc header of the next chunk at the address $ \text{current\_malloc\_header\_chunk\_address} + \text{current\_chunk\_size} + 8 $, where 8 is the size of the malloc header block, or $ \text{current\_chunk\_user\_data\_address} + \text{current\_chunk\_size} $. It is the case for both free and allocated chunks. This is why we can use this assumption to detect chunks in the heap dump file. 
     
     This necessitates to understand malloc header blocks, and how they are represented in the heap dump file. In the specific case of \texttt{GLIBC 2.28}, the malloc header is defined as follows:
 
@@ -1003,12 +1003,12 @@ Chunk(block_index=10876, size=48176) is only composed of zeros.
         \end{algorithmic}
     \end{algorithm}
 
-    The idea behing the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. We then assume that the next block is a malloc header. We convert it to a size, and then leap over the user data and the footer up to the next chunk malloc header block index. The process is repeated until reaching the end of the heap dump file.
+    The idea behind the malloc header detection algorithm is simple. We start at the beginning of the heap dump file, and we look for the first non-zero block. Then we assume that the next block is a malloc header. We convert it to a size, and then leap over the user data and the footer up to the next chunk malloc header block index. The process is repeated until reaching the end of the heap dump file.
 
     Note that in case of a problem, like when the size obtained from malloc header parsing is equal to 0, this means that the heap dump chaining is broken. This has been handled in the dataset cleaning section \ref{sec:methods:dataset:cleaning}. 
 
     \subsubsection{Chunk chaining example}
-    The program \texttt{chunk\_algorithms.py} has been developped specifically to test the chunk parsing and refine the associated algorithms.
+    The program \texttt{chunk\_algorithms.py} has been developed specifically to test the chunk parsing and refine the associated algorithms.
 
     We can test our chunk parsing algorithm on a test file in the cleaned dataset.
 
@@ -1170,7 +1170,7 @@ $ python src/data_structure_detection.py --input /home/onyr/code/phdtrack/phdtra
                         \State $next\_chunk\_header \gets blocks[next\_chunk\_header\_index]$
                         \State $Chunk.is\_in\_use \gets \text{MallocHeaderParsing}(next\_chunk\_header).flags.p$
                     \Else
-                        \State $Chunk.is\_in\_use \gets False$ \Comment{See \footnote{Experiments shows that last chunk can be cropped and in that case, is only composed of zeros. We can thus consider it as free.}}
+                        \State $Chunk.is\_in\_use \gets False$ \Comment{See \footnote{Experiments show that last chunk can be cropped and in that case, is only composed of zeros. We can thus consider it as free.}}
                     \EndIf
                     \State $index \gets index + Chunk.header.size$ \Comment{Leap over chunk.}
                 \Else
@@ -1207,7 +1207,7 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
     \subsection{Discussing chunk parsing for problem scale reduction}
     Now that we have presented all the necessary knowledge and algorithms used to be able to parse the RAW heap dump files, we can discuss the results of those algorithms and their uses and limitations. Many tests have been needed in order to develop the final algorithms. This testing process has also unveiled some interesting properties of the dataset that will be used as basis for the semantic embedding of the memory graph representation and subsequent machine learning steps.
 
-    The program \texttt{chunk\_algorithms.py} has been developped specifically to test the chunk parsing and refine the associated algorithms on the cleaned dataset. Below are presented the global statistics produced by the final version of the program:
+    The program \texttt{chunk\_algorithms.py} has been developed specifically to test the chunk parsing and refine the associated algorithms on the cleaned dataset. Below are presented the global statistics produced by the final version of the program:
 
     \begin{lstlisting}[language=bash, caption={Printing cleaned dataset chunk parsing global statistics.}]
         Input is directory: /home/onyr/code/phdtrack/phdtrack_data_clean/
@@ -1291,11 +1291,11 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
     \subsubsection{Chunk filtering}
     Based on the previous observations, we can propose different ways of filtering some chunks out. The objective is to reduce the number of chunks before any further processing to reduce the imbalanceness.
 
-    Since we have seen that free chunks are never annotated, we can filter them out. This filtering technique allows to reduce the number of chunks from $37682063$ to $37346373$, which is a small reduction of 0.89\%. This is not a huge reduction of chunks, but is a much more significant reduction of the number of blocks since 27.2\% of the blocks are in free chunks.
+    Since we have seen that free chunks are never annotated, we can filter them out. This filtering technique allows to reduce the number of chunks from $37682063$ to $37346373$, which is a small reduction of 0.89\%. It is not a huge reduction of chunks, but is a much more significant reduction of the number of blocks since 27.2\% of the blocks are in free chunks.
 
-    We can also filter the chunks whose size is not 32, 48 or 64 bytes. This is based on the observation that the key chunks are of those sizes. This filtering technique allows to reduce the number of chunks significantly, since there is a cumulated $109346+34366+13434 = 157146$ chunks of those size, which represents, compare to the original number of chunks, a diminution of 99.6\%. This is indeed a huge reduction of the scale of the problem.ch
+    We can also filter the chunks whose size is not 32, 48 or 64 bytes. This is based on the observation that the key chunks are of those sizes. Such a filtering technique allows to reduce the number of chunks significantly, since there is a cumulated $109346+34366+13434 = 157146$ chunks of those size, which represents, compare to the original number of chunks, a diminution of 99.6\%. It is indeed a huge reduction of the scale of the problem.
 
-    A last approach to chunk filtering for key prediction consists in measuring the entropy of the first bytes of a chunk. Since we have previously discovered that keys are always located at the beggining of a chunk, and since the keys are composed of random bytes, we can expect the entropy of the first bytes of a chunk to be high.
+    A last approach to chunk filtering for key prediction consists in measuring the entropy of the first bytes of a chunk. Since we have previously discovered that keys are always located at the beginning of a chunk, and since the keys are composed of random bytes, we can expect the entropy of the first bytes of a chunk to be high.
 
     The following graph illustrates this phenomenon:
 
@@ -1305,9 +1305,9 @@ Printing Chunk [addr:0xa09fd2438355] [status:free] [footer:correct] Chunk(block_
         \caption{Visualization of the entropy distribution for all chunks of the \textit{phdtrack\_data\_clean/} RAW heap dump dataset.}
     \end{figure}
 
-    Using a script to perform some counting, we realize that the number of chunks whose entropy is less than the minimum entropy of the chunks that contains a key (is key chunk) is 19690826, which represents 52.3\% of the total number of chunks. It's not entirely clear why the key chunk entropy values seems spread across 2 strips of values, but is probably an effect of the different distributions of chunks across the input dataset, depending on the version, use can and number of chunks in the considered input files.
+    Using a script to perform some counting, we realize that the number of chunks whose entropy is less than the minimum entropy of the chunks that contains a key (is key chunk) is 19690826, which represents 52.3\% of the total number of chunks. It's not entirely clear why the key chunk entropy values seem spread across 2 strips of values, but is probably an effect of the different distributions of chunks across the input dataset, depending on the version, use can and number of chunks in the considered input files.
 
-    After all those extensive analysis and tests, we have gained invaluable knowledge about how we can reduce the scale of the problem and parse the files. Now, we need a way to create meaninglful embeddings for the blocks we want to perform machine learning on. This is the goal of the next section.
+    After all those extensive analysis and tests, we have gained invaluable knowledge about how we can reduce the scale of the problem and parse the files. Now, we need a way to create meaningful embeddings for the blocks we want to perform machine learning on. This is the goal of the next section.
 
 \section{Graph-based memory dumps embedding}\label{chap:mem_2_graph}
 Now that we have a decent understanding of the dataset as well as the low level memory dump format, we can start to think about how to convert the memory dumps into graphs. As a recall, we want to be able to convert a memory dump into a graph representation that can be used for machine learning, since we want to be able to create a memory modelization as a basis for efficient embedding and feature engineering later. This is inherently due to the imbalanceness of the dataset, as we want to add more information to each memory block that just its raw bytes. The goal is to have a graph representation of the memory dump that can be used for efficient machine learning.
@@ -1328,10 +1328,10 @@ We decided to build a memory graph representation at that moment because we want
 
 This initial program was already capable of handling several data processing pipelines, including machine learning pipelines with models like Random Forest, a grid search for hyperparameter optimization, a cross validation pipeline, several balancing strategies and of course, a memory graph representation with a semantic embedding. As an early development version, this program was not optimized for performance, and just loading a given heap dump file and its annotation, then building the memory graph representation could take from 30 seconds to a minute (on the TUXEDO machine), depending on the size of the heap dump file. As the original dataset comprises more than $ 10^{6} $ files, a rapid estimation of the time needed just for the semantic embedding of the memory graph representation was above a month. In this regard, this initial program was just used on a bunch of files as a way to develop the semantic embedding model, parsing algorithms and start working on feature engineering and machine learning. But it could not be used to produce final results on the whole dataset due to the performance issues described above.
 
-This optimization issue was clearly not acceptable, and we decided to rewrite the graph part in Rust. This is a compiled language that leverages zero-cost abstractions, and thus, is several order of magnitude faster than Python. This was also a good opportunity to learn Rust, which is a language that is gaining more and more popularity, especially in the security community. This new program was called \texttt{mem2graph}. Switching from Rust to Python and doing a proper use of multithreading allowed us to reduce the time needed to build the memory graph representation from 30 seconds to less than 1 second. In out case, and comparing using only the TUXEDO laptop, this represent an estimated minimum of a 130x speedup. But this is even much better on the server, where the multithreading can really be leverage. This was a significant improvement which allowed us to build the memory graph representation for the whole original dataset in a just a few hours.
+Such an optimization issue was clearly not acceptable, and we decided to rewrite the graph part in Rust. This is a compiled language that leverages zero-cost abstractions, and thus, is several order of magnitude faster than Python. It was also a good opportunity to learn Rust, which is a language that is gaining more and more popularity, especially in the security community. This new program was called \texttt{mem2graph}. Switching from Rust to Python and doing a proper use of multithreading allowed us to reduce the time needed to build the memory graph representation from 30 seconds to less than 1 second. In out case, and comparing using only the TUXEDO laptop, this represents an estimated minimum of a 130x speedup. But this is even much better on the server, where the multithreading can really be leverage. This was a significant improvement which allowed us to build the memory graph representation for the whole original dataset in just a few hours.
 
 \subsection{Memory Graph Representation}
-Now, let's describe the memory graph representation. The goal is to be able to represent a memory dump as a graph. This modelization makes sense since the heap dump can be considered as having memory chunks as nodes, being connected by pointers acting as arrows. This is a very natural way to represent a memory dump. However in our cases, and since the goal is to make predictions on raw bytes, we will not use the chunks as nodes, but rather the memory blocks directly. This is because we want to be able to make predictions on raw blocks of bytes, and not on chunks. 
+Now, let's describe the memory graph representation. The goal is to be able to represent a memory dump as a graph. This modelization makes sense since the heap dump can be considered as having memory chunks as nodes, being connected by pointers acting as arrows. This is a very natural way to represent a memory dump. However, in our cases, and since the goal is to make predictions on raw bytes, we will not use the chunks as nodes, but rather the memory blocks directly. This is because we want to be able to make predictions on raw blocks of bytes, and not on chunks. 
 
 % introduce the type of the graph, the nodes and edge
 Our memory graph representation is composed of a directed graph, where each node is a memory block of bytes, and each edge is either indicative of a pointer link or a chunk membership relationship. This second representation is directly inspired by collection representation in \acrlong{kg} ontologies. In the case of \acrshort{rdf}, this could be equivalent to a \textbf{rdf:Bag}, which is an unordered container \cite{OrderedDataInRDF20} (see \ref{sec:background:ontology}). The graph is directed because the pointers are directed. We will also consider the relationship of belonging to a chunk as oriented from the data structure header block to the data structure member blocks.
@@ -1343,7 +1343,7 @@ Our memory graph representation is inherently a property graph. Each node and ed
     \item \textbf{ptr:} Pointer Relationship (direction is from the source to the target)
 \end{itemize}
 
-In our case, the properties of a node are at minimum the address and the byte block. The graph is also heterogeneous since our nodes can have different types corresponding to their infered characteristics. 
+In our case, the properties of a node are at minimum the address and the byte block. The graph is also heterogeneous since our nodes can have different types corresponding to their inferred characteristics. 
 
 \begin{itemize}
     \item \textbf{PN:} Pointer Node. This is a node whose bytes have been identified as a pointer.
@@ -1357,10 +1357,10 @@ These nodes and edges form the base of the memory graph representation. Below is
 \begin{figure}[H]\label{methods:mem_graph:17016-1643962152:simplified}
     \centering
     \includegraphics[width=16cm]{graphs/17016-1643962152_truncated_no_addresses.png}
-    \caption{Visualization of a truncated memory graph generated from \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. The addresses are not displayed for imploved readability. Version with addresses here \ref{appendix:mem_graph:17016-1643962152:truncated}.}
+    \caption{Visualization of a truncated memory graph generated from \textit{Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}. The addresses are not displayed for improved readability. Version with addresses here \ref{appendix:mem_graph:17016-1643962152:truncated}.}
 \end{figure}
 
-The given graph represents a memory layout with various types of nodes, each serving a specific purpose. The graph contains \gls{chn} nodes, which act as the root nodes for allocated structures and are colored in cyan. These DTN nodes are connected to \gls{kn} nodes, which are identified as keys and are colored in green. The \gls{pn} nodes, colored in orange, are pointers and can be connected to value nodes or key nodes. Finally, the graph includes \gls{vn} nodes, which are the default node types and are colored in grey. These nodes have not been identified as any specific type and may contain arbitrary values.
+The given graph represents a memory layout with various types of nodes, each serving a specific purpose. The graph contains \gls{chn} nodes, which act as the root nodes for allocated structures and are colored in cyan. These DTN nodes are connected to \gls{kn} nodes, which are identified as keys and are colored in green. The \gls{pn} nodes, colored in orange, are pointers and can be connected to value nodes or key nodes. Finally, the graph includes \gls{vn} nodes, which are the default node types and are colored in gray. These nodes have not been identified as any specific type and may contain arbitrary values.
 
 The idea behind this representation will be to try to make predictions on the \gls{kn} nodes, which are the nodes that have been identified as keys. Using the graph, we can build an embedding of the nodes and as such, add more information to a given byte block than just its raw bytes. This is the basis of the semantic embedding, which will be discussed later.
 
@@ -1373,9 +1373,9 @@ This example is based on the heap dump file \textit{Training/basic/V\_7\_1\_P1/2
 \section{From heap dump to memory graph embeddings}
 Now that the basis of the memory graph representation has been described, let's dive in the different phases involved in transforming a raw heap dump file into a memory graph file with some custom embeddings that can later be loaded and used by some data analysis and \acrshort{ml} programs.
 
-\subsection{Initialisation and data checking}
+\subsection{Initialization and data checking}
 
-The graph construction process begins with the initialisation phase. In this phase, the first step is graph initialization, which involves loading a given heap dump file and its associated annotation file. Once the files are loaded, several checks are performed on the annotation file to ensure its validity. These checks include verifying that all annotations are present and formatted correctly, as well as ensuring that the annotation file is neither empty nor contains errors.
+The graph construction process begins with the initialization phase. In this phase, the first step is graph initialization, which involves loading a given heap dump file and its associated annotation file. Once the files are loaded, several checks are performed on the annotation file to ensure its validity. These checks include verifying that all annotations are present and formatted correctly, as well as ensuring that the annotation file is neither empty nor contains errors.
 
 \subsubsection{Graph Construction steps}
 
@@ -1396,11 +1396,11 @@ At this step, the graph is looking similar to the example shown before \ref{meth
     585-1644391327-heap.raw}.}
 \end{figure}
 
-Note how we can identify some data structures formed by pointer-connected chunks. This is a very interesting property of the memory graph representation, since it allows to identify data structures and their members based only on the shape of connections. This is a very important property that will be used later for feature engineering and embeddings.
+Note how we can identify some data structures formed by pointer-connected chunks. This is a very interesting property of the memory graph representation, since it allows identifying data structures and their members based only on the shape of connections. This is a very important property that will be used later for feature engineering and embeddings.
 
 \subsubsection{Custom graph-based embeddings}
 4. Generate embedding from graph
-different embedding are possible. We present some of those custom embeddings like the semantic embedding which is a general way to embed the graph by addind the related graph structure and vicinity information to each node. Other embeddings are possible, like the statistical embedding, which is based on the statistical properties of the graph, or the random walk embedding, which is based on the random walk algorithm. 
+different embedding are possible. We present some of those custom embeddings like the semantic embedding which is a general way to embed the graph by adding the related graph structure and vicinity information to each node. Other embeddings are possible, like the statistical embedding, which is based on the statistical properties of the graph, or the random walk embedding, which is based on the random walk algorithm. 
 
 \subsubsection{Custom Graph-Based Embeddings}
 
@@ -1433,14 +1433,14 @@ Below is an example of a memgraph comment field containing a JSON serialized obj
 
 The inclusion of these comment fields serves multiple purposes. First, it allows for the storage of embeddings along with additional information, making the graph more informative. Second, this format can be easily integrated into Python machine learning pipelines, facilitating the use of the graph in various machine learning tasks. Lastly, the DOT format serves as a standard format for graph representation, making it a versatile choice for both visualization and computational tasks.
 
-\section{A wilde range of features and embeddings}
-In the following, we will explore the features and embeddings developped and used in this thesis. We will start by the features and embeddings based on the memory graph characteristics, then we will explore the graph-agnostic embeddings, and finally, we will discuss the machine learning models used for the binary classification task.
+\section{A wild range of features and embeddings}
+In the following, we will explore the features and embeddings developed and used in this thesis. We will start by the features and embeddings based on the memory graph characteristics, then we will explore the graph-agnostic embeddings, and finally, we will discuss the machine learning models used for the binary classification task.
 
 \subsection{Embeddings based on custom features}
-While doing the construction of the graph, we can add some custom features to the nodes. Those features have been developped to embed the unique characteristics of each node of the graph, depending on its type, parent chunk characteristics as well as its vicinity in the memory graph. Those features have been regrouped in several custom embeddings that will be discussed in the following.
+While doing the construction of the graph, we can add some custom features to the nodes. Those features have been developed to embed the unique characteristics of each node of the graph, depending on its type, parent chunk characteristics as well as its vicinity in the memory graph. Those features have been regrouped in several custom embeddings that will be discussed in the following.
 
 \subsubsection{Remark on the collaborative work}
-This section focuses on the embeddings developed during a Masterarbeit project arount OpenSSH heap dump analysis. Clément Lahoche and the author of the present report have done a collaborative effort on the matter. Since Clément has focused on the embeddings, the following section will not discuss in too much details the embeddings that are already described and analyzed in details by Clément's work. The reader is invited to read his Masterarbeit report \cite{ClementEmbeddingsMasterarbeit23} for more information. This section includes some elements that are clearly identified as coming from Clément's work.
+This section focuses on the embeddings developed during a Masterarbeit project around OpenSSH heap dump analysis. Clément Lahoche and the author of the present report have done a collaborative effort on the matter. Since Clément has focused on the embeddings, the following section will not discuss in too many details the embeddings that are already described and analyzed in details by Clément's work. The reader is invited to read his Masterarbeit report \cite{ClementEmbeddingsMasterarbeit23} for more information. This section includes some elements that are clearly identified as coming from Clément's work.
 
 As a notable difference, the Node2Vec embedding, which is a graph-agnostic embedding, will also be discussed in the following, which is not the case in Clément's thesis. This is because the present report focuses on the machine learning part, and especially on graph representation learning.
 
@@ -1486,11 +1486,11 @@ The following algorithm describes the process of generating the semantic embeddi
     \end{algorithmic}
 \end{algorithm}
 
-Note that this algorithm is taken from \citeauthor{ClementEmbeddingsMasterarbeit23}, from his Masterarbeit report \cite{ClementEmbeddingsMasterarbeit23}. It has been developed and implemented as a collaborative effort on this projet.
+Note that this algorithm is taken from \citeauthor{ClementEmbeddingsMasterarbeit23}, from his Masterarbeit report \cite{ClementEmbeddingsMasterarbeit23}. It has been developed and implemented as a collaborative effort on this project.
 
-The embedding algorithm is applied to each chunk in the graph, exploring up to a predefined depth, generally 8, which is an hyperparameter of this embedding. This results in a 32-unit embedding, broken down into 8 units each for ancestor pointers, ancestor chunks, child pointers, and child chunks. Basic chunk attributes like block position, byte size, and number of pointers and value nodes are also included, bringing the total embedding size to 37 units. Despite its comprehensiveness, the embedding has limitations, such as the potential for noise from value nodes and the complexity of capturing intricate relationships.
+The embedding algorithm is applied to each chunk in the graph, exploring up to a predefined depth, generally 8, which is a hyperparameter of this embedding. This results in a 32-unit embedding, broken down into 8 units each for ancestor pointers, ancestor chunks, child pointers, and child chunks. Basic chunk attributes like block position, byte size, and number of pointers and value nodes are also included, bringing the total embedding size to 37 units. Despite its comprehensiveness, the embedding has limitations, such as the potential for noise from value nodes and the complexity of capturing intricate relationships.
 
-A way that have been used extensively, to both reduce the number of nodes and to improve the quality of the embeddings, is to reduce the graph to a chunk-only graph. This is done by removing all the nodes that are not chunk header nodes. This is a very interesting approach, since it allows to reduce the scale of the problem by a factor of 10, and also allows to focus on the data structures, which are the most interesting nodes to embed. This approach will be used in the machine learning section, since we have shifted the focus from block to chunk prediction.
+A way that have been used extensively, to both reduce the number of nodes and to improve the quality of the embeddings, is to reduce the graph to a chunk-only graph. This is done by removing all the nodes that are not chunk header nodes. It is a very interesting approach, since it allows to reduce the scale of the problem by a factor of 10, and also allows focusing on the data structures, which are the most interesting nodes to embed. This approach will be used in the machine learning section, since we have shifted the focus from block to chunk prediction.
 
 \subsubsection{Semantic features from essential chunks attributes}
 
@@ -1566,7 +1566,7 @@ As often with models, Random Forst has a bunch of hyperparameters:
   \item \textbf{min\_samples\_leaf:} The minimum number of samples required to be at a leaf node.
 \end{itemize}
 
-We have used the implementation of Random Forest available in the scikit-learn library \cite{scikit-learn}.
+We have used the implementation of Random Forest available in the scikit-learn library \cite{ScikitLearn}.
 
 \subsubsection{Logistic Regression}
 
@@ -1582,7 +1582,7 @@ Logistic Regression is straightforward to implement and understand, making it a 
   \item \textbf{max\_iter:} Maximum number of iterations for the solver to converge.
 \end{itemize}
 
-We have relied on the Logistic Regression implementation available in the scikit-learn library for our experiments\cite{scikit-learn}, using the default hyperparameters.
+We have relied on the Logistic Regression implementation available in the scikit-learn library for our experiments\cite{ScikitLearn}, using the default hyperparameters.
 
 \subsubsection{SGD Classifier}
 
@@ -1599,7 +1599,7 @@ SGD Classifier is computationally efficient, making it well-suited for large dat
   \item \textbf{learning\_rate:} The learning rate schedule, could be 'constant', 'optimal', 'invscaling', or 'adaptive'.
 \end{itemize}
 
-For the SGD Classifier as well, we used the scikit-learn implementation\cite{scikit-learn}.
+For the SGD Classifier as well, we used the scikit-learn implementation\cite{ScikitLearn}.
 
 \subsection{Graph Convolutional Networks (GCN)}
 
