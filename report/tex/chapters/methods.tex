@@ -34,9 +34,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     For the Operating System, we have switched from \texttt{Fedora 37} to \texttt{NixOS 23 (Tapir)}. This change was motivated by the fact that \texttt{NixOS} is a Linux distribution that uses a purely functional package management system \cite{NixOS08}. This means that the operating system is built by the Nix package manager, using a declarative configuration language. This allows to have a reproducible development environment, and to easily switch between different development environments. This has proved to be very useful in many areas like work environment isolation, on work collaboration with Clément Lahoche, and for software deployment to the server.
     
-    Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset, and even reprogrammed and better optimized programs in Rust that we have tested would take more that 10 hours to process the dataset. Small bash and python scripts have been run on this laptop, but all the main experiments have been run on the server.
+    Unfortunatly, the \textit{TUXEDO InfinityBook Pro 16 - Gen7} laptop was not powerful enough to run the experiments on the whole dataset. Running the python script would have taken more than a week for some simple \acrshort{ml} experiments to run on the whole dataset. Small bash and python scripts have been run on this laptop, as well as tests of the different developed programs, but all the main experiments have been run on the server.
     
-    In that context, we were provided a development server towards the end of the thesis, around august 2023. This server is a \textit{AS-4124GS-TNR} with the following specifications:
+    In that context, we were provided 2 development servers towards the end of the thesis, around august 2023. The hardware server is a \textit{AS-4124GS-TNR} with the following specifications:
 
     \begin{itemize}
         \item \textbf{CPU:} 2x AMD EPYC 7662 (256) @ 2.000GHz
@@ -44,7 +44,9 @@ In the preceding chapters, all the necessary background knowledge to understand 
         \item \textbf{RAM:} 512GB DDR4 3200MHz
     \end{itemize}
 
-    This server is running \texttt{Ubuntu 20.04.6 LTS} and is used to run the \acrshort{ml} experiments on the dataset, as it is much more powerful than the laptop. This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
+    On this server, we have been given access to two docker instances running \texttt{Ubuntu 20.04.6 LTS}. The first instance is called \textbf{Deathstar} and the second one is called \textbf{Drogon}. For this masterarbeit, I have mostly relied on Drogon for the final experiments, although Deathstar has been used for some preliminary experiments. 
+
+    This server has be provided by the Department of Computer Science of Universität Passau, and especially the Chair of Data Science of Prof. Dr. Michael Granitzer. We would like to thank them for their support.
 
     \subsection{Software, languages and tools}
     In Computer Sciences, it does't take long to realize that testing hypotheses, diving deeper in problems and finding solutions to them is a very iterative process that requires a lot of experimentation. As such, the development of scripts and programs has been a substantial part of this thesis, from the very beginning to the very end. In this process, we have used a variety of tools and programming languages, such as Rust, Python, Bash, or Nix just to name the programming language used.
@@ -62,7 +64,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     Rust comes with a handful of tools for managing packages and dependencies. Cargo is Rust's build system and package manager. Cargo downloads your Rust project's dependencies, compiles your project, makes executables, and runs the tests. It is a powerful tool that allows to easily manage Rust projects. However, it is not the best tool for deploying programs on different machines. 
 
-    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one linux distribution to the other. This was especially a problem when development was done on a Fedora system but the server was running Ubuntu. 
+    On Python's side of things, things are a bit more complicated. For a long time, we have relied on virtual environments using the \texttt{conda} package manager. However, it is heavy to use, and it doesn't allow to easily export an environment from one linux distribution to the other. 
 
     An example is the library \texttt{pygraphviz}. This library relies on third parties system libraries, that have different names depending on the linux distribution:
     
@@ -1432,26 +1434,108 @@ Below is an example of a memgraph comment field containing a JSON serialized obj
 The inclusion of these comment fields serves multiple purposes. First, it allows for the storage of embeddings along with additional information, making the graph more informative. Second, this format can be easily integrated into Python machine learning pipelines, facilitating the use of the graph in various machine learning tasks. Lastly, the DOT format serves as a standard format for graph representation, making it a versatile choice for both visualization and computational tasks.
 
 \section{A wilde range of features and embeddings}
+In the following, we will explore the features and embeddings developped and used in this thesis. We will start by the features and embeddings based on the memory graph characteristics, then we will explore the graph-agnostic embeddings, and finally, we will discuss the machine learning models used for the binary classification task.
 
 \subsection{Embeddings based on custom features}
+While doing the construction of the graph, we can add some custom features to the nodes. Those features have been developped to embed the unique characteristics of each node of the graph, depending on its type, parent chunk characteristics as well as its vicinity in the memory graph. Those features have been regrouped in several custom embeddings that will be discussed in the following.
 
-\subsubsection{Semantic Embedding}\label{sec:mem_2_graph:semantic_embedding}
-% semantic embedding algorithm
-% the CSV embedding format
+\subsubsection{Remark on the collaborative work}
+This section focuses on the embeddings developed during a Masterarbeit project arount OpenSSH heap dump analysis. Clément Lahoche and the author of the present report have done a collaborative effort on the matter. Since Clément has focused on the embeddings, the following section will not discuss in too much details the embeddings that are already described and analyzed in details by Clément's work. The reader is invited to read his Masterarbeit report \cite{ClementEmbeddingsMasterarbeit23} for more information. This section includes some elements that are clearly identified as coming from Clément's work.
+
+As a notable difference, the Node2Vec embedding, which is a graph-agnostic embedding, will also be discussed in the following, which is not the case in Clément's thesis. This is because the present report focuses on the machine learning part, and especially on graph representation learning.
+
+\subsubsection{Semantic graph embedding}\label{sec:mem_2_graph:semantic_embedding}
+
+The focus of this stage is on semantic embedding, a technique that transforms the graph into a low-dimensional vector space. Each vector encapsulates the local neighborhood of a graph chunk, enabling the application of advanced machine learning methods. The embedding process is intricate, considering both direct and indirect connections to and from each chunk. It starts by counting the number of pointers and chunks directly linked to a specific chunk, and then extends this by recursively exploring deeper layers of connections. A parallel reverse analysis is also conducted to capture child nodes. The outcome is a compact vector that richly represents the chunk's contextual relationships within the graph.
+
+The following algorithm describes the process of generating the semantic embedding for a given chunk:
+
+\begin{algorithm}[H]
+    \caption{Generate Ancestor/Children Embedding.}
+    \label{algo:embedding:generate_ancestor_children_embedding}
+    \begin{algorithmic}
+        \Function{GenerateNeighborsCHN}{$chunk\_node, dir$}
+            \State $ancestor\_nodes \gets$ an empty set
+            \State $children \gets$ graph.neighbors\_directed($chunk\_node, OUT$) \Comment{Get members of the chunk}
+            \For{$child$ \textbf{in} $children$}
+                \State $ancestor\_nodes$.insert($child$)
+            \EndFor
+            \State $result \gets$ an empty list
+            \State $current\_nodes \gets$ an empty set
+            \For{$\_$ \textbf{in} $0$ \textbf{to} $DEPTH$}
+                \State $current\_nodes \gets$ $ancestor\_nodes$ \Comment{switch ancestor nodes and current nodes}
+                \State $ancestor\_nodes \gets$ an empty set
+                \State $nb\_chn \gets 0$
+                \State $nb\_ptr \gets 0$
+                \For{$current\_node$ \textbf{in} $current\_nodes$}
+                    \If{$node$ is ChunkHeaderNode} \Comment{Update number of chunks and pointers}
+                        \State $nb\_chn \gets nb\_dtn + 1$
+                    \ElsIf{$node$ is PointerNode}
+                        \State $nb\_ptr \gets nb\_ptr + 1$
+                    \EndIf
+                    \Comment{Get neighbors of the current node}
+                    \For{$neighbor$ \textbf{in} graph.neighbors\_directed($current\_node, dir$)}
+                        \State $ancestor\_nodes$.insert($neighbor$) \Comment{Add neighbors to the next ancestor nodes}
+                    \EndFor
+                \EndFor
+                \State $result$.append($nb\_chn$) \Comment{Add number of data structures}
+                \State $result$.append($nb\_ptr$) \Comment{Add number of pointers}
+            \EndFor
+            \State \textbf{return} $result$
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+Note that this algorithm is taken from \citeauthor{ClementEmbeddingsMasterarbeit23}, from his Masterarbeit report \cite{ClementEmbeddingsMasterarbeit23}. It has been developed and implemented as a collaborative effort on this projet.
+
+The embedding algorithm is applied to each chunk in the graph, exploring up to a predefined depth, generally 8, which is an hyperparameter of this embedding. This results in a 32-unit embedding, broken down into 8 units each for ancestor pointers, ancestor chunks, child pointers, and child chunks. Basic chunk attributes like block position, byte size, and number of pointers and value nodes are also included, bringing the total embedding size to 37 units. Despite its comprehensiveness, the embedding has limitations, such as the potential for noise from value nodes and the complexity of capturing intricate relationships.
+
+A way that have been used extensively, to both reduce the number of nodes and to improve the quality of the embeddings, is to reduce the graph to a chunk-only graph. This is done by removing all the nodes that are not chunk header nodes. This is a very interesting approach, since it allows to reduce the scale of the problem by a factor of 10, and also allows to focus on the data structures, which are the most interesting nodes to embed. This approach will be used in the machine learning section, since we have shifted the focus from block to chunk prediction.
+
+\subsubsection{Semantic features from essential chunks attributes}
+
+Every chunk in the heap dump comes with fundamental attributes that provide insights on its structure and content. These attributes are not limited to the primary chunk nodes but are also inherited by value and pointer nodes, which are sub-components of a chunk. The key attributes include the block's position within the chunk, the chunk's byte size, the total number of pointers and value nodes in the chunk, and the chunk's index in the heap. These details collectively offer a thorough understanding of each chunk's makeup and its relative position in the heap.
 
 \subsubsection{Statistical Embedding}
 
+Statistical embeddings serve as a powerful tool for reducing high-dimensional data while preserving essential patterns and probabilistic relationships. One key technique employed is the use of n-gram values, specifically focusing on bit combinations to manage dimensionality. This approach aligns with the primary goal of identifying SSH keys, which inherently display a wide range of frequencies. Various n-gram sizes are utilized, including 1-gram, 2-gram, 3-gram, up to 8-gram, with the latter contributing significantly to capturing broader contextual patterns. 
+
+In addition to n-grams, other statistical metrics like mean, standard deviation, MAD, skewness, kurtosis, and Shannon entropy are incorporated. These metrics offer a multi-faceted view of the data, aiding in the identification of SSH keys. However, chunks with a standard deviation of zero are excluded from the analysis, as they are unlikely to contribute to the identification of random patterns like SSH keys. These skipped values are replaced with \textit{NaN} values in embedding comment of nodes, that needs to be handled by the machine learning pipeline. It has been chosen to replace those values with zeros. 
+
+Finally, the statistical embedding vector for each chunk is constructed by combining n-gram values and these additional statistical metrics. The vector also includes basic chunk information, resulting in a comprehensive vector that encapsulates the chunk's characteristics.
+
 \subsubsection{Start-bytes Embedding}
+In addition to the aforementioned embeddings, a simpler approach was implemented to serve as a baseline for comparison. This method focuses solely on the initial bytes of each chunk for vectorization. The sample vector is initialized with basic chunk information and then populated with the first bytes of the chunk, up to a predefined limit. If the chunk has fewer starting bytes than the predefined limit, zeros are added to fill the remaining positions. This straightforward approach provides a straightforward embedding, suitable for comparative evaluations with more intricate embeddings.
+
+\subsection{Embedding transformations depending on the model}
+
+When it comes to feeding embeddings into machine learning models, the shape and size of the embeddings need to be tailored to fit the model's requirements. For classic machine learning algorithms like Random Forest, the requirement is that the embedding matrices must be of a fixed, predefined size. This presents a unique challenge when working with graph embeddings, as graphs usually have a variable number of nodes. To address this, padding is added to the embedding matrices to ensure they all match the size of the largest graph. In contrast, Graph Convolutional Networks (GCN) offer more flexibility in this aspect. GCNs are capable of handling variable-size embedding matrices as long as the number of features is fixed. This eliminates the need for padding the matrices, which is advantageous as it simplifies the preprocessing steps.
 
 \subsubsection{Node filtering to feature}
 
-\subsection{Graph-agnostic embeddings}
+On the topic of node filtering in the context of chunk memory graphs, it's important to note that active rebalancing isn't performed, despite the number of positive nodes (key chunks) being substantially lower than the number of negative nodes (non-key chunks). The rationale behind this choice is to enable models to learn from complete graphs. This is particularly relevant for Graph Convolutional Networks, which are capable of handling graphs of variable sizes. The goal is for the models to be able to identify key chunks even in completely unlabeled memory graphs. The ability of GCNs to process variable-size graphs makes them especially suitable for this kind of task, as it allows the model to learn from the full structure of the graph without the need for compromising the integrity of the data through techniques like rebalancing.
+
+\subsection{Graph-agnostic Embeddings}
+
+Unlike our previous embeddings, which were developed manually to suit the intricacies of chunk graphs, there are also pre-existing, generalized graph embeddings. These graph-agnostic embeddings offer the benefit of being applicable to a wide range of graphs without requiring specific customization based on the characteristics of the underlying data.
 
 \subsubsection{RandomWalk}
 
+The RandomWalk algorithm offers a straightforward approach to graph embedding. It simulates random walks starting from each node in the graph and uses these walks to create vector representations of the nodes. One of the advantages of RandomWalk is its simplicity, both in terms of implementation and interpretation. The algorithm excels at capturing local structures within the graph, making it particularly effective for tasks such as community detection and link prediction. However, its focus on local characteristics means that it might not capture global properties of the graph as effectively.
+
 \subsubsection{Node2Vec}
 
-\subsection{Feature evaluation}
+Node2Vec extends the capabilities of the RandomWalk algorithm by introducing additional parameters that allow for a more nuanced exploration of the graph. This makes Node2Vec more versatile than RandomWalk, enabling it to capture both local and global graph structures. Because of its flexibility, Node2Vec is well-suited for a range of applications including the specific task of providing an embedding for the node of memory graphs. While its versatility is a strong point, it comes at the cost of increased computational complexity due to the introduction of several hyperparameters.
+
+\textbf{Hyperparameters:}
+\begin{itemize}
+  \item \textbf{p:} The return parameter, which controls the likelihood of the walk returning to the node it just left.
+  \item \textbf{q:} The in-out parameter, which differentiates between inward and outward nodes in the walk.
+  \item \textbf{Length of Walk:} Determines the length of each random walk.
+  \item \textbf{Number of Walks:} Specifies the number of walks to initiate from each node.
+\end{itemize}
+
+Note that the two last hyperparameters have a huge impact on the performance of the algorithm. These hyperparameters play a crucial role in shaping the behavior of the Node2Vec algorithm. Specifically, the return and in-out parameters help guide the random walks in a way that allows the algorithm to capture different types of structural information from the graph. The length and number of walks, meanwhile, impact the granularity and quality of the embeddings generated.
 
 \section{Machine learning binary classification}
 
@@ -1459,11 +1543,22 @@ The inclusion of these comment fields serves multiple purposes. First, it allows
 
 \subsubsection{Random Forest}
 
+\subsubsection{Logistic Regression}
+
+\subsubsection{SGD Classifier}
+
 \subsection{GCN}
+* we have already discussed the GCN in the background section, so we can focus on the implementation and the different models used.
+* GCN are used for the key chunk prediction task.
+* special type of neural network that can operate on graphs: present its main characteristics
+* they capture the structure of the graph as part of their input  (using edge connectivity from adjacency matrix or edge list)
 
 \subsubsection{Simple GCN models}
+* first models used, with a simple architecture
 
 \subsection{The impact of complexity}
+* discuss how the complexity of the model impacts the performance, especially the precision and recall, 
+* impact of different numbers on input graphs (few, a lot)
 
 \subsection{Understanding Dropout in GCN}
 
