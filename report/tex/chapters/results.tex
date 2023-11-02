@@ -2,13 +2,13 @@
 
 The following section describes the experimental setup, the used and generated datasets as well as parameters to conclude with the experimental results achieved.
 
-\section{Developped programs}
-Many programs have been developped for the need of the present thesis. Early data exploration scripts have paved the way towards efficient highly parallel programs in both Rust and Python for data analysis, graph and embedding generation of ML and DL tested on different models and contexts. All the necessary concepts and methods have been introduced previously, so it is now time to present those main program in details.
+\section{Developed programs}
+Many programs have been developed for the need of the present thesis. Early data exploration scripts have paved the way towards efficient highly parallel programs in both Rust and Python for data analysis, graph and embedding generation of ML and DL tested on different models and contexts. All the necessary concepts and methods have been introduced previously, so it is now time to present those main program in details.
 
 \subsection{Mem2Graph}
-The present report has already presented the \textit{Mem2Graph} program throughout the heap dump memory parsing algorithm, graph construction and embeddings. This program has been developped in Rust and is an active collaboration between the author and Clément Lahoche, another PhDTrack student at Passau. The program is available on GitHub at \url{https://github.com/passau-masterarbeit-2023/mem2graph}. 
+The present report has already presented the \textit{Mem2Graph} program throughout the heap dump memory parsing algorithm, graph construction and embeddings. This program has been developed in Rust and is an active collaboration between the author and Clément Lahoche, another PhDTrack student at Passau. The program is available on GitHub at \url{https://github.com/passau-masterarbeit-2023/mem2graph}. 
 
-The program is composed of several layers than bruild on top of each other. The first layer is dedicated into loading a RAW heap dump file with its annotation JSON file, performs some checks and prepare the data for further analysis. The next one performs the graph construction following the algorithms introduced in the Methods section. Another layer performs some annotations of the nodes. The final layer is more versatile and dependent on the input program parameters. For the need of this report, several pipelines of memgraph with and without embeddings haved been added, namely \texttt{graph} and \texttt{graph-with-embedding-comments}. The first pipeline doesn't perform any embedding and export the memory graph to a text file following the DOT format \cite{DotFormat15}. The second pipeline performs the same operations, but also exports the memory graph with the embeddings as comments in the DOT file. 
+The program is composed of several layers that build on top of each other. The first layer is dedicated into loading a RAW heap dump file with its annotation JSON file, performs some checks and prepare the data for further analysis. The next one performs the graph construction following the algorithms introduced in the Methods section. Another layer performs some annotations of the nodes. The final layer is more versatile and dependent on the input program parameters. For the need of this report, several pipelines of memgraph with and without embeddings have been added, namely \texttt{graph} and \texttt{graph-with-embedding-comments}. The first pipeline doesn't perform any embedding and export the memory graph to a text file following the DOT format \cite{DotFormat15}. The second pipeline performs the same operations, but also exports the memory graph with the embeddings as comments in the DOT file. 
 
 Since the prediction effort is focused on memory chunks, this embedding is generally called with the \texttt{--no-value-node} parameter, which transform the memory graph from a graph of blocks of 8 bytes, into a memory graph of memory chunks, connected by their pointers inside their respective user data space. Several chunk node embeddings have been implemented, and the user can choose which one to use. The chunk node embeddings are the following: \texttt{chunk-semantic-embedding}, \texttt{chunk-statistic-embedding}, and \texttt{chunk-start-bytes-embedding}.
 
@@ -28,7 +28,7 @@ The project leverages a wide range of Python libraries to build comprehensive ma
     \item \textit{Torch-Geometric} for Geometric Deep Learning extensions for PyTorch.
 \end{itemize}
 
-The program encompasses a variety of machine learning models to compare how different models react to the embeddings and representations developped earlier. It includes classical machine learning models from the Scikit-learn library, such as Random Forest, Stochastic Gradient Descent (SGD), and Logistic Regression. These models serve a point of comparision since they don't rely on graph-based data structures and algorithms. 
+The program encompasses a variety of machine learning models to compare how different models react to the embeddings and representations developed earlier. It includes classical machine learning models from the Scikit-learn library, such as Random Forest, Stochastic Gradient Descent (SGD), and Logistic Regression. These models serve a point of comparison since they don't rely on graph-based data structures and algorithms. 
 
 The program also includes Graph Convolutional Network (GCN) models built on top of PyTorch and Torch-Geometric. These models are more complex and powerful, leveraging the graph structure and embeddings to achieve better results. Those models specifically leverage graph-based embeddings and input data, generated using the Node2Vec algorithm to create dense and continuous node features that can be used for subsequent analysis or machine learning tasks.
 
@@ -41,13 +41,13 @@ The program is organized around three main pipelines:
 \end{enumerate}
 
 \subsection{Other programs}
-A lot of other programs have been developped for the need of this thesis, but they are not as important as the ones presented above. Those scripts and short program have been developped for several purpose:
+A lot of other programs have been developed for the need of this thesis, but they are not as important as the ones presented above. Those scripts and short program have been developed for several purposes:
 
 \begin{itemize}
-    \item \textbf{Data exploration:} Several scripts have been developped to explore the data, and to understand the structure of the heap dump files, the annotations, and the memory graphs.
-    \item \textbf{Heap Dump parsing algorithm testers:} Several scripts have been developped to test the heap dump parsing algorithms, and to ensure that the algorithms are working as intended on all possible situations.
-    \item \textbf{Graph and embedding generation testers:} Others have been developped to test the graph and embedding generation algorithms, and to ensure that the algorithms are working as intended on all possible situations.
-    \item \textbf{Result visualization, analysis and latex generators:} Later in the report, the results will be presented and discussed. Several scripts have been developped to generate the latex tables and plots, and to analyze the results.
+    \item \textbf{Data exploration:} Several scripts have been developed to explore the data, and to understand the structure of the heap dump files, the annotations, and the memory graphs.
+    \item \textbf{Heap Dump parsing algorithm testers:} Several scripts have been developed to test the heap dump parsing algorithms, and to ensure that the algorithms are working as intended on all possible situations.
+    \item \textbf{Graph and embedding generation testers:} Others have been developed to test the graph and embedding generation algorithms, and to ensure that the algorithms are working as intended on all possible situations.
+    \item \textbf{Result visualization, analysis and latex generators:} Later in the report, the results will be presented and discussed. Several scripts have been developed to generate the latex tables and plots, and to analyze the results.
 \end{itemize}
 
 All those programs represent a consequent amount of work, and have been invaluable to the success of this thesis. Using CLOC (Count Lines of Code),  a command-line utility that can count lines of code in various languages, the following statistics have been obtained:
@@ -105,7 +105,7 @@ The final experiments were conducted in a systematic manner, following these ste
     \item \textbf{Result Collection and Evaluation:} The final step involved the collection, evaluation, and visualization of the results. Error handling mechanisms were in place to make necessary corrections and prepare for the next iteration of experiments. This step also facilitated the confrontation of hypotheses and research questions.
 \end{enumerate}
 
-Initial small-scale tests were conducted on a laptop to validate the programs and their results. The final, large-scale experiments were carried out on the Drogon server, equipped with 80 threads and 256GB of RAM. The computational resources provided by the University of Passau have been invaluable for conducting these experiments, sometimes running for several days straight.
+Initial small-scale tests were conducted on a laptop to validate the programs and their results. The final, large-scale experiments were carried out on the Drogon server, equipped with 80 threads and 256 GB of RAM. The computational resources provided by the University of Passau have been invaluable for conducting these experiments, sometimes running for several days straight.
 
 \subsection{Generation of the memgraph datasets}
 Using Mem2Graph powerful features, it is possible to generate several memgraph datasets with different parameters. The following command has been used to generate 6 memgraph datasets, each containing 26202 graphs, for a total of 157212 graphs. Those datasets account for different chunk node embeddings and a potential additional filtering feature. The command is run on the Drogon server, with 80 threads.
@@ -119,7 +119,7 @@ Using Mem2Graph powerful features, it is possible to generate several memgraph d
     Finished! Total time: hours: 1, minutes: 7, seconds: 15 (Drogon Server)
 \end{lstlisting}
 
-It took a little more than an hour to generate 6 memgraph datasets, each containing 26202 graphs. The total number of graphs generated is 157212. The generated memgraph datasets are stored in the \texttt{data/} directory, as follow:
+It took a little more than an hour to generate 6 memgraph datasets, each containing 26202 graphs. The total number of graphs generated is 157212. The generated memgraph datasets are stored in the \texttt{data/} directory, as follows:
 
 \begin{figure}[H]
     \centering
@@ -141,7 +141,7 @@ It took a little more than an hour to generate 6 memgraph datasets, each contain
 As one can see, the dataset directory names are composed with the most important \texttt{Mem2Graph} program parameters, responsible for some feature and embedding generations. The \texttt{-e} flag, short for \texttt{--entropy-filter} is responsible for the filtering using the Shannon entropy, the \texttt{-s} for \texttt{--chunk-byte-size-filter} for chunk byte size filtering. The \texttt{-c}, \texttt{--graph-comment-embedding-type} controls the custom embedding being save alongside each node in the generated .GV memgraph files.
 
 \subsection{Sanity checking and preloading the generated memgraph datasets}
-Loading the graph from DOT files into NetworkX graph in Python is a ressource intensive operation that consumes all the available computing power on all tested platforms (laptop, servers). It takes several dozens of seconds up to a minute to load a memory graph containing only around 1000 chunk nodes. It has been experimented that saving those loaded graphs using the \textit{pickle} python library allows to perform checks while loading the graph, add more information about each graph. The subsequent retrieval of the graph is much faster, and allows to perform the sanity checks before any further processing.. So to verify the memory graph dataset generation as well as transforming DOT files into pre-saved networkx graph, a sanity checking script has been developed.
+Loading the graph from DOT files into NetworkX graph in Python is a resource intensive operation that consumes all the available computing power on all tested platforms (laptop, servers). It takes several dozens of seconds up to a minute to load a memory graph containing only around 1000 chunk nodes. It has been experimented that saving those loaded graphs using the \textit{pickle} python library allows to perform checks while loading the graph, add more information about each graph. The subsequent retrieval of the graph is much faster, and allows to perform the sanity checks before any further processing. So to verify the memory graph dataset generation as well as transforming DOT files into pre-saved NetworkX graph, a sanity checking script has been developed.
 
 Below is a sample of the logs generated by the sanity check script:
 
@@ -211,9 +211,9 @@ Of all the parameters, the model types, their respective hyperparameters, the co
 
 \subsubsection{Limited number of input graphs due to compute time and memory usage}
 
-It also explains why the input number of memgraphs has been limited to 16, as it is already a very large number of experiments to run. Each file taking several dozens of seconds to be transformed into an embedding, this represents around 10 minutes just for the embedding generation phase, for each pipeline. With more that 600 pipelines to run, this already represents dozens of hours of compute time. Depending on the context and model, the training and evaluation phases are also time consuming, and the more input graphs there are, the longer it takes to train and test the model. 
+It also explains why the input number of memgraphs has been limited to 16, as it is already a very large number of experiments to run. Each file taking several dozens of seconds to be transformed into an embedding, this represents around 10 minutes just for the embedding generation phase, for each pipeline. With more than 600 pipelines to run, this already represents dozens of hours of compute time. Depending on the context and model, the training and evaluation phases are also time-consuming, and the more input graphs there are, the longer it takes to train and test the model. 
 
-The compute time is not the only issue with dealing with a large number of input graphs. The memory usage is also a problem, as the memory usage increases linearly with the number of input graphs. The parallel processing of only 6 pipelines having 16 memgraphs as imputs generally represents between 16 and 50 GB of RAM usage, depending on the model and the embedding used. Due to this, all tests consisting to try to run this already limited number of input graphs on the GPU have failed, as the GPU memory is not sufficient to handle the memory usage of the program. The slowness of the CPU alongside memory bandwidth limitations are the main bottlenecks of the program, and the main reasons why the number of input graphs has been limited to 16.
+The compute time is not the only issue with dealing with a large number of input graphs. The memory usage is also a problem, as the memory usage increases linearly with the number of input graphs. The parallel processing of only 6 pipelines having 16 memgraphs as inputs generally represents between 16 and 50 GB of RAM usage, depending on the model and the embedding used. Due to this, all tests consisting of trying to run this already limited number of input graphs on the GPU have failed, as the GPU memory is not sufficient to handle the memory usage of the program. The slowness of the CPU alongside memory bandwidth limitations are the main bottlenecks of the program, and the main reasons why the number of input graphs has been limited to 16.
 
 \subsubsection{Parallel launch of experiments for hyperparameters tuning}
 
@@ -236,7 +236,7 @@ Below are the hyperparameters used during the main experiments, as stored in the
         }
 \end{lstlisting}
 
-Even though the above JSON file shows the hyperparameters selected for the large scale final experiments, pre-experiments have been previously conducted to find some eusable values. Due to compute time limitations, the ranges of hyperparameters have been limited to a few values, and the number of input graphs has been limited to 16. The following JSON file shows the hyperparameters used during the pre-experiments:
+Even though the above JSON file shows the hyperparameters selected for the large scale final experiments, pre-experiments have been previously conducted to find some usable values. Due to compute time limitations, the ranges of hyperparameters have been limited to a few values, and the number of input graphs has been limited to 16. The following JSON file shows the hyperparameters used during the pre-experiments:
 
 \begin{lstlisting}[style=json, caption={JSON hyperparameters used during experiments}, label={results:json-hyperparams-range}, literate={_}{\_}{1}]
     {
@@ -299,7 +299,7 @@ Each row in the \texttt{*results.csv} files represents a single experiment run w
 
 \section{Obtained Results}
 
-This section presents a comprehensive overview of the results obtained with final experimentations. The outcomes are detailed in multiple formats, including correlation matrices, performance metrics tables, and visualizations, to provide a precise understanding of the model performances. The aim is to elucidate the effectiveness of different features and embeddings in the context of our machine learning pipelines. In-depth discussions on these results will be reserved for the following "Discussions" part.
+This section presents a comprehensive overview of the results obtained with the final experimentation. The outcomes are detailed in multiple formats, including correlation matrices, performance metrics tables, and visualizations, to provide a precise understanding of the model performances. The aim is to elucidate the effectiveness of different features and embeddings in the context of our machine learning pipelines. In-depth discussions on these results will be reserved for the following "Discussions" part.
 
 \subsection{Feature Engineering results}
 

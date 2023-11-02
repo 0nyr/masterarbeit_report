@@ -14,3 +14,7 @@ NixOS
 parallelizable
 malloc
 memgraph
+RandomWalk
+GCNs
+Drogon
+NetworkX

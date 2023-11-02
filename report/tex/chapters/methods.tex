@@ -1387,7 +1387,7 @@ An optional step that can be performed is the chunk pointer reduction. This step
 
 The third major step in the process is graph annotation. In this phase, Value Nodes in the graph are replaced by Key Nodes, utilizing the annotations provided in the JSON annotation file. Additional annotations, such as SSH\_STRUCT, can also be added at this stage. Following the completion of the annotation step, it becomes possible to export the graph for various purposes. The graph can be exported to file formats like \texttt{.dot} or \texttt{.gv}, which are suitable for visualization or other analytical tasks.
 
-At this step, the graph is looking similar to the example shown before \ref{methods:mem_graph:17016-1643962152:simplified}. Using the pointer reduction to a chunk-only memgraph, we can obtain something like the following:
+At this step, the graph is looking similar to the example shown before \ref{methods:mem_graph:17016-1643962152:simplified}. Using the pointer reduction to a chunk-only \gls{memgraph}, we can obtain something like the following:
 
 \begin{figure}[H]\label{methods:mem_graph:585-1644391327:chunk_only}
     \centering
@@ -1414,7 +1414,7 @@ Each of these embeddings offers a unique lens through which to analyze and inter
 
 The fifth step in the process involves exporting the graph. The graph is exported to a \texttt{.gv} DOT file format. Custom embeddings are integrated into the graph by utilizing the comment fields in a slightly modified stringified JSON format. This approach allows for easy reading of the embeddings associated with each node while maintaining the DOT file as a valid format that can be used with tools and libraries supporting the DOT graph formal.
 
-The DOT (Directed Orthogonal Text) format is a plain text graph description language that is widely used for representing structured information. An example of a memgraph in DOT format without embeddings is provided for reference. In this example, nodes and edges are represented along with their attributes such as color, shape, and labels.
+The DOT (Directed Orthogonal Text) format is a plain text graph description language that is widely used for representing structured information. An example of a \gls{memgraph} in DOT format without embeddings is provided for reference. In this example, nodes and edges are represented along with their attributes such as color, shape, and labels.
 
 When embeddings are added to the graph, additional comment fields are included in the DOT file nodes. These comment fields contain a JSON string that holds the embedding information for each node. Moreover, the graph starts with a pseudo JSON comment field that contains a serialized JSON object specifying the embedding type and feature names. 
 
@@ -1425,7 +1425,7 @@ Here is an example of a comment field in a node:
     0,0,2.355388542207534]"
 \end{lstlisting}
 
-Below is an example of a memgraph comment field containing a JSON serialized object with embedding type and feature names.
+Below is an example of a \gls{memgraph} comment field containing a JSON serialized object with embedding type and feature names.
 
 \begin{lstlisting}[style=text, caption={A memgraph comment field example containing JSON serialized object with embedding type and feature names. Output is cropped.}]
     comment="{ 'embedding-type': 'chunk-semantic-embedding', 'embedding-fields': ['block_position_in_chunk','chn_addr','chns_ancestor_1',...'chns_children_8','chunk_byte_size','chunk_number_in_heap','chunk_ptrs','chunk_vns','ptrs_ancestor_1','ptrs_ancestor_2',...,'ptrs_children_8','entropy'] }"
@@ -1494,13 +1494,13 @@ A way that have been used extensively, to both reduce the number of nodes and to
 
 \subsubsection{Semantic features from essential chunks attributes}
 
-Every chunk in the heap dump comes with fundamental attributes that provide insights on its structure and content. These attributes are not limited to the primary chunk nodes but are also inherited by value and pointer nodes, which are sub-components of a chunk. The key attributes include the block's position within the chunk, the chunk's byte size, the total number of pointers and value nodes in the chunk, and the chunk's index in the heap. These details collectively offer a thorough understanding of each chunk's makeup and its relative position in the heap.
+Every chunk in the heap dump comes with fundamental attributes that provide insights on its structure and content. These attributes are not limited to the primary chunk nodes but are also inherited by value and pointer nodes, which are subcomponents of a chunk. The key attributes include the block's position within the chunk, the chunk's byte size, the total number of pointers and value nodes in the chunk, and the chunk's index in the heap. These details collectively offer a thorough understanding of each chunk's makeup and its relative position in the heap.
 
 \subsubsection{Statistical Embedding}
 
 Statistical embeddings serve as a powerful tool for reducing high-dimensional data while preserving essential patterns and probabilistic relationships. One key technique employed is the use of n-gram values, specifically focusing on bit combinations to manage dimensionality. This approach aligns with the primary goal of identifying SSH keys, which inherently display a wide range of frequencies. Various n-gram sizes are utilized, including 1-gram, 2-gram, 3-gram, up to 8-gram, with the latter contributing significantly to capturing broader contextual patterns. 
 
-In addition to n-grams, other statistical metrics like mean, standard deviation, MAD, skewness, kurtosis, and Shannon entropy are incorporated. These metrics offer a multi-faceted view of the data, aiding in the identification of SSH keys. However, chunks with a standard deviation of zero are excluded from the analysis, as they are unlikely to contribute to the identification of random patterns like SSH keys. These skipped values are replaced with \textit{NaN} values in embedding comment of nodes, that needs to be handled by the machine learning pipeline. It has been chosen to replace those values with zeros. 
+In addition to n-grams, other statistical metrics like mean, standard deviation, MAD, skewness, kurtosis, and Shannon entropy are incorporated. These metrics offer a multi-faceted view of the data, aiding in the identification of SSH keys. However, chunks with a standard deviation of zero are excluded from the analysis, as they are unlikely to contribute to the identification of random patterns like SSH keys. These skipped values are replaced with \texttt{NaN} values in embedding comment of nodes, that needs to be handled by the machine learning pipeline. It has been chosen to replace those values with zeros. 
 
 Finally, the statistical embedding vector for each chunk is constructed by combining n-gram values and these additional statistical metrics. The vector also includes basic chunk information, resulting in a comprehensive vector that encapsulates the chunk's characteristics.
 
@@ -1555,7 +1555,7 @@ Random Forest is an ensemble learning method that operates by constructing multi
   \item \textbf{Weak:} Random Forest models can be computationally expensive and may require a long training time, especially for larger datasets.
 \end{itemize}
 
-As often with models, Random Forst has a bunch of hyperparameters:
+As often with models, Random Forest has a bunch of hyperparameters:
 
 \textbf{Hyperparameters:}
 \begin{itemize}
@@ -1566,7 +1566,7 @@ As often with models, Random Forst has a bunch of hyperparameters:
   \item \textbf{min\_samples\_leaf:} The minimum number of samples required to be at a leaf node.
 \end{itemize}
 
-We have used the implementation of Random Forest available in the scikit-learn library \cite{ScikitLearn}.
+We have used the implementation of Random Forest available in the Scikit-learn library \cite{ScikitLearn}.
 
 \subsubsection{Logistic Regression}
 
@@ -1582,7 +1582,7 @@ Logistic Regression is straightforward to implement and understand, making it a 
   \item \textbf{max\_iter:} Maximum number of iterations for the solver to converge.
 \end{itemize}
 
-We have relied on the Logistic Regression implementation available in the scikit-learn library for our experiments\cite{ScikitLearn}, using the default hyperparameters.
+We have relied on the Logistic Regression implementation available in the Scikit-learn library for our experiments\cite{ScikitLearn}, using the default hyperparameters.
 
 \subsubsection{SGD Classifier}
 
@@ -1599,7 +1599,7 @@ SGD Classifier is computationally efficient, making it well-suited for large dat
   \item \textbf{learning\_rate:} The learning rate schedule, could be 'constant', 'optimal', 'invscaling', or 'adaptive'.
 \end{itemize}
 
-For the SGD Classifier as well, we used the scikit-learn implementation\cite{ScikitLearn}.
+For the SGD Classifier as well, we used the Scikit-learn implementation\cite{ScikitLearn}.
 
 \subsection{Graph Convolutional Networks (GCN)}
 
@@ -1621,7 +1621,7 @@ Finally, the output from the ReLU activation is passed through a fully connected
 
 \subsubsection{Simple GCN Models}
 
-The Simple GCN model, or \texttt{LessSimplifiedGNN}, is a step up in complexity from the very simplified version. It incorporates two graph convolutional layers, doubling the depth of the network. The first convolution transforms the input features to a 12-dimensional space, and the second one further transforms these 12-dimensional vectors into 24 dimensions. Two fully connected layers follow, ultimately producing the final output. This model is capable of capturing more complex features in the graph but is computationally more demanding than the simpler model.
+The Simple GCN model, or \texttt{LessSimplifiedGNN}, is a step-up in complexity from the very simplified version. It incorporates two graph convolutional layers, doubling the depth of the network. The first convolution transforms the input features to a 12-dimensional space, and the second one further transforms these 12-dimensional vectors into 24 dimensions. Two fully connected layers follow, ultimately producing the final output. This model is capable of capturing more complex features in the graph but is computationally more demanding than the simpler model.
 
 \subsubsection{First GCN Model}
 
@@ -1672,7 +1672,7 @@ In an effort to enhance the performance of our initial GCN models, we explored m
 
 Building upon the First GCN model, we incorporated dropout and batch normalization layers. Dropout is employed to mitigate the issue of overfitting, especially relevant for complex models trained on limited data. With a dropout rate of 0.5 after each ReLU activation, we were able to regulate the model's complexity during training. 
 
-Batch normalization, on the other hand, aims to accelerate training and stabilize the learning process. By normalizing the output features of each layer, batch normalization helps in alleviating internal covariate shift, making the model training more resilient to the choice of hyperparameters.
+Batch normalization, on the other hand, aims to accelerate training and stabilize the learning process. By normalizing the output features of each layer, batch normalization helps in alleviating internal covariance shift, making the model training more resilient to the choice of hyperparameters.
 
 This version of the model aligns closely with the First GCN model, but the addition of dropout and batch normalization layers offer greater robustness, especially when training on imbalanced or smaller datasets.
 

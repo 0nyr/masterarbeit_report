@@ -83,7 +83,7 @@
 \newglossaryentry{memgraph}
 {
   name=memory graph,
-  description={A memory graph, or \textit{memgraph} is a graph representation of a memory dump. This graph can be a graph of blocks, where each node in the graph corresponds to a block of 8 bytes in the heap dump and each edge corresponds to a pointer from one block to another, or describes which blocks are part of a chunk whose root note is a Chunk Header Node. It can also be a graph of objects, where each node in the graph corresponds to a chunk in heap dump and each edge corresponds to a pointer from one object to another.}
+  description={A memory graph, or \textit{memgraph} is a graph representation of a memory dump. This graph can be a graph of blocks, where each node in the graph corresponds to a block of 8 bytes in the heap dump and each edge corresponds to a pointer from one block to another, or describes which blocks are part of a chunk whose root note is a Chunk Header Node. It can also be a graph of chunks (only CHNs), where each node in the graph corresponds to a chunk in heap dump and each edge corresponds to a pointer from one object to another.}
 }
 
 \newglossaryentry{nodes}
@@ -290,14 +290,14 @@
 \section*{Abstract}
 As the digital landscape evolves, cybersecurity has become an indispensable focus of IT systems. Its ever-escalating challenges have amplified the importance of digital forensics, particularly in the analysis of heap dumps from main memory. In this context, the Secure Shell protocol (\acrshort{ssh}) designed for encrypted communications, serves as both a safeguard and a potential veil for malicious activities. This research project focuses on predicting SSH keys in OpenSSH memory dumps, aiming to enhance protective measures against illicit access and enable the development of advanced security frameworks or tools like honeypots. 
 
-This Masterarbeit is situated within the broader SmartVMI project, a collaborative research initiative with the objective to advance artificial intelligence-based mechanisms for attack detection and digital forensics. Specifically, this work seeks to build upon existing research on key prediction in OpenSSH heap dumps. Utilizing machine learning algorithms, the study aims to refine feature extraction techniques and explore innovative methods for effective key detection prediction. The objective is to accurately predict the presence and location of SSH keys within memory dumps. This work builds upon, and aims to enhance, the foundations laid by SSHkex \cite{SSHkex22} and SmartKex \cite{SmartKex22}, enriching both the methodology and the results of the original research while exploring the untapped potential of newly proposed approaches.
+This Masterarbeit is situated within the broader SmartVMI project, a collaborative research initiative with the objective to advance artificial intelligence-based mechanisms for attack detection and digital forensics. Specifically, this work seeks to build upon existing research on key prediction in OpenSSH heap dumps. Utilizing machine learning and deep learning models, the study aims to refine feature for embedding techniques and explore innovative methods for effective key detection. The objective is to accurately predict the presence and location of SSH keys within memory dumps. This work builds upon, and aims to enhance, the foundations laid by SSHkex \cite{SSHkex22} and SmartKex \cite{SmartKex22}, enriching both the methodology and the results of the original research while exploring the untapped potential of newly proposed approaches.
 
-This report encapsulates the progress of a year-long Master's thesis research project executed between October 2022 and October 2023. Conducted within the framework of the PhDTrack program between the University of Passau and INSA Lyon, the research has been supervised by Christofer Fellicious and Prof. Dr. Michael Granitzer from the University of Passau, as well as Prof. Dr. Pierre-Edouard Portier from INSA Lyon. It offers an in-depth discussion on the current state-of-the-art in key prediction for OpenSSH memory dumps, research questions, experimental setups, programs development as well as discussing potential future directions.
+The current thesis dives into memory graph modelization from raw binary heap dump files. Each \gls{memgraph} can support a range of embeddings than can be used directly for model training, through the use of classic \acrshort{ml} models and graph neural network. The report encapsulates the progress of a year-long Master's thesis research project executed between October 2022 and October 2023. Conducted within the framework of the PhDTrack program between the University of Passau and INSA Lyon, the research has been supervised by Prof. Dr. Michael Granitzer and Christofer Fellicious from the University of Passau, as well as Prof. Dr. Pierre-Edouard Portier from INSA Lyon. It offers an in-depth discussion on the current state-of-the-art in key prediction for OpenSSH memory dumps, research questions, experimental setups, programs development, results as well as discussing potential future directions.
 
 % -- Acknowledgements
 \newpage
 \section*{Acknowledgements}
-A special acknowledgement goes to Christofer Fellicious, my engaged supervisor at the University of Passau, for his guidance, support and feedback during the Masterarbeit. 
+First acknowledgement goes to Christofer Fellicious, my supervisor at the University of Passau, for his guidance, support and feedback during the Masterarbeit. 
 
 I want to express my sincere gratitude to my colleague and friend, Clément Lahoche, whose human and technical skills have been a great source of inspiration and motivation throughout this project;  especially considering that we have been working on closely related subjects. It has been a great pleasure to share our ideas and insights, and to collaborate on the development of several programs necessary for the experimentation. 
 
@@ -313,15 +313,16 @@ I would also like to express my sincere gratitude to all the persons that have h
     \item All the other PhDTrack students for the great atmosphere, mutual help and the interesting discussions during almost two years.
 \end{itemize}
 
-I cannot forget to 
+I cannot forget to mentionn my many friends from Lyon to Passau and beyond, for their encouragements during this Masterarbeit.
 
-Finally, my last acknowledgements go to my family and friends for their support and encouragements.
+Finally, my last acknowledgements go to my family whose support have been invaluable throughout this Masterarbeit.
 
 \newpage
 % table of content with list of figures & tables
 \tableofcontents
-%\listoffigures
-%\listoftables
+\listoffigures
+\listoftables
+\lstlistoflistings
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
