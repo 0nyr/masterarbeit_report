@@ -366,7 +366,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \end{minipage}
 
     \subsubsection{Automatic annotation validation}
-    So as to determine really how much of the dataset can be really for machine learned, we have developed a script that checks the validity of those annotations. This script called \texttt{check\_annotations.py}, is used to verify the quality, completeness, consistency and coherence of the annotations.
+    So as to determine really how much of the dataset can be used really for machine learned, we have developed a script that checks the validity of those annotations. This script called \texttt{check\_annotations.py}, is used to verify the quality, completeness, consistency and coherence of the annotations.
 
     Files are regrouped under the following categories:
 
@@ -519,9 +519,13 @@ In the preceding chapters, all the necessary background knowledge to understand 
 
     This is a search that looks for 12 hexadecimal digits followed by 4 zeros. This is because, the maximum possible addresses in the heap dump file have a size of around 12 hexadecimal digits, and because pointer addresses are in little-endian format, meaning that the last 4 bytes of the address are also the Most Significant Bytes (MSB) of the address. 
     
-    The result is illustrated below:
+    The result is illustrated below \ref{fig:methods:dataset:pointer_examples_1010-1644391327-heap_potential_pointer_highlight}:
 
-    \includegraphics[width=16cm]{dataset/pointer_examples_1010-1644391327-heap_potential_pointer_highlight.png}
+    \begin{figure}[H]\label{fig:methods:dataset:pointer_examples_1010-1644391327-heap_potential_pointer_highlight}
+        \centering
+        \includegraphics[width=16cm]{dataset/pointer_examples_1010-1644391327-heap_potential_pointer_highlight.png}
+        \caption{Binary RAW heap dump file loaded using \texttt{vim} and \texttt{xxd}, from \textit{/Training/Training/scp/V\_7\_8\_P1/16/1010-1644391327-heap.raw}, with highlight on rows with 12 hexadecimal digits followed by 4 zeros.}
+    \end{figure}
 
     We have information about the starting address of the heap using \lstinline[style=json]!"HEAP_START": "56343a198000"!. Considering that the example heap dump file contains $ 135169 $ bytes, this means that for this given heap dump file, the pointer addresses range from value $ 94782313037824_{10} $ and $ 94782313172993_{10} $. Note that the little-endian hexadecimal representation of the heap end address is \lstinline[language=c]!0x01901b3a3456! which is 12 character long, or 6 bytes long.
 
@@ -630,7 +634,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     
     The first brute-force algorithm is given by:
 
-    \begin{algorithm}[H]
+    \begin{algorithm}[H]\label{alg:methods:dataset:smartkex22:brute_force}
     \caption{SSH keys brute-force algorithm from \citetitle{SmartKex22} \cite{SmartKex22}}
     \begin{algorithmic}[1]
     \Procedure{FindIVAndKey}{$\text{netPacket}, \text{heapDump}$}
@@ -655,7 +659,7 @@ In the preceding chapters, all the necessary background knowledge to understand 
     \end{algorithmic}
     \end{algorithm}
     
-    Algorithm~1 outlines the brute-force approach for finding the Initialization Vector (IV) and the key. Initially, the lengths \(\text{ivLen}\) and \(\text{keyLen}\) are set based on the encryption method used for the heap. The algorithm then takes the first \(\text{ivLen}\) bytes from the heap dump to serve as the potential IV (\(pIV\)). Subsequently, \(\text{keyLen}\) bytes are extracted from the heap dump, starting from the first byte, to act as the potential key (\(pKey\)). The algorithm iterates through this potential key until it reaches the end of the heap dump. If decryption of the network packet is unsuccessful, the process is repeated by reading the next potential IV and the subsequent potential key \cite{SmartKex22}. 
+    This algorithm \ref{alg:methods:dataset:smartkex22:brute_force} outlines the brute-force approach for finding the Initialization Vector (IV) and the key. Initially, the lengths \(\text{ivLen}\) and \(\text{keyLen}\) are set based on the encryption method used for the heap. The algorithm then takes the first \(\text{ivLen}\) bytes from the heap dump to serve as the potential IV (\(pIV\)). Subsequently, \(\text{keyLen}\) bytes are extracted from the heap dump, starting from the first byte, to act as the potential key (\(pKey\)). The algorithm iterates through this potential key until it reaches the end of the heap dump. If decryption of the network packet is unsuccessful, the process is repeated by reading the next potential IV and the subsequent potential key \cite{SmartKex22}. 
 
     This algorithm is fairly straightforward, and can be implemented in a few lines of code. However, it is also very inefficient, as it tries all the possible keys in the heap dump file. It also needs some encrypted network packets to be able to test the keys, which are not included in the dataset. As such, we will not implement this algorithm.
     
@@ -1433,7 +1437,7 @@ Below is an example of a \gls{memgraph} comment field containing a JSON serializ
 
 The inclusion of these comment fields serves multiple purposes. First, it allows for the storage of embeddings along with additional information, making the graph more informative. Second, this format can be easily integrated into Python machine learning pipelines, facilitating the use of the graph in various machine learning tasks. Lastly, the DOT format serves as a standard format for graph representation, making it a versatile choice for both visualization and computational tasks.
 
-\section{A wild range of features and embeddings}
+\section{A wide range of features and embeddings}
 In the following, we will explore the features and embeddings developed and used in this thesis. We will start by the features and embeddings based on the memory graph characteristics, then we will explore the graph-agnostic embeddings, and finally, we will discuss the machine learning models used for the binary classification task.
 
 \subsection{Embeddings based on custom features}

@@ -16,7 +16,7 @@ This section is dedicated to the background information needed to understand the
 
     \subsection{Basics of the Secure Shell Protocol (SSH)}
     
-    The Secure Shell Protocol, commonly known as \acrshort{ssh}, is designed to facilitate secure remote login and other secure network services over insecure networks. \acrshort{ssh} has been design since its inception with security in mind, as a successor of the Telnet protocol, which is not secure, and other \say{unsecured remote shell protocols such as rlogin, rsh and rexec} \cite{SSHkex22}. 
+    The Secure Shell Protocol, commonly known as \acrshort{ssh}, is designed to facilitate secure remote login and other secure network services over insecure networks. \acrshort{ssh} has been designed since its inception with security in mind, as a successor of the Telnet protocol, which is not secure, and other \say{unsecured remote shell protocols such as rlogin, rsh and rexec} \cite{SSHkex22}. 
     
     \subsubsection{SSH design and origin}
     As stated by the authors of the \citetitle{SSHReport18}, \say{The founder of SSH, Tatu Ylönen, designed the first version of the SSH protocol after a password-sniffing attack at his university network. Tatu released his implementation as freeware in July 1995, and the tool quickly gained in popularity. Towards the end of 1995, the SSH user base had grown to 20,000 users in fifty countries. By 2000, there were an estimated 2,000,000 users of the protocol. Today, more than 95\% of the servers used to power the Internet have SSH installed in them. The SSH protocol is truly one of the cornerstones of a safe Internet.} \cite{SSHReport18}.
@@ -35,7 +35,7 @@ This section is dedicated to the background information needed to understand the
     \subsubsection{SSH keys}\label{sec:background:ssh:ssh_keys}
     For the purposes of this Masterarbeit, a comprehensive understanding of SSH's key exchange and encryption mechanism is important. As outlined in SSHKex \cite{SSHkex22}, the SSH protocol utilizes a key exchange procedure that culminates in a derived master key \( K \) and a hash value \( h \). These components are pivotal for encrypting client-server communications and identifying sessions.
 
-    During the key exchange process, Diffie-Hellman is employed to negotiate an ephemeral shared key between the client and the server \cite{RFC4251} \cite{StackExchangeSSHuseRASandDH23}. This ephemeral key is then signed by the server using either RSA, DSA, or another suitable signature algorithm (see \ref{subsubsec:background:ssh:hashing}). The signed key confirms to the client that the negotiated key is indeed from the intended server and not an imposter or a middleman, thereby preventing man-in-the-middle (MITM) attacks.
+    During the key exchange process, Diffie-Hellman is employed to negotiate an ephemeral shared key between the client and the server \cite{RFC4251} \cite{StackExchangeSSHuseRASandDH23}. The Diffie-Hellman key exchange is a method of securely exchanging cryptographic keys over a public channel. Proposed by Whitfield Diffie and Martin Hellman in 1976, this protocol is one of the first practical implementations of public key exchange. The fundamental principle behind Diffie-Hellman is the difficulty of solving discrete logarithm problems \cite{ComOverInsecureChannels78}. This ephemeral key is then signed by the server using either RSA, DSA, or another suitable signature algorithm (see \ref{subsubsec:background:ssh:hashing}). The signed key confirms to the client that the negotiated key is indeed from the intended server and not an imposter or a middleman, thereby preventing man-in-the-middle (MITM) attacks.
 
     In addition, the host key of the server is used to sign the Diffie-Hellman parameters. This key is not to be confused with the client key listed in the server's \texttt{authorized\_keys} file, which is used later for client authentication.
 
@@ -50,9 +50,9 @@ This section is dedicated to the background information needed to understand the
     This approach provides forward secrecy: if the private key is stolen, it does not compromise the encryption of old sessions. This is because the Diffie-Hellman parameters are ephemeral and discarded once they are no longer needed. Therefore, the only long-lasting keypair is used for authentication purposes.
 
     \subsubsection{SSH key encryption}
-    These keys are computed using hash functions that take the master key \textit{K} and a hash value \textit{h}, a unique letter (A, B, C, D, E, or F), and the session ID as inputs. This is summarized in \citetitle{OpenSSHUnderHood07}:
+    These keys are computed using hash functions that take the master key \textit{K} and a hash value \textit{H}, a unique letter (A, B, C, D, E, or F), and the session ID as inputs. This is summarized in \citetitle{OpenSSHUnderHood07}:
     \say{
-        The equations used for deriving the above vectors and keys are taken from RFC 4253 \cite{RFC4253}. In the following, the $||$ symbol stands for concatenation, K is encoded as mpint, $"A"$ as byte and $session_id$ as raw data. Any letter, such as the $"A"$ (in quotation marks) means the single character A, or ASCII 65.
+        The equations used for deriving the above vectors and keys are taken from RFC 4253 \cite{RFC4253}. In the following, the $||$ symbol stands for concatenation, K is encoded as mpint, $K$ is already a number (hash), $"A"$ as byte and $session_id$ as raw data. Any letter, such as the $"A"$ (in quotation marks) means the single character A, or ASCII 65.
         \begin{itemize}
             \item Initial IV client to server: $HASH(K || H || "A" || session_id)$.
             \item Initial IV server to client: $HASH(K || H || "B" || session_id)$.
@@ -175,7 +175,84 @@ This section is dedicated to the background information needed to understand the
     
     As explained in \citetitle{SSHHoneypotEffectiveness23}: \say{As attackers become more sophisticated with their ransomware and malware campaigns, there is a significant need for security researchers to assist the greater community by running vulnerable honeypot machines to collect malicious software}. \citeauthor{SSHHoneypotEffectiveness23} explain that \say{the ability to collect meaningful malware from attackers depends on how the attackers receive the honeypot. Most attackers fingerprint targets before they launch their attack, so it would be very beneficial for security researchers to understand how to hide honeypots from fingerprinting and trick the attackers into depositing malware.} They conclude that \say{What is certain is that if a cautious attacker believes they are in a honeypot, they will leave without depositing malware onto the system, which reduces the effectiveness of the honeypot for security research.} We can extrapolate this conclusion to SSH honeypots, which are also vulnerable to fingerprinting and detection by attackers. 
     
-    Hence, the need for more advanced SSH honeypots-inspired tools that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research (see \ref{chapter:related_work}), further enhancing the state of SSH honeypots. It aims to develop algorithms, proof of concepts and tools that can extract SSH keys from memory dumps of a real server, and use them to decrypt SSH traffic. This could lead to the development of new tools for SSH monitoring, as discussed in the future work section \ref{conclusion:sec:future_work}.
+    Hence, the need for more advanced SSH honeypots-inspired tools that can leverage data forensic and machine learning techniques so as to be able to use directly a real server as a honeypot, without the need to emulate a system. The current master's thesis is aligned with this ongoing research (see \ref{sec:background:previous_work}), further enhancing the state of SSH honeypots. It aims to develop algorithms, proof of concepts and tools that can extract SSH keys from memory dumps of a real server, and use them to decrypt SSH traffic. This could lead to the development of new tools for SSH monitoring, as discussed in the future work section \ref{conclusion:sec:future_work}.
+
+\section{Previous Work on OpenSSH key extraction}\label{sec:background:previous_work}
+
+    Now that the necessary context has been established, this section will present the related work in the field of machine learning for memory forensics in the context of OpenSSH. It is divided into two parts. The first part will present the related work in the field of memory forensics, and the second part will present the related work in the field of machine learning for memory forensics.
+
+    \subsection{SSHKex}\label{sec:background:kex:sshkex}
+        
+    SSHKex is a research project that aims to address the challenges of analyzing encrypted SSH traffic by leveraging \acrfull{vmi} techniques. Developed by \citeauthor{SSHkex22}, the project focuses on extracting SSH keys and decrypting SSH network traffic in a stealthy, non-intrusive manner while maintaining evidence integrity \cite{SSHkex22}. This paper is itself a continuation of the work presented in \citetitle{SarraceniaSSHHoneypot18} \cite{SarraceniaSSHHoneypot18}, which introduced Sarracenia, a high-interaction SSH honeypot. It is also related to a range of other research projects and papers \cite[section 5.6 and 6]{SSHkex22}.
+    
+    The SSHKex approach combines standard network traffic capturing methods with dynamic SSH session key extraction. It assumes that the SSH implementation running on the server is known, which is crucial for the key extraction process. The project employs VMI tools like LibVMI and Volatility to gain a complete and untainted view of all guest VM's state information. This allows to efficiently locate SSH session keys in the main memory of a Linux machine. 
+    
+    Here is a summary of the SSHKex methodology for key extraction:
+    \begin{enumerate}
+        \item \textbf{Data Structure Information:} The method leverages detailed knowledge about the data structures used to store the keys. Specific debugging symbols corresponding to the SSH implementation version on the target system provide essential offset values to facilitate the extraction of key material. The structures of interest include \texttt{struct ssh}, \texttt{struct session\_state}, \texttt{struct newkeys}, and \texttt{struct sshenc}. These structures store a range of information such as IP addresses, ports, session states, and encryption keys.
+    
+        \item \textbf{Tracing OpenSSH Functions:} Function tracing is employed to identify the precise locations of data structures and to extract keys at the right time. The focus is on two key functions: \texttt{kex\_derive\_keys} (which initiates key generation) and \texttt{do\_authentication2} (which kicks off user authentication).
+    
+        \item \textbf{Breakpoints Injection:} Software breakpoints are intentionally placed in the program execution to facilitate debugging. SSHKex utilizes Virtual Machine Introspection (VMI) to inject these breakpoints at the initial points of the two aforementioned key functions.
+    
+        \item \textbf{Key Extraction:} Upon calling the \textit{kex\_derive\_keys} function, SSHKex initially stores the address of the \textit{ssh struct}. The actual keys are extracted from memory when the \textit{do\_authentication2} function is subsequently called, adhering to the known structures. 
+    
+        \item \textbf{Key Indexing:} OpenSSH stores client-to-server and server-to-client keys in distinct indices of the \texttt{newkeys} structure. SSHKex extracts keys based on these specific indices.
+    
+        \item \textbf{Handling Multiple Connections:} To manage multiple SSH connections, OpenSSH spawns child processes. SSHKex extends its key extraction strategy to each child process by identifying them through their unique process IDs.
+    \end{enumerate}
+    
+    One of the key strengths of SSHKex is its focus on stealthiness, preservation, and evidence integrity. The approach aims to be as unobtrusive as possible, avoiding any modifications to the system under investigation. This is particularly important in forensic contexts, where the integrity of the evidence is crucial \cite{SSHkex22}.
+    
+    \subsection{SmartKex}
+    
+    SmartKex is a direct followup project that focuses on the extraction of SSH keys from heap memory dumps. Its primary objective is to automate the process of SSH key extraction from heap memory dumps. The project introduces a machine learning-assisted methodology that significantly improves the efficiency and accuracy of key extraction compared to traditional brute-force methods. This method is also significantly more straightforward to implement compared to the previous SSHKex approach, which requires detailed knowledge of the SSH implementation and the ability to inject breakpoints into the program execution.
+    
+    SmartKex discusses two distinct methods for SSH key extraction:
+    \begin{itemize}
+        \item \textbf{Brute-Force Baseline Method:} This is a traditional approach that scans through the heap memory to identify potential keys based on known patterns.
+        \item \textbf{Machine Learning-Assisted Method:} This  approach uses a Random Forest algorithm trained on a highly imbalanced dataset using \acrshort{smote} balancing. The machine learning model is designed to identify SSH keys with high precision and recall rates, but is not exact as compared to the brute-force method since it is based on a probabilistic model.
+    \end{itemize}
+    
+        \subsubsection{Baseline brute-force method}
+    
+        Here is a summary of SmartKex's brute-force method for SSH key extraction from heap dumps \cite{SmartKex22}:
+        \begin{enumerate}
+            % complete the following with information from Christopher
+            %   * how (which tool) was used to generate the dataset
+            %   * what architecture from 
+            \item \textbf{Heap Dump Generation:} Heap dump binary files of OpenSSH server process have been generated (ASK HOW) and serves as the input for the key extraction process. The exact process and architecture is not described in SmartKex paper, but we suppose it was done on a \textit{linux-x86\_64} architecture.
+            
+            \item \textbf{Data Reduction:} To minimize the heap size, the method removes memory pages that are irrelevant (empty) based on Hamming distance.
+            
+            \item \textbf{Brute-force key search:} Starting from the first byte, a key length of 128 bytes is taken from the heap dump as the potential key. The algorithm iterates over the entire heap, continuously updating the potential key until the heap's end is reached.
+            
+            \item \textbf{Decryption Attempt:} For every potential key, an attempt is made to decrypt network packets. If decryption fails, the process is repeated with a new potential key.
+        \end{enumerate}
+        
+        Although the brute-force approach is exact, it is computationally expensive. It performs poorly especially when keys are located at the end of the heap dump \cite[section 6.2]{SmartKex22}.
+    
+        \subsubsection{SmartKex machine-learning method}
+    
+        The real innovation of SmartKex is its machine learning-assisted methodology for SSH key extraction. At the cost fo exactness, this approach is significantly faster than the brute-force method and has a high degree of accuracy in identifying encryption keys. It also allows for the heap size to be reduced to less than 2\% of its original size, further optimizing the extraction process.
+    
+        Here is a summary of SmartKex's machine learning-assisted method for SSH key extraction from heap dumps \cite{SmartKex22}:
+    
+        \begin{enumerate}
+            \item \textbf{Heap Dump inputs:} Similarly to the brute-force method, heap dump binary files of OpenSSH also serve as inputs for the key extraction process.
+            \item \textbf{Preprocessing:} The raw heap dump is resized into an $N \times 8$ matrix. High entropy parts of the heap dump, which are likely to be encryption keys, are identified using the logical AND operation on the vertical and horizontal differences of adjacent bytes. This creates an array that flags potential key locations.
+            \item \textbf{Training:} A Random Forest algorithm is trained on 128-byte slices of the preprocessed heap. The dataset is imbalanced, with the slices that contain keys being rare. A stacked classifier approach is used, comprising a high precision classifier and a high recall classifier.
+            \item \textbf{Key Identification:} The machine learning model is used to predict which 128-byte slices of the heap dump are likely to contain encryption keys. These slices are then subjected to a brute-force method to actually extract the keys.
+        \end{enumerate}
+        
+    SmartKex is significantly faster than the brute-force method alone and has a high degree of accuracy in identifying encryption keys. It also allows for the heap size to be reduced to less than 2\% of its original size, further optimizing the extraction process.
+    
+    SmartKex has broad applications in the field of cybersecurity, particularly in memory forensics. Its machine learning-assisted methodology can be adapted for other types of sensitive data extraction, making it a versatile tool for researchers and practitioners alike. The project is open-source, with the code available on GitHub\footnote{\url{https://github.com/smartvmi/Smart-and-Naive-SSH-Key-Extraction}}.
+    
+    \subsection{Objectives of the present work}
+    This Masterarbeit can be seen as a direct followup to the paper \citetitle{SmartKex22}. The present work aims to improve the SmartKex methodology by exploring new machine learning architectures and algorithms. The goal is to improve the accuracy of the machine learning model and to reduce the computational complexity of the overall process.
+    
+    To do so, this work has significantly broadened the research area by exploring entirely new ways to deal with the dataset by leveraging memory graph representation, feature engineering, new machine learning and deep learning model architectures, and new training strategies. A range of different tools and script, with a focus on code quality and reproducibility with careful packaging using Nix ensure that the present research can be easily extended and reproduced by other researchers.
 
 \section{Graph-based memory modelization}\label{sec:background:graph}
 
@@ -303,7 +380,8 @@ This section is dedicated to the background information needed to understand the
         \item \textbf{Heterogeneous Graphs:} Each node and edge is assigned one type, allowing for partitioning nodes according to their type, which is useful for machine learning.
         \item \textbf{Property Graphs:} Allows a set of property-value pairs and a label to be associated with nodes and edges. This model is used in Neo4j and offers great flexibility but is harder to handle and query.
         \item \textbf{Graph Dataset:} A set of named graphs, with a default graph with no ID. Useful when working with different sources.
-        \item \textbf{Hypergraphs:} Allow edges that connect sets rather than pairs of nodes.
+        \item \textbf{Hypergraphs:} Hypergraphs generalize the concept of graphs by allowing edges, known as hyperedges, to connect any number of nodes, rather than just pairs. This means that a single hyperedge can link together two or more nodes, forming a subset of the hypergraph's node set. This feature makes hypergraphs particularly useful for modeling relationships in complex systems where connections are not merely binary. They are widely used in areas such as database design, combinatorial optimization, and complex network analysis, where multi-way relationships are prevalent.
+
     \end{itemize}
 
     A given graph can have a range of properties that give some insights into its structure. Here are some important properties of graphs:
@@ -354,7 +432,7 @@ This section is dedicated to the background information needed to understand the
         \caption{Graphical representation of an \texttt{rdf:Bag} container.}
     \end{figure}
 
-    This small example illustrate how we can represent a container, or a relationship of belonging, using a graph. This is a concept that will be used later in the memory modelization process.
+    This small example illustrates how we can represent a container, or a relationship of belonging, using a graph. This is a concept that will be used later in the memory modelization process.
 
     \subsubsection{Inductive Reasoning and Learning}
     Inductive reasoning in Knowledge Graphs (KGs) involves techniques like embedding and Graph Convolutional Networks (GCNs) to learn the potential underlying structure of the graph. This is particularly useful for tasks like link prediction, node classification, and clustering.
@@ -406,7 +484,7 @@ This section is dedicated to the background information needed to understand the
     \begin{itemize}
         \item \textbf{Scaling and Normalization:} Scaling and normalization are techniques used to transform the features to a similar scale. This is particularly important for algorithms that rely on distance metrics, such as \acrfull{knn} and \acrfull{svm}. Scaling and normalization can also help accelerate the training process by reducing the number of iterations required for the model to converge. Some common techniques include min-max scaling, z-score normalization, and log transformation.
         
-        \item \textbf{Feature Extraction}: This technique involves transforming the original set of features into a new set of features, which is usually of lower dimensionality. The new features are often combinations of the original features and aim to capture as much of the information in the original data as possible. Many methods exit, like \acrfull{pca}, \acrfull{lda} and \acrfull{tsne} are often employed to transform high-dimensional data into a lower-dimensional form are commonly used for feature extraction \cite{FeatureSelecExtract14}.
+        \item \textbf{Feature Extraction}: This technique involves transforming the original set of features into a new set of features, which is usually of lower dimensionality. The new features are often combinations of the original features and aim to capture as much of the information in the original data as possible. Many methods exits, like \acrfull{pca}, \acrfull{lda} and \acrfull{tsne} are often employed to transform high-dimensional data into a lower-dimensional form are commonly used for feature extraction \cite{FeatureSelecExtract14}.
         
         \item \textbf{Feature Selection}: Unlike feature extraction, feature selection aims to pick a subset of the most important features from the original set, without changing them \cite{FeatureSelecExtract14}. The goal is to remove irrelevant or redundant features that do not contribute significantly to the model's performance. Techniques like Recursive Feature Elimination (RFE) and using importance scores from tree-based algorithms like Random Forest are popular methods for feature selection.
     \end{itemize}
@@ -448,7 +526,7 @@ This section is dedicated to the background information needed to understand the
     Thus, embedding creation is a specialized form of feature engineering aimed at mapping discrete objects to continuous vectors of numbers, usually for capturing complex relationships. Feature engineering, on the other hand, is a broader practice that can involve a variety of techniques, including but not limited to embedding creation.
 
     \subsubsection{Embeddings for graphs}\label{sec:background:processing:embedding:graph}
-    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space \cite{KG21}. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. A quite complete overwiew of the different techniques can be found in \citetitle{KG21}. Here are some common and advanced techniques:
+    Graph embedding techniques aim to map nodes and edges in a graph to vectors in a low-dimensional space \cite{KG21}. The primary goal is to preserve the graph's structural properties, such as node connectivity and community structure, in the embedded space. These vectors can then be used for various machine learning tasks like clustering, classification, and link prediction. A quite complete overview of the different techniques can be found in \citetitle{KG21} \cite[Section 4.2]{KG21}. Here are some common and advanced techniques:
 
     % need to complete this section with more details and references
 
@@ -475,7 +553,7 @@ This section is dedicated to the background information needed to understand the
     Neural models employ neural networks to learn the features of entities and relations. This provides a more flexible and adaptive approach to graph embeddings.
 
     \begin{itemize}
-        \item \textbf{ConvKB:} ConvKB employs a convolutional neural network to automatically learn the features of entities and relations. It is technical a translational model as introduced before, but uses a convolutional layer to capture the interactions between entities and relations. This provides a more flexible and adaptive approach to graph embeddings \cite{ConvKB18}.
+        \item \textbf{ConvKB:} ConvKB employs a convolutional neural network to automatically learn the features of entities and relations. It is technically a translational model as introduced before, but uses a convolutional layer to capture the interactions between entities and relations. This provides a more flexible and adaptive approach to graph embeddings \cite{ConvKB18}.
         \item \textbf{RotatE:} RotatE uses complex rotations in the embedding space to model relations. This neural model captures the semantics of relations in a more expressive manner \cite{KG22}.
         \item \textbf{SDNE (Structural Deep Network Embedding)}: SDNE employs a deep autoencoder to learn complex and non-linear node embeddings while preserving first-order and second-order proximities. It is particularly effective for capturing intricate patterns and structures in the graph \cite{SDNE16}.
         \item \textbf{R-GCN:} Relational Graph Convolutional Networks (R-GCNs) combine the strengths of GCNs and traditional embedding methods to capture both topological and semantic information \cite{RGCN18}. A more recent study by \citeauthor{RGCN22} argues that the main contribution of R-GCN lies in its message passing paradigm rather than the learned weights. This paper introduces a variant called Random R-GCN (RR-GCN) \cite{RGCN22}.
@@ -518,7 +596,7 @@ This section is dedicated to the background information needed to understand the
     \end{itemize}
 
     \subsection{Other preprocessing techniques for Machine Learning}
-    When working with real-world data and datasets, it is common to issues like missing values, outliers, and imbalanced classes that can adversely affect the performance of machine learning models. In this section, we will discuss some common preprocessing techniques used to improve the quality of data and ensure that the models can learn effectively.
+    When working with real-world data and datasets, it is common to find issues like missing values, outliers, and imbalanced classes that can adversely affect the performance of machine learning models. In this section, we will discuss some common preprocessing techniques used to improve the quality of data and ensure that the models can learn effectively.
 
     \subsubsection{Data Cleaning}
     Data cleaning is the process of detecting and correcting errors in the data. It is a crucial step in data preprocessing and involves various techniques like outlier detection, handling missing values, and data normalization. Data cleaning is necessary to ensure that the data is accurate and consistent, which is essential for machine learning models to learn effectively.
