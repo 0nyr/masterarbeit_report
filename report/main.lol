@@ -24,11 +24,11 @@
 \contentsline {lstlisting}{\numberline {3.24}Command used to generate the memory graph visualization of \textit {Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}}{77}{lstlisting.3.24}%
 \contentsline {lstlisting}{\numberline {3.25}A comment field example for a node with embedding. Output is cropped.}{79}{lstlisting.3.25}%
 \contentsline {lstlisting}{\numberline {3.26}A memgraph comment field example containing JSON serialized object with embedding type and feature names. Output is cropped.}{79}{lstlisting.3.26}%
-\contentsline {lstlisting}{\numberline {4.1}Command used to count the number of lines of code in the \textit {phdtrack} directory, containing the reposiroties of the present thesis.}{93}{lstlisting.4.1}%
-\contentsline {lstlisting}{\numberline {4.2}Sample of final logs of the \texttt {Mem2Graph} program, after generating 6 memgraph datasets from the cleaned heap dump dataset.}{94}{lstlisting.4.2}%
-\contentsline {lstlisting}{\numberline {4.3}Result logs of the \texttt {memory\_graph\_gcn/src/sanity\_check\_gv\_files.py} program.}{96}{lstlisting.4.3}%
-\contentsline {lstlisting}{\numberline {4.4}Command used to launch final experiments, on Drogon server.}{97}{lstlisting.4.4}%
-\contentsline {lstlisting}{\numberline {4.5}JSON hyperparameters used during experiments}{98}{lstlisting.4.5}%
-\contentsline {lstlisting}{\numberline {4.6}JSON hyperparameters used during experiments}{99}{lstlisting.4.6}%
-\contentsline {lstlisting}{\numberline {1}The DOT file of uncompressed block memgraph, here \textit {Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}, with real addresses. Output is cropped.}{120}{lstlisting.a..1}%
-\contentsline {lstlisting}{\numberline {2}Command used to generate the memory graph visualization of \textit {Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw} here using real addresses.}{122}{lstlisting.a..2}%
+\contentsline {lstlisting}{\numberline {4.1}Command used to count the number of lines of code in the \textit {phdtrack} directory, containing the reposiroties of the present thesis.}{92}{lstlisting.4.1}%
+\contentsline {lstlisting}{\numberline {4.2}Sample of final logs of the \texttt {Mem2Graph} program, after generating 6 memgraph datasets from the cleaned heap dump dataset.}{93}{lstlisting.4.2}%
+\contentsline {lstlisting}{\numberline {4.3}Result logs of the \texttt {memory\_graph\_gcn/src/sanity\_check\_gv\_files.py} program.}{95}{lstlisting.4.3}%
+\contentsline {lstlisting}{\numberline {4.4}Command used to launch final experiments, on Drogon server.}{96}{lstlisting.4.4}%
+\contentsline {lstlisting}{\numberline {4.5}JSON hyperparameters used during experiments}{97}{lstlisting.4.5}%
+\contentsline {lstlisting}{\numberline {4.6}JSON hyperparameters used during experiments}{98}{lstlisting.4.6}%
+\contentsline {lstlisting}{\numberline {1}The DOT file of uncompressed block memgraph, here \textit {Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw}, with real addresses. Output is cropped.}{119}{lstlisting.a..1}%
+\contentsline {lstlisting}{\numberline {2}Command used to generate the memory graph visualization of \textit {Training/basic/V\_7\_1\_P1/24/17016-1643962152-heap.raw} here using real addresses.}{121}{lstlisting.a..2}%
