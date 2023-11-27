@@ -54,4 +54,4 @@ fig.suptitle("Impact of Node Embeddings on Model Metrics for Class 1 (Key predic
 plt.tight_layout(rect=[0, 0, 1, 1])
 
 # Save the plot
-plt.savefig(f"{PLOT_OUTPUT_DIR_PATH}/embedding_comparison_metrics.png")
+plt.savefig(f"{PLOT_OUTPUT_DIR_PATH}/embedding_comparison_metrics_v2.png")

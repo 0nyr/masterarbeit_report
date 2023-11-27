@@ -7,12 +7,12 @@ It first reads all the csv files in the RAW_CSV_DIR_PATH directory,
 then it checks the header of each csv file to make sure that they are all the same,
 then it concatenates them into one csv file.
 
-The concatenated csv file is saved in the RAW_CSV_DIR_PATH directory,
-and called "concatenated_raw_result.csv".
+The concatenated csv file is saved in the RAW_CSV_DIR_PATH directory.
 """
 
-RAW_CSV_DIR_PATH = "src/results/csv/raw_result_csv"
+RAW_CSV_DIR_PATH = "src/results/csv/raw_result_csv_v2"
 CONCAT_OUTPUT_DIR_PATH = "src/results/csv/concatenated_csv"
+CONCAT_CSV_FILENAME = "concatenated_raw_result_v2.csv"
 
 def concatenate_csv_files(dir_path):
     files = [f for f in os.listdir(dir_path) if f.endswith('.csv')]
@@ -48,7 +48,7 @@ def concatenate_csv_files(dir_path):
 
     # Save the concatenated DataFrame as a new csv file
     output_file_path = os.path.join(
-        CONCAT_OUTPUT_DIR_PATH, "concatenated_raw_result.csv"
+        CONCAT_OUTPUT_DIR_PATH, CONCAT_CSV_FILENAME
     )
     concatenated_df.to_csv(output_file_path, index=False)
     print(f"Concatenated csv files saved as {output_file_path}")
