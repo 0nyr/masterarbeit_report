@@ -297,8 +297,8 @@ In the preceding chapters, all the necessary background knowledge to understand 
     It's important to define some conventions and vocabulary that will be used in the following sections, since many concepts can be ambiguous depending on the context.
 
     \begin{itemize}
-        \item \textbf{memory graph:} A memory graph is our particular directed graph that represents the memory of a heap dump file. The memory graph is the main data structure used for the embedding step.
-        \item \item \textbf{block:} In the following, we will refer to a block as a sequence of 8 bytes. This is because the heap dump file is a memory dump, and memory is allocated in chunks that are multiples of 8 bytes. This means that we can expect the heap dump file to be composed of a sequence of 8 bytes blocks.
+        \item \textbf{memory graph:} A memory graph is our particular case refers to a directed graph that represents the memory of a heap dump file. The memory graph is the main data structure used for the embedding step.
+        \item \textbf{block:} In the following, we will refer to a block as a sequence of 8 bytes. This is because the heap dump file is a memory dump, and memory is allocated in chunks that are multiples of 8 bytes. This means that we can expect the heap dump file to be composed of a sequence of 8 bytes blocks.
         \item \textbf{chunk:} A chunk is a sequence of blocks bytes. This concepts directly comes from the \lstinline[language=c]|malloc| implementation. At its core, a chunk has a user data body composed of blocks and a malloc header block. A chunk can be in-use or free.
     \end{itemize}
 
