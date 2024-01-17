@@ -1,5 +1,5 @@
 """
-Get the duration stats for each model.
+Get the duration stats for each model (on key prediction)
 """
 
 import pandas as pd
@@ -16,11 +16,11 @@ def latex_escape(s):
 
 def generate_latex_table(df, duration_for: str):
     caption = f"Duration times for {duration_for} (in seconds).)"
-    latex_str = "    \\begin{table}[H]\n"
+    latex_str = "    \\begin{table}\n"
     latex_str += "        \\centering\n"
     latex_str += f"        \\caption{{{caption}}}\n"
     latex_str += "        \\begin{tabular}{lcccccc}\n"
-    latex_str += "          \\textbf{Model}  & \\textbf{Min duration} & \\textbf{Max duration} & \\textbf{Min duration} \\\\\n"
+    latex_str += "          \\textbf{Model}  & \\textbf{Mean duration} & \\textbf{Max duration} & \\textbf{Min duration} \\\\\n"
 
     # one row per model
     for index, row in df.iterrows():
