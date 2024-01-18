@@ -61,3 +61,87 @@ Generated using a slightly different command, for better layout of the nodes:
     \includegraphics[width=16cm]{graphs/chunk_top_vn_semantic_home_onyr_code_phdtrack_phdtrack_data_clean_28621-1643890740-heap.raw_dot_no_vn_chn_annotation_no_vn-sfdp.png}
     \caption{Visualization of a chunk memory graph generated from \textit{Training/Training/basic/V\_6\_8\_P1/24/28621-1643890740-heap.raw}.}
 \end{figure}
+
+\section{Latest ML Experiment results}
+The following are the latest results for ML experiments. Those tables were generated after the submission of the thesis.
+
+\begin{table}[H]
+    \centering
+    \caption{Best instance for each model, with respect to accuracy.}
+    \begin{tabular}{|l|c|c|c|c|c|c|} \hline 
+      \textbf{Model}  & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1 Score} & \textbf{Embedding}  \\ \hline 
+        random-forest & 0.9984 & 1.0000 & 0.0833 & 0.1538 & chunk-start-bytes \\ \hline 
+        sgd-classifier & 0.9984 & 0.6250 & 0.2083 & 0.3125 & node2vec \\ \hline 
+        logistic-regression & 0.9983 & 1.0000 & 0.0417 & 0.0800 & node2vec \\ \hline 
+        advanced-gcn & 0.9969 & 0.0000 & 0.0000 & 0.0000 & node2vec \\ \hline 
+        gcn-with-dropout & 0.9969 & 0.0000 & 0.0000 & 0.0000 & node2vec \\ \hline 
+        first-gcn & 0.9963 & 0.0000 & 0.0000 & 0.0000 & node2vec-chunk-statistic \\ \hline 
+        simple-gcn & 0.9962 & 0.0000 & 0.0000 & 0.0000 & chunk-statistic \\ \hline 
+        very-simple-gcn & 0.9959 & 0.0000 & 0.0000 & 0.0000 & node2vec \\ \hline 
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+    \centering
+    \caption{Best instance for each model, with respect to precision.}
+    \begin{tabular}{|l|c|c|c|c|c|c|} \hline 
+      \textbf{Model}  & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1 Score} & \textbf{Embedding}  \\ \hline 
+        logistic-regression & 0.9944 & 1.0000 & 0.0417 & 0.0800 & node2vec \\ \hline 
+        random-forest & 0.9983 & 1.0000 & 0.0417 & 0.0800 & chunk-start-bytes \\ \hline 
+        sgd-classifier & 0.9983 & 1.0000 & 0.0417 & 0.0800 & node2vec \\ \hline 
+        very-simple-gcn & 0.9946 & 0.6000 & 0.5000 & 0.5455 & node2vec \\ \hline 
+        first-gcn & 0.9935 & 0.5000 & 0.5000 & 0.5000 & node2vec \\ \hline 
+        simple-gcn & 0.9935 & 0.5000 & 0.5000 & 0.5000 & node2vec \\ \hline 
+        gcn-with-dropout & 0.9920 & 0.3500 & 0.2333 & 0.2800 & node2vec \\ \hline 
+        advanced-gcn & 0.9898 & 0.2097 & 0.4333 & 0.2826 & node2vec \\ \hline 
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+    \centering
+    \caption{Best instance for each model, with respect to recall.}
+    \begin{tabular}{|l|c|c|c|c|c|c|} \hline 
+      \textbf{Model}  & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1 Score} & \textbf{Embedding}  \\ \hline 
+        first-gcn & 0.9826 & 0.2727 & 1.0000 & 0.4286 & node2vec \\ \hline 
+        sgd-classifier & 0.9924 & 0.4615 & 1.0000 & 0.6316 & node2vec \\ \hline 
+        simple-gcn & 0.9783 & 0.2308 & 1.0000 & 0.3750 & node2vec \\ \hline 
+        very-simple-gcn & 0.9815 & 0.2609 & 1.0000 & 0.4138 & node2vec \\ \hline 
+        advanced-gcn & 0.8887 & 0.0533 & 0.9000 & 0.1006 & node2vec \\ \hline 
+        gcn-with-dropout & 0.9613 & 0.0863 & 0.8000 & 0.1558 & node2vec \\ \hline 
+        logistic-regression & 0.9912 & 0.3333 & 0.5000 & 0.4000 & node2vec \\ \hline 
+        random-forest & 0.9984 & 1.0000 & 0.0833 & 0.1538 & chunk-start-bytes \\ \hline 
+    \end{tabular}
+\end{table}
+
+
+\begin{table}[H]
+    \centering
+    \caption{Best instance for each model, with respect to f1 score.}
+    \begin{tabular}{|l|c|c|c|c|c|c|} \hline 
+      \textbf{Model}  & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1 Score} & \textbf{Embedding}  \\ \hline 
+        sgd-classifier & 0.9924 & 0.4615 & 1.0000 & 0.6316 & node2vec \\ \hline 
+        very-simple-gcn & 0.9946 & 0.6000 & 0.5000 & 0.5455 & node2vec \\ \hline 
+        first-gcn & 0.9935 & 0.5000 & 0.5000 & 0.5000 & node2vec \\ \hline 
+        simple-gcn & 0.9935 & 0.5000 & 0.5000 & 0.5000 & node2vec \\ \hline 
+        logistic-regression & 0.9912 & 0.3333 & 0.5000 & 0.4000 & node2vec \\ \hline 
+        gcn-with-dropout & 0.9858 & 0.2110 & 0.7667 & 0.3309 & node2vec \\ \hline 
+        advanced-gcn & 0.9898 & 0.2097 & 0.4333 & 0.2826 & node2vec \\ \hline 
+        random-forest & 0.9984 & 1.0000 & 0.0833 & 0.1538 & chunk-start-bytes \\ \hline 
+    \end{tabular}
+\end{table}
+
+
+\begin{table}
+    \centering
+    \caption{Best model instance for each metric.}
+    \begin{tabular}{|l|c|c|c|c|c|c|} \hline 
+      \textbf{Metric} & \textbf{Model}  & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1 Score} & \textbf{Embedding}  \\ \hline 
+        accuracy & random-forest & 0.9984 & 1.0000 & 0.0833 & 0.1538 & chunk-start-bytes \\ \hline 
+        precision & logistic-regression & 0.9944 & 1.0000 & 0.0417 & 0.0800 & node2vec \\ \hline 
+        recall & first-gcn & 0.9826 & 0.2727 & 1.0000 & 0.4286 & node2vec \\ \hline 
+        f1 score & sgd-classifier & 0.9924 & 0.4615 & 1.0000 & 0.6316 & node2vec \\ \hline 
+    \end{tabular}
+\end{table}
+
